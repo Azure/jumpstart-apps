@@ -1,20 +1,12 @@
-FROM ubuntu:latest
+# To use the latest python version in Mariner, use the following FROM instruction.
+FROM mcr.microsoft.com/cbl-mariner/base/python:3
 
-RUN apt update && apt install -y 
-RUN apt install -y  git \
-    python3 \
-    nano
+# Create app directory. Replace this with your desired work directory e.g., /app.
+WORKDIR /usr/src/app
 
-RUN apt install -y python3-pip
-RUN apt install -y python3-venv
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
 
-RUN pip3 install paho-mqtt==1.5.0
+COPY . .
 
-ARG PROJECT_NAME=vs
-ARG PROJECT_ROOT=workspace
-
-COPY ./config ./config
-COPY ./mqtt-simulator ./mqtt-simulator
-
-ENTRYPOINT ["python3", "./mqtt-simulator/main.py"]
-
+CMD [ "python", "./mqtt-simulator/main.py" ]
