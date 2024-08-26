@@ -1,28 +1,34 @@
-var express = require('express');
-var exphbs  = require('express-handlebars');
-var app = express();
-var os = require("os");
-var morgan  = require('morgan');
+const express = require('express');
+const { create } = require('express-handlebars');
+const os = require("os");
+const morgan = require('morgan');
 
-app.engine('handlebars', exphbs({defaultLayout: 'main'}));
+const app = express();
+
+// Set up Handlebars engine with default layout
+const hbs = create({ defaultLayout: 'main' });
+app.engine('handlebars', hbs.engine);
 app.set('view engine', 'handlebars');
+
+// Middleware
 app.use(express.static('static'));
 app.use(morgan('combined'));
 
 // Configuration
-var port = process.env.PORT || 8080;
-var message = process.env.MESSAGE || "Hello Azure Arc GitOps Demo!";
+const port = process.env.PORT || 8080;
+const message = process.env.MESSAGE || "Hello Azure Arc GitOps Demo!";
 
-app.get('/', function (req, res) {
+// Routes
+app.get('/', (req, res) => {
     res.render('home', {
-      message: message,
-      platform: os.type(),
-      release: os.release(),
-      hostName: os.hostname()
+        message,
+        platform: os.type(),
+        release: os.release(),
+        hostName: os.hostname()
     });
 });
 
-// Set up listener
-app.listen(port, function () {
-  console.log("Listening on: http://%s:%s", os.hostname(), port);
+// Start the server
+app.listen(port, () => {
+    console.log(`Listening on: http://${os.hostname()}:${port}`);
 });
