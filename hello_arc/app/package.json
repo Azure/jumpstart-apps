@@ -6,7 +6,8 @@
   "license": "MIT",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "build": "echo \"No build step required with express\""
   },
   "dependencies": {
     "bytes": "^3.1.2",
