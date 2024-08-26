@@ -2,30 +2,36 @@ import argparse
 from pathlib import Path
 from simulator import Simulator
 
-
-def default_settings():
+def get_default_settings_file():
+    """Returns the default settings file path."""
     base_folder = Path(__file__).resolve().parent.parent
-    settings_file = base_folder / "config/settings.json"
-    return settings_file
+    return base_folder / "config/settings.json"
 
+def validate_file(file_path):
+    """Validates that the provided path is a file."""
+    path = Path(file_path)
+    if not path.is_file():
+        raise argparse.ArgumentTypeError(f"Can't open file: '{file_path}'")
+    return path
 
-def is_valid_file(parser, arg):
-    settings_file = Path(arg)
-    if not settings_file.is_file():
-        return parser.error(f"argument -f/--file: can't open '{arg}'")
-    return settings_file
+def parse_arguments():
+    """Parses command-line arguments."""
+    parser = argparse.ArgumentParser(description="Run the simulator with a specific settings file.")
+    parser.add_argument(
+        "-f",
+        "--file",
+        dest="settings_file",
+        type=validate_file,
+        help="Path to the settings file.",
+        default=get_default_settings_file(),
+    )
+    return parser.parse_args()
 
+def main():
+    """Main entry point of the program."""
+    args = parse_arguments()
+    simulator = Simulator(args.settings_file)
+    simulator.run()
 
-parser = argparse.ArgumentParser()
-parser.add_argument(
-    "-f",
-    "--file",
-    dest="settings_file",
-    type=lambda x: is_valid_file(parser, x),
-    help="settings file",
-    default=default_settings(),
-)
-args = parser.parse_args()
-
-simulator = Simulator(args.settings_file)
-simulator.run()
+if __name__ == "__main__":
+    main()
