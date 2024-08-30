@@ -9,4 +9,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-CMD [ "python", "./mqtt-simulator/main.py" ]
+CMD [ "/usr/bin/python3", "./mqtt-simulator/main.py" ]
