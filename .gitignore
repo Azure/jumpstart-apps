@@ -1,2 +1,3 @@
 
 *.pyc
+/contoso_supermarket/mqtt-simulator/mqtt-simulator/__pycache__
