@@ -28,6 +28,8 @@ class Topic(ABC):
 
     def connect(self) -> None:
         """Connect to the MQTT broker."""
+        print(f"Broker: {self.broker_url} ...")
+        print(f"Port: {self.broker_port} ...")
         # Specify the callback API version for compatibility with paho-mqtt version 2.0+
         self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1, self.topic_url, clean_session=True, transport="tcp")
         self.client.on_publish = self.on_publish
