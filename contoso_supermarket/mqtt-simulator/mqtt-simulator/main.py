@@ -9,6 +9,7 @@ def get_default_settings_file():
 
 def validate_file(file_path):
     """Validates that the provided path is a file."""
+    print("file_path: ", file_path)
     path = Path(file_path)
     if not path.is_file():
         raise argparse.ArgumentTypeError(f"Can't open file: '{file_path}'")
