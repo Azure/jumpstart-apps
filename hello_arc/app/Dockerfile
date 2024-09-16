@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/cbl-mariner/base/nodejs:16
+FROM mcr.microsoft.com/cbl-mariner/base/nodejs:18
 
 # Create app directory. Replace this with your desired work directory e.g., /app.
 WORKDIR /usr/src/app
