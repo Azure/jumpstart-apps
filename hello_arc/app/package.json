@@ -1,0 +1,20 @@
+{
+  "name": "hello-arc",
+  "version": "1.8.0",
+  "description": "Hello Arc!",
+  "author": "Lior Kamrat",
+  "license": "MIT",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "build": "echo \"No build step required with express\""
+  },
+  "dependencies": {
+    "bytes": "^3.1.2",
+    "express": "^4.19.2",
+    "express-handlebars": "^8.0.1",
+    "handlebars": "^4.7.8",
+    "minimist": ">=1.2.8",
+    "morgan": "^1.10.0"
+  }
+}
