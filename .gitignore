@@ -166,3 +166,5 @@ eclipse.conf
 
 *.pyc
 /contoso_supermarket/mqtt-simulator/mqtt-simulator/__pycache__
+/contoso_supermarket/developer/pos/.vscode
+/contoso_supermarket/developer/pos/pgdata
