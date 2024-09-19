@@ -1,0 +1,27 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: contosodb
+  namespace: contoso-supermarket
+  annotations:
+    clusterconfig.azure.com/use-managed-source: "true"
+spec:
+  interval: 1m
+  releaseName: contosodb
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  chart:
+    spec:
+      chart: ./contoso_supermarket/operations/contoso_supermarket/charts/contosodb
+  values:
+    acr_name: __acrName__
+    branch_name: "canary"
+    image_tag: v1.0
+    github_User: __githubUser__
+    postgres:
+      username: "postgres"
+      database: "contoso"

@@ -1,0 +1,8 @@
+postgres:
+  username: "postgres"
+  database: "contoso"
+
+point_of_sale:
+  title: "Contoso Supermarket"
+  new_category: "True"
+  holiday_banner: "False"
