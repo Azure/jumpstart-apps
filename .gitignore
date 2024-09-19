@@ -168,3 +168,4 @@ eclipse.conf
 /contoso_supermarket/mqtt-simulator/mqtt-simulator/__pycache__
 /contoso_supermarket/developer/pos/.vscode
 /contoso_supermarket/developer/pos/pgdata
+/contoso_supermarket/developer/pos/flask_session
