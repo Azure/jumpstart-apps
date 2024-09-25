@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<title>Person count demo</title>
+<h1>Person count demo</h1>
+<form method="post" action="/inference" onsubmit="submitAction();">
+
+<h2>
+    Source
+</h2>
+<input type="text" placeholder="Enter the URL of the video stream" value="" name="txtVideoSource" id="txtVideoSource" style="width:700px" onblur="changeVideoURL();"/>
+<p>
+<label>OR, select from the following list</label>
+</p>
+    <select id="videoSource" name="videoSource" onchange="changeVideoSelection();">
+        <option value="https://github.com/intel-iot-devkit/sample-videos/raw/master/people-detection.mp4">https://github.com/intel-iot-devkit/sample-videos/raw/master/people-detection.mp4</option>
+        <option value="https://dm0qx8t0i9gc9.cloudfront.net/watermarks/video/49_20HQOeijh9fog1/uae-dubai-february-1-2016-people-near-shop-counter-with-fresh-fruits-inside-dubai-mall-in-united-arab-emirates-dubai-mall-is-the-world-largest-shopping-mall_nixdioorg__54efbe10ef1db686a89eb84a13815e70__P360.mp4">https://dm0qx8t0i9gc9.cloudfront.net/watermarks/video/49_20HQOeijh9fog1/uae-dubai-february-1-2016-people-near-shop-counter-with-fresh-fruits-inside-dubai-mall-in-united-arab-emirates-dubai-mall-is-the-world-largest-shopping-mall_nixdioorg__54efbe10ef1db686a89eb84a13815e70__P360.mp4</option>
+        <option value="https://dm0qx8t0i9gc9.cloudfront.net/watermarks/video/SEcSCp_lol7ukts6n/videoblocks-right-to-left-pan-of-grocery-store-with-very-little-fruit-in-fruit-stands_h1xftggdh__090373eefddab942faba59188b8bea1c__P360.mp4">https://dm0qx8t0i9gc9.cloudfront.net/watermarks/video/SEcSCp_lol7ukts6n/videoblocks-right-to-left-pan-of-grocery-store-with-very-little-fruit-in-fruit-stands_h1xftggdh__090373eefddab942faba59188b8bea1c__P360.mp4</option>
+        <option value="https://dm0qx8t0i9gc9.cloudfront.net/watermarks/video/SEcSCp_lol7ukts6n/videoblocks-aerial-top-down-view-people-grocery-shopping-with-dividers-plexiglass-barri_hw75n3prh__3c8362e8e446a5950783b62bcea64086__P360.mp4">https://dm0qx8t0i9gc9.cloudfront.net/watermarks/video/SEcSCp_lol7ukts6n/videoblocks-aerial-top-down-view-people-grocery-shopping-with-dividers-plexiglass-barri_hw75n3prh__3c8362e8e446a5950783b62bcea64086__P360.mp4</option>
+        <option value="https://dm0qx8t0i9gc9.cloudfront.net/watermarks/video/SEcSCp_lol7ukts6n/videoblocks-aerial-long-lines-of-blue-masked-shoppers-afraid-of-virus-standing-in-line-_bq-sd1-dn__90182c6a70c6bc547346bf2c8ad2a5a9__P360.mp4">https://dm0qx8t0i9gc9.cloudfront.net/watermarks/video/SEcSCp_lol7ukts6n/videoblocks-aerial-long-lines-of-blue-masked-shoppers-afraid-of-virus-standing-in-line-_bq-sd1-dn__90182c6a70c6bc547346bf2c8ad2a5a9__P360.mp4</option>
+        <option value="https://dm0qx8t0i9gc9.cloudfront.net/watermarks/video/e4Gpia8/videoblocks-sarajevo-bosnia-and-herzegovina-may-13th-high-angle-shot-of-a-fruits-and-ve_bzfdqwqk4__6b09cc12146b8d3fa7a9a552b55bd115__P360.mp4">https://dm0qx8t0i9gc9.cloudfront.net/watermarks/video/e4Gpia8/videoblocks-sarajevo-bosnia-and-herzegovina-may-13th-high-angle-shot-of-a-fruits-and-ve_bzfdqwqk4__6b09cc12146b8d3fa7a9a552b55bd115__P360.mp4</option>
+        <option value="https://dm0qx8t0i9gc9.cloudfront.net/watermarks/video/r6uQGb9/drugstore-in-shinkyogoku-shopping-street-in-kyoto-japan-asia-japanese-people-tourists-crowd-shopping-in-shops-and-stores_rdc-wgdpe__0b3d31d50bb1ac11252f8e8b223b8107__P360.mp4">https://dm0qx8t0i9gc9.cloudfront.net/watermarks/video/r6uQGb9/drugstore-in-shinkyogoku-shopping-street-in-kyoto-japan-asia-japanese-people-tourists-crowd-shopping-in-shops-and-stores_rdc-wgdpe__0b3d31d50bb1ac11252f8e8b223b8107__P360.mp4</option>
+        <option value="https://dm0qx8t0i9gc9.cloudfront.net/watermarks/video/49_20HQOeijh9fog1/people-in-shopping-area-in-sharm-el-sheikh-egypt_vdlwoxwye__60cd1b0bc7975228b55a97321e6a676d__P360.mp4">https://dm0qx8t0i9gc9.cloudfront.net/watermarks/video/49_20HQOeijh9fog1/people-in-shopping-area-in-sharm-el-sheikh-egypt_vdlwoxwye__60cd1b0bc7975228b55a97321e6a676d__P360.mp4</option>
+        <option value="https://dm0qx8t0i9gc9.cloudfront.net/watermarks/video/49_20HQOeijh9fog1/greece-thessaloniki-june-12-2013-people-inside-duty-free-store-in-international-airport-in-thessaloniki-greece_v_s17rzke__59486b5487f9bf5407c152edcceee609__P360.mp4">https://dm0qx8t0i9gc9.cloudfront.net/watermarks/video/49_20HQOeijh9fog1/greece-thessaloniki-june-12-2013-people-inside-duty-free-store-in-international-airport-in-thessaloniki-greece_v_s17rzke__59486b5487f9bf5407c152edcceee609__P360.mp4</option>
+        <option value="https://dm0qx8t0i9gc9.cloudfront.net/watermarks/video/SEcSCp_lol7ukts6n/videoblocks-aerial-view-people-walking-down-center-lane-grocery-shopping-by-produce-sec_ryyqlpbp3__9a31ad8ce3f137b6572eefb5e6255d81__P360.mp4">https://dm0qx8t0i9gc9.cloudfront.net/watermarks/video/SEcSCp_lol7ukts6n/videoblocks-aerial-view-people-walking-down-center-lane-grocery-shopping-by-produce-sec_ryyqlpbp3__9a31ad8ce3f137b6572eefb5e6255d81__P360.mp4</option>
+        <option value="https://videos.pond5.com/people-are-pushing-carts-along-footage-111188459_main_xxl.mp4">https://videos.pond5.com/people-are-pushing-carts-along-footage-111188459_main_xxl.mp4</option>
+    </select>
+    <input type="text" id="txtX1" name="txtX1" style="display: none;"/>
+    <input type="text" id="txtY1" name="txtY1" style="display: none;"/>
+    <input type="text" id="txtX2" name="txtX2" style="display: none;"/>
+    <input type="text" id="txtY2" name="txtY2" style="display: none;"/>
+<h2>
+    Selected Video
+</h2>
+<table>
+<tr>
+    <td>
+        <video autoplay="true" id="webCamera" style="display: none;"> 
+            <source src="https://github.com/intel-iot-devkit/sample-videos/raw/master/people-detection.mp4" type="video/mp4">
+            Your browser does not support video tag    
+        </video>
+        <canvas id="videoCanvas"></canvas>        
+    </td>
+    <td>
+        <img src="" id="received_image" style="display: none;"/>    
+    </td>
+</tr>
+</table>
+
+<p>
+    <input type="submit" value="Run Inference" />
+</p>
+<label id="lblInferance" style="display: none;">Inference in progress, please wait ...</label>
+</form>
+
+<script>
+    const canvas = document.getElementById("videoCanvas");
+    const context = canvas.getContext("2d");    
+    context.strokeStyle = 'red';
+    context.fillStyle = 'red';
+    context.lineWidth = 10;
+    context.lineCap = "round";        
+    let hasInferanceStarted = false;
+    let hasDrawn = false;
+    let drawing = false;
+    let x1 = 0;
+    let x2 = 0;
+    let y1 = 0;
+    let y2 = 0;
+    function startDrawing(e) {
+        hasDrawn = false;
+        drawing = true;
+        context.beginPath();
+    }
+
+    //window.addEventListener("mousedown", startDrawing);
+
+    function endDrawing(e) {
+        drawing = false;
+        hasDrawn = true;
+    }
+
+    //window.addEventListener("mouseup", endDrawing);
+
+    function getMousePos(canvas, evt) {
+        var rect = canvas.getBoundingClientRect(),
+        scaleX = canvas.width / rect.width,
+        scaleY = canvas.height / rect.height;
+    
+        return {
+        x: Math.floor((evt.clientX - rect.left) * scaleX),
+        y: Math.floor((evt.clientY - rect.top) * scaleY)
+        }
+    }    
+
+    function draw(e) {
+       if (!drawing) return;
+
+        let { x, y } = getMousePos(canvas, e);
+
+        context.lineTo(x, y);
+        context.stroke();
+    }
+
+    //window.addEventListener("mousemove", draw);
+
+    function startDrawing(e) {
+        hasDrawn = false;
+        drawing = true;
+        context.beginPath();
+        draw(e);
+    }
+
+    let start = {}
+
+    function startRect(e) {
+        start = getMousePos(canvas, e);
+    }
+
+    window.addEventListener("mousedown", startRect);
+
+    function endRect(e) {
+        let { x, y } = getMousePos(canvas, e);
+        context.strokeStyle = 'red';
+        context.fillStyle = 'red';
+        context.lineWidth = 10;
+        context.lineCap = "round";          
+        //context.fillRect(start.x, start.y, x - start.x, y - start.y);
+        x1 = start.x, y1 = start.y, x2 = x - start.x, y2 = y - start.y;
+
+        context.rect(start.x,start.y,x - start.x, y - start.y);
+        context .stroke();
+        hasDrawn = true;
+    }
+
+    window.addEventListener("mouseup", endRect);
+
+    function drawImge(){
+        console.log("drawImge");
+
+        var video = document.querySelector("#webCamera");
+        var canvas = document.querySelector("#videoCanvas");
+        var ctx = canvas.getContext('2d');
+
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+
+
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        if(hasDrawn) {
+            ctx.lineWidth = "6";
+            ctx.strokeStyle = "red";                
+            ctx.rect(Math.floor(x1), Math.floor(y1), Math.floor(x2), Math.floor(y2));
+            ctx.stroke();
+            document.getElementById("txtX1").value=x1;
+            document.getElementById("txtY1").value=y1;
+            document.getElementById("txtX2").value=x2;
+            document.getElementById("txtY2").value=y2            
+
+        }
+
+        setTimeout(drawImge , 100);
+    }
+
+    function changeVideoSelection() {
+        var selectedVideo = document.getElementById("videoSource").value;
+        var video = document.querySelector("#webCamera");
+        video.src = selectedVideo;
+        video.play();
+    }
+
+    function changeVideoURL() {
+        var selectedVideo = document.getElementById("txtVideoSource").value;
+        var video = document.querySelector("#webCamera");
+        video.src = selectedVideo;
+        video.play();
+    }
+
+    function refreshImage() {
+        if(hasInferanceStarted) {
+            const image = document.getElementById("received_image");
+            const url = "http://localhost:7778/received_image.jpg";
+            image.src = `${url}?${Date.now()}`;
+            image.style = "display: block;"
+        }
+    }
+
+    function submitAction() {
+        const inferenceLabel = document.getElementById("lblInferance");
+        inferenceLabel.style = "display: block;";
+        hasInferanceStarted = true;
+    }
+
+    window.onload = function() {
+        console.log("start");
+        var video = document.querySelector("#webCamera");
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;        
+        console.log(video);
+        setTimeout(drawImge , 100);
+        // video.onplay = function() {
+        //     setTimeout(drawImge , 300);
+        // };
+        console.log("End");
+    }
+    setInterval(refreshImage, 100);
+    </script>

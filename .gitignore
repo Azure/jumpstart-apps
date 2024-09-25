@@ -162,3 +162,4 @@ cython_debug/
 #.idea/
 eclipse.conf
 /hello_arc/app/node_modules
+/contoso_hypermarket/developer/footfall_ai/src/models
