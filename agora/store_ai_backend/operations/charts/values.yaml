@@ -1,0 +1,3 @@
+postgres:
+  username: "postgres"
+  database: "contoso"

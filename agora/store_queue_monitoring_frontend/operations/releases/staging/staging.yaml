@@ -1,0 +1,26 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: queue-monitoring-frontend
+  namespace: contoso-supermarket
+  annotations:
+    clusterconfig.azure.com/use-managed-source: "true"
+spec:
+  interval: 1m
+  releaseName: queue-monitoring-frontend
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  chart:
+    spec:
+      chart: ./contoso_supermarket/operations/contoso_supermarket/charts/queue-monitoring-frontend
+  values:
+    acr_name: _acrName__
+    branch_name: "staging"
+    image_tag: v1.0
+    github_User: __githubUser__
+    queue_monitoring_frontend:
+      live_view_enabled: "True"

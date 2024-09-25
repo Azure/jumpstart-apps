@@ -163,3 +163,9 @@ cython_debug/
 eclipse.conf
 /hello_arc/app/node_modules
 /contoso_hypermarket/developer/footfall_ai/src/models
+
+*.pyc
+/contoso_supermarket/mqtt-simulator/mqtt-simulator/__pycache__
+/contoso_supermarket/developer/pos/.vscode
+/contoso_supermarket/developer/pos/pgdata
+/contoso_supermarket/developer/pos/flask_session
