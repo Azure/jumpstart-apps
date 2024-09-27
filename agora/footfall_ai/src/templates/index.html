@@ -91,7 +91,7 @@
         <tr>
             <td>
                 <div class="container">
-                    <img id="webCamera" src="{{ url_for('video_feed') }}?source=rtsp://localhost:554/stream" alt="Web Camera Feed">
+                    <img id="webCamera" style="width: 640; height: 360;" src="{{ url_for('video_feed') }}?source=rtsp://localhost:554/stream" alt="Web Camera Feed">
                     <canvas id="videoCanvas"></canvas>
                 </div>
             </td>
@@ -114,7 +114,7 @@
     const videoSource = document.getElementById('videoSource');
 
     let isDrawing = false;
-    let startX, startY;
+    let startX, startY, width, height;
 
     // Set canvas size to match the container
     canvas.width = 640;
@@ -135,8 +135,8 @@
 
         ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear previous drawing
 
-        const width = e.offsetX - startX;
-        const height = e.offsetY - startY;
+        width = e.offsetX - startX;
+        height = e.offsetY - startY;
 
         ctx.strokeStyle = 'red';
         ctx.lineWidth = 2;
@@ -151,15 +151,43 @@
     }
 
     function updateWebCameraSource() {
-        const x = Math.min(startX, canvas.width - startX);
-        const y = Math.min(startY, canvas.height - startY);
-        const w = Math.abs(canvas.width - startX - x);
-        const h = Math.abs(canvas.height - startY - y);
-
         const selectedSource = videoSource.value;
 
+        // Show loader
+        const loader = document.createElement('div');
+        loader.id = 'loader';
+        loader.style.position = 'absolute';
+        loader.style.top = '50%';
+        loader.style.left = '50%';
+        loader.style.transform = 'translate(-50%, -50%)';
+        loader.style.border = '16px solid #f3f3f3';
+        loader.style.borderRadius = '50%';
+        loader.style.borderTop = '16px solid #3498db';
+        loader.style.width = '120px';
+        loader.style.height = '120px';
+        loader.style.animation = 'spin 5s linear infinite';
+        document.body.appendChild(loader);
+
+        // Remove canvas drawing
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Remove loader after 3 seconds (or when the video feed is ready)
+        setTimeout(() => {
+            document.body.removeChild(loader);
+        }, 3000);
+
+        // CSS for loader animation
+        const style = document.createElement('style');
+        style.innerHTML = `
+            @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(style);
+
         // Update the src attribute with rectangle coordinates and video source
-        webCamera.src = `{{ url_for('video_feed') }}?x=${x}&y=${y}&w=${w}&h=${h}&source=${selectedSource}`;
+        webCamera.src = `{{ url_for('video_feed') }}?x=${startX}&y=${startY}&w=${width}&h=${height}&source=${selectedSource}`;
     }
 
     // Update source when video source changes
