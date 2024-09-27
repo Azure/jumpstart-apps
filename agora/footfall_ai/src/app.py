@@ -153,15 +153,7 @@ def run_inference(det_model_path, det_model, source, device_value,x1,y1,x2,y2):
     cv2.destroyAllWindows()    
 
 
-app = Flask(__name__)
 
-@app.route("/")
-def index():
-    return render_template('index.html')
-
-@app.route("/shopper")
-def shopper():
-    return render_template('shopper/landing2.html')
 
 @app.route("/inference", methods=["POST"])
 def runInference():
@@ -197,6 +189,6 @@ def runInference():
 
     WEBCAM_INFERENCE = False
 
-    core = ov.Core()
+ 
 
     return run_inference(det_model_path, det_model, source=VIDEO_SOURCE, device_value="AUTO", x1=x1,y1=y1,x2=x2, y2=y2)

@@ -1,5 +1,28 @@
 <!DOCTYPE html>
-<title>Person count demo</title>
+<head>
+    <title>Person count demo</title>
+    <style>
+        .container {
+            position: relative;
+            width: 640px;
+            height: 480px;
+        }
+        #webCamera {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        #videoCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
 <h1>Person count demo</h1>
 <form method="post" action="/inference" onsubmit="submitAction();">
 
@@ -11,6 +34,7 @@
 <label>OR, select from the following list</label>
 </p>
     <select id="videoSource" name="videoSource" onchange="changeVideoSelection();">
+        <option value="rtsp://localhost:554/stream">rtsp://localhost:554/stream</option>
         <option value="https://github.com/intel-iot-devkit/sample-videos/raw/master/people-detection.mp4">https://github.com/intel-iot-devkit/sample-videos/raw/master/people-detection.mp4</option>
         <option value="https://dm0qx8t0i9gc9.cloudfront.net/watermarks/video/49_20HQOeijh9fog1/uae-dubai-february-1-2016-people-near-shop-counter-with-fresh-fruits-inside-dubai-mall-in-united-arab-emirates-dubai-mall-is-the-world-largest-shopping-mall_nixdioorg__54efbe10ef1db686a89eb84a13815e70__P360.mp4">https://dm0qx8t0i9gc9.cloudfront.net/watermarks/video/49_20HQOeijh9fog1/uae-dubai-february-1-2016-people-near-shop-counter-with-fresh-fruits-inside-dubai-mall-in-united-arab-emirates-dubai-mall-is-the-world-largest-shopping-mall_nixdioorg__54efbe10ef1db686a89eb84a13815e70__P360.mp4</option>
         <option value="https://dm0qx8t0i9gc9.cloudfront.net/watermarks/video/SEcSCp_lol7ukts6n/videoblocks-right-to-left-pan-of-grocery-store-with-very-little-fruit-in-fruit-stands_h1xftggdh__090373eefddab942faba59188b8bea1c__P360.mp4">https://dm0qx8t0i9gc9.cloudfront.net/watermarks/video/SEcSCp_lol7ukts6n/videoblocks-right-to-left-pan-of-grocery-store-with-very-little-fruit-in-fruit-stands_h1xftggdh__090373eefddab942faba59188b8bea1c__P360.mp4</option>
@@ -33,11 +57,10 @@
 <table>
 <tr>
     <td>
-        <video autoplay="true" id="webCamera" style="display: none;"> 
-            <source src="https://github.com/intel-iot-devkit/sample-videos/raw/master/people-detection.mp4" type="video/mp4">
-            Your browser does not support video tag    
-        </video>
-        <canvas id="videoCanvas"></canvas>        
+        <div class="container">
+            <img id="webCamera" src="{{ url_for('video_feed') }}" alt="Web Camera Feed">
+            <canvas id="videoCanvas"></canvas>
+        </div>
     </td>
     <td>
         <img src="" id="received_image" style="display: none;"/>    
@@ -52,155 +75,59 @@
 </form>
 
 <script>
-    const canvas = document.getElementById("videoCanvas");
-    const context = canvas.getContext("2d");    
-    context.strokeStyle = 'red';
-    context.fillStyle = 'red';
-    context.lineWidth = 10;
-    context.lineCap = "round";        
-    let hasInferanceStarted = false;
-    let hasDrawn = false;
-    let drawing = false;
-    let x1 = 0;
-    let x2 = 0;
-    let y1 = 0;
-    let y2 = 0;
-    function startDrawing(e) {
-        hasDrawn = false;
-        drawing = true;
-        context.beginPath();
-    }
+ const canvas = document.getElementById('videoCanvas');
+        const ctx = canvas.getContext('2d');
+        const webCamera = document.getElementById('webCamera');
+        const videoSource = document.getElementById('videoSource');
+        let isDrawing = false;
+        let startX, startY;
 
-    //window.addEventListener("mousedown", startDrawing);
+        // Set canvas size to match the container
+        canvas.width = 640;
+        canvas.height = 480;
 
-    function endDrawing(e) {
-        drawing = false;
-        hasDrawn = true;
-    }
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', drawRectangle);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
 
-    //window.addEventListener("mouseup", endDrawing);
-
-    function getMousePos(canvas, evt) {
-        var rect = canvas.getBoundingClientRect(),
-        scaleX = canvas.width / rect.width,
-        scaleY = canvas.height / rect.height;
-    
-        return {
-        x: Math.floor((evt.clientX - rect.left) * scaleX),
-        y: Math.floor((evt.clientY - rect.top) * scaleY)
-        }
-    }    
-
-    function draw(e) {
-       if (!drawing) return;
-
-        let { x, y } = getMousePos(canvas, e);
-
-        context.lineTo(x, y);
-        context.stroke();
-    }
-
-    //window.addEventListener("mousemove", draw);
-
-    function startDrawing(e) {
-        hasDrawn = false;
-        drawing = true;
-        context.beginPath();
-        draw(e);
-    }
-
-    let start = {}
-
-    function startRect(e) {
-        start = getMousePos(canvas, e);
-    }
-
-    window.addEventListener("mousedown", startRect);
-
-    function endRect(e) {
-        let { x, y } = getMousePos(canvas, e);
-        context.strokeStyle = 'red';
-        context.fillStyle = 'red';
-        context.lineWidth = 10;
-        context.lineCap = "round";          
-        //context.fillRect(start.x, start.y, x - start.x, y - start.y);
-        x1 = start.x, y1 = start.y, x2 = x - start.x, y2 = y - start.y;
-
-        context.rect(start.x,start.y,x - start.x, y - start.y);
-        context .stroke();
-        hasDrawn = true;
-    }
-
-    window.addEventListener("mouseup", endRect);
-
-    function drawImge(){
-        console.log("drawImge");
-
-        var video = document.querySelector("#webCamera");
-        var canvas = document.querySelector("#videoCanvas");
-        var ctx = canvas.getContext('2d');
-
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-
-
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-        if(hasDrawn) {
-            ctx.lineWidth = "6";
-            ctx.strokeStyle = "red";                
-            ctx.rect(Math.floor(x1), Math.floor(y1), Math.floor(x2), Math.floor(y2));
-            ctx.stroke();
-            document.getElementById("txtX1").value=x1;
-            document.getElementById("txtY1").value=y1;
-            document.getElementById("txtX2").value=x2;
-            document.getElementById("txtY2").value=y2            
-
+        function startDrawing(e) {
+            isDrawing = true;
+            [startX, startY] = [e.offsetX, e.offsetY];
         }
 
-        setTimeout(drawImge , 100);
-    }
+        function drawRectangle(e) {
+            if (!isDrawing) return;
 
-    function changeVideoSelection() {
-        var selectedVideo = document.getElementById("videoSource").value;
-        var video = document.querySelector("#webCamera");
-        video.src = selectedVideo;
-        video.play();
-    }
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear previous drawing
+            
+            const width = e.offsetX - startX;
+            const height = e.offsetY - startY;
 
-    function changeVideoURL() {
-        var selectedVideo = document.getElementById("txtVideoSource").value;
-        var video = document.querySelector("#webCamera");
-        video.src = selectedVideo;
-        video.play();
-    }
-
-    function refreshImage() {
-        if(hasInferanceStarted) {
-            const image = document.getElementById("received_image");
-            const url = "http://localhost:7778/received_image.jpg";
-            image.src = `${url}?${Date.now()}`;
-            image.style = "display: block;"
+            ctx.strokeStyle = 'red';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(startX, startY, width, height);
         }
-    }
 
-    function submitAction() {
-        const inferenceLabel = document.getElementById("lblInferance");
-        inferenceLabel.style = "display: block;";
-        hasInferanceStarted = true;
-    }
+        function stopDrawing() {
+            if (isDrawing) {
+                isDrawing = false;
+                updateWebCameraSource();
+            }
+        }
 
-    window.onload = function() {
-        console.log("start");
-        var video = document.querySelector("#webCamera");
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;        
-        console.log(video);
-        setTimeout(drawImge , 100);
-        // video.onplay = function() {
-        //     setTimeout(drawImge , 300);
-        // };
-        console.log("End");
-    }
-    setInterval(refreshImage, 100);
-    </script>
+        function updateWebCameraSource() {
+            const x = Math.min(startX, canvas.width - startX);
+            const y = Math.min(startY, canvas.height - startY);
+            const w = Math.abs(canvas.width - startX - x);
+            const h = Math.abs(canvas.height - startY - y);
+            
+            const selectedSource = videoSource.value;
+            
+            // Update the src attribute with rectangle coordinates and video source
+            webCamera.src = `{{ url_for('video_feed') }}?x=${x}&y=${y}&w=${w}&h=${h}&source=${selectedSource}`;
+        }
+
+        // Update source when video source changes
+        videoSource.addEventListener('change', updateWebCameraSource);
+</script>
