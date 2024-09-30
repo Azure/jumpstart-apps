@@ -25,7 +25,9 @@ class VideoCapture:
                     self.q.get_nowait()   # Discard previous frame
                 except queue.Empty:
                     pass
-            self.q.put(frame)
+            
+            self.q.put(cv2.resize(frame, (640, 360)))
+            #self.q.put(frame)
             self.state=ret
 
     def read(self):

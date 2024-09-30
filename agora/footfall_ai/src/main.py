@@ -14,10 +14,18 @@ from ultralytics.solutions import ObjectCounter
 import collections
 from ultralytics import YOLO
 import numpy as np
+import torch
 
+# Check if CUDA is available and set the device accordingly
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print(f"Using device: {device}")
 
+# Load the YOLO model onto the specified device
+det_model = YOLO("C:\\Users\\fcabrera\\Downloads\\jumpstart-apps\\agora\\footfall_ai\\src\\models\\yolov8n.pt").to(device)
 app = Flask(__name__)
 gc.collect()
+
+print(f"Model loaded on: {next(det_model.model.parameters()).device}")
 
 cps = CountsPerSec().start()
 vs = None
@@ -25,16 +33,14 @@ frame_rate = 25
 fps = 0
 start_time2 = time.time()
 
-det_model = YOLO("C:\\Users\\fcabrera\\Downloads\\jumpstart-apps\\agora\\footfall_ai\\src\\models\\yolov8n.pt")
 
-device_value = os.getenv("DEVICE_VALUE", "AUTO")
 rtsp_url = os.getenv("RTSP_URL", "rtsp://localhost:554/stream")
 
 x1, y1, w, h= 0, 0, 0, 0
 line_points = [(x1, y1), (x1 + w, y1), (x1 + w, y1 + h), (x1, y1 + h), (x1, y1)]  # line or region points
 classes_to_count = [0]  # person is class 0 in the COCO dataset
 counter = ObjectCounter(
-    view_img=False, reg_pts=line_points, classes_names=det_model.names, 
+    view_img=False, reg_pts=line_points, names=det_model.names, 
     draw_tracks=True, line_thickness=2, view_in_counts=False, view_out_counts=False
 )
 
@@ -173,7 +179,7 @@ def video_feed():
             (x1, y1)           # Closing the rectangle
         ]
         counter = ObjectCounter(
-            view_img=False, reg_pts=line_points, classes_names=det_model.names, draw_tracks=True, line_thickness=2, view_in_counts=False, view_out_counts=False
+            view_img=False, reg_pts=line_points, names=det_model.names, draw_tracks=True, line_thickness=2, view_in_counts=False, view_out_counts=False
         )
 
     return Response(gen_frames_with_source(),
