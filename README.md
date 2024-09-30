@@ -113,3 +113,22 @@ For example, in teh case of the `footfall_ai_api` container, the Dockerfile shou
 
 By following these guidelines, you will ensure a smooth submission process and maintain consistency across all products and scenarios.
 
+
+## Branch guidance
+
+The Jumpstart Apps repository handles branching similarly to the other Arc Jumpstart [repositories](https://github.com/Azure/arc_jumpstart_docs). Two primary branches are maintained, each one attached to a specific purpose: development or production.
+
+The following branches are currently maintained:
+
+| Branch | Description  |
+| ------ | ------------ |
+| [main](https://github.com/Azure/jumpstart-apps) (primary) | Latest publicly available Arc Jumpstart Aps artiafacts. This is the latest documentation and deployment scripts available. |
+| [canary](https://github.com/Azure/jumpstart-apps/tree/canary) (preview) |  Pre-release artifacts and documentation. Document and code updates should be merged to the canary branch for preview validation before merging to the main branch. |
+
+## Trademarks
+
+This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft trademarks or logos is subject to and must follow [Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/legal/intellectualproperty/trademarks/usage/general).
+
+Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship.
+Any use of third-party trademarks or logos are subject to those third-party's policies.
+
