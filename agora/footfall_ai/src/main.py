@@ -4,9 +4,6 @@ from flask import request
 import gc
 import os
 
-from CountsPerSec import CountsPerSec
-from VideoGet import VideoGet
-from VideoInference import VideoInference
 import time
 from VideoCapture import VideoCapture
 
@@ -27,7 +24,6 @@ gc.collect()
 
 print(f"Model loaded on: {next(det_model.model.parameters()).device}")
 
-cps = CountsPerSec().start()
 vs = None
 frame_rate = 25
 fps = 0
