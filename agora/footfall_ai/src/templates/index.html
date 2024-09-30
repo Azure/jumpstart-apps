@@ -32,7 +32,7 @@
     <h2>
         Source
     </h2>
-    <input type="text" placeholder="Enter the URL of the video stream" value="" name="txtVideoSource"
+    <input type="text" placeholder="Enter the URL of the RTSP video stream (rtsp://localhost:554/stream)" value="" name="txtVideoSource"
         id="txtVideoSource" style="width:700px" onblur="changeVideoURL();" />
     <p>
         <label>OR, select from the following list</label>
@@ -100,11 +100,6 @@
             </td>
         </tr>
     </table>
-
-    <p>
-        <input type="submit" value="Run Inference" />
-    </p>
-    <label id="lblInferance" style="display: none;">Inference in progress, please wait ...</label>
 </form>
 
 <script>
@@ -165,7 +160,7 @@
         loader.style.borderTop = '16px solid #3498db';
         loader.style.width = '120px';
         loader.style.height = '120px';
-        loader.style.animation = 'spin 5s linear infinite';
+        loader.style.animation = 'spin 10s linear infinite';
         document.body.appendChild(loader);
 
         // Remove canvas drawing
