@@ -1,48 +1,51 @@
-from flask import Flask, render_template, Response
-import cv2
-from flask import request
-import gc
 import os
-
 import time
-from VideoCapture import VideoCapture
-
-from ultralytics.solutions import ObjectCounter
 import collections
-from ultralytics import YOLO
+import cv2
 import numpy as np
 import torch
+from flask import Flask, render_template, Response, request
+from ultralytics import YOLO
+from ultralytics.solutions import ObjectCounter
+from video_capture import VideoCapture
 
-# Check if CUDA is available and set the device accordingly
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print(f"Using device: {device}")
+# Constants
+MODEL_PATH = "C:\\Users\\fcabrera\\Downloads\\jumpstart-apps\\agora\\footfall_ai\\src\\models\\yolov8n.pt"
+RTSP_URL = os.getenv("RTSP_URL", "rtsp://localhost:554/stream")
+FRAME_RATE = 25
+CLASSES_TO_COUNT = [0]  # person is class 0 in the COCO dataset
 
-# Load the YOLO model onto the specified device
-det_model = YOLO("C:\\Users\\fcabrera\\Downloads\\jumpstart-apps\\agora\\footfall_ai\\src\\models\\yolov8n.pt").to(device)
+# Initialize Flask app
 app = Flask(__name__)
-gc.collect()
 
+# Global variables
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+det_model = YOLO(MODEL_PATH).to(device)
+vs = None
+fps = 0
+counter = None
+line_points = [(0, 0), (0, 0), (0, 0), (0, 0), (0, 0)]
+
+print(f"Using device: {device}")
 print(f"Model loaded on: {next(det_model.model.parameters()).device}")
 
-vs = None
-frame_rate = 25
-fps = 0
-start_time2 = time.time()
-
-
-rtsp_url = os.getenv("RTSP_URL", "rtsp://localhost:554/stream")
-
-x1, y1, w, h= 0, 0, 0, 0
-line_points = [(x1, y1), (x1 + w, y1), (x1 + w, y1 + h), (x1, y1 + h), (x1, y1)]  # line or region points
-classes_to_count = [0]  # person is class 0 in the COCO dataset
-counter = ObjectCounter(
-    view_img=False, reg_pts=line_points, names=det_model.names, 
-    draw_tracks=True, line_thickness=2, view_in_counts=False, view_out_counts=False
-)
-
+def initialize_counter():
+    global counter
+    counter = ObjectCounter(
+        view_img=False,
+        reg_pts=line_points,
+        names=det_model.names,
+        draw_tracks=True,
+        line_thickness=2,
+        view_in_counts=False,
+        view_out_counts=False
+    )
 
 def gen_frames_with_source():
-    global fps, frame_rate, start_time2
+    global fps, vs
+    last_time = time.time()
+    frame_count = 0
+
     while True:
         if(vs is None):
             continue
@@ -52,80 +55,50 @@ def gen_frames_with_source():
         if not success:
             break
 
-        loop_time = time.time() - start_time
-        delay = max(1, int((1 / frame_rate - loop_time) * 1000))
-        key = cv2.waitKey(delay) & 0xFF
-
-        if key == ord('q'):
-            break
-
-        loop_time2 = time.time() - start_time
-        if loop_time2 > 0:
-            fps = 0.9 * fps + 0.1 / loop_time2
+        frame_count += 1
+        current_time = time.time()
+        if current_time - last_time >= 1:
+            fps = frame_count / (current_time - last_time)
+            frame_count = 0
+            last_time = current_time
 
         cv2.putText(frame, f"FPS: {fps:.2f}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 0), 2, cv2.LINE_AA)
 
-        if(x1 != 0 or y1 != 0 or w != 0 or h != 0):
-            ret, frame = run_inference(frame)
-        else:
+        if all(point == (0, 0) for point in line_points):
             ret, frame = cv2.imencode('.jpg', frame)
+        else:
+            ret, frame = run_inference(frame)
 
         ui_bytes = frame.tobytes()
 
         yield (b'--frame\r\n'
                 b'Content-Type: image/jpeg\r\n\r\n' + ui_bytes + b'\r\n')
 
-
 def run_inference(frame):
-    # Processing time
+    global counter
     processing_times = collections.deque(maxlen=200)
-    selfCounter = 0
     start_time = time.time()
 
-    tracks = det_model.track(frame, persist=True, classes=classes_to_count, verbose=False)
+    tracks = det_model.track(frame, persist=True, classes=CLASSES_TO_COUNT, verbose=False)
     frame = counter.start_counting(frame, tracks)
-    stop_time = time.time()
 
-    processing_times.append(stop_time - start_time)
+    processing_time = (time.time() - start_time) * 1000
+    processing_times.append(processing_time)
+    avg_processing_time = np.mean(processing_times)
+    inference_fps = 1000 / avg_processing_time
 
-    # Mean processing time [ms].
-    _, f_width = frame.shape[:2]
-    processing_time = np.mean(processing_times) * 1000
-    fps = 1000 / processing_time
-    _, f_width = frame.shape[:2]
+    cv2.putText(frame, f"Inference time: {avg_processing_time:.1f}ms ({inference_fps:.1f} FPS)", 
+                (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 0), 2, cv2.LINE_AA)
 
-    cv2.putText(frame, f"Inference time: {processing_time:.1f}ms ({fps:.1f} FPS)", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 0), 2, cv2.LINE_AA)
-    print(f"Inference time: {processing_time:.1f}ms ({fps:.1f} FPS)")
-    
-    # Get the counts. Counts are getting as 'OUT'
-    # Modify this logic accordingly
     counts = counter.out_counts
-
-    # Define the text to display
     text = f"Current count: {counts}"
-    fontFace = cv2.FONT_HERSHEY_COMPLEX
-    fontScale = 0.75  # Adjust scale as needed
-    thickness = 2
+    text_size, _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_COMPLEX, 0.75, 2)
+    top_right_corner = (frame.shape[1] - text_size[0] - 20, 40)
 
-    # Calculate the size of the text box
-    (text_width, text_height), _ = cv2.getTextSize(text, fontFace, fontScale, thickness)
+    cv2.putText(frame, text, top_right_corner, cv2.FONT_HERSHEY_COMPLEX, 
+                0.75, (0, 0, 255), 2, cv2.LINE_AA)
 
-    # Define the upper right corner for the text
-    top_right_corner = (frame.shape[1] - text_width - 20, 40)
-    # Draw the count of "OUT" on the frame
-    cv2.putText(
-        img=frame,
-        text=text,
-        org=(top_right_corner[0], top_right_corner[1]),
-        fontFace=fontFace,
-        fontScale=fontScale,
-        color=(0, 0, 255),
-        thickness=thickness,
-        lineType=cv2.LINE_AA,
-    )
-
-    return cv2.imencode(ext=".jpg", img=frame)
-
+    return cv2.imencode('.jpg', frame)
 
 @app.route("/")
 def index():
@@ -137,49 +110,32 @@ def shopper():
 
 @app.route('/video_feed')
 def video_feed():
+    global vs, line_points
     video_source = request.args.get('source', default="")
-    aux_x1 = int(request.args.get('x', default=0))
-    aux_y1 = int(request.args.get('y', default=0))
-    aux_w = int(request.args.get('w', default=0))
-    aux_h = int(request.args.get('h', default=0))
+    x1 = int(request.args.get('x', default=0))
+    y1 = int(request.args.get('y', default=0))
+    w = int(request.args.get('w', default=0))
+    h = int(request.args.get('h', default=0))
 
-    global vs
     vs = VideoCapture(video_source)
-    # Print the height and width of the frames from the video source
     frame = vs.read()[0]
     if frame is not None:
         height, width = frame.shape[:2]
-        print(f"Frame dimensions: Width={width}, Height={height}")
+        scaling_factor_x = width / 640
+        scaling_factor_y = height / 360
 
-    # Calculate the scaling factors
-    scaling_factor_x = width / 640
-    scaling_factor_y = height / 360
+        x1 = int(x1 * scaling_factor_x)
+        y1 = int(y1 * scaling_factor_y)
+        w = int(w * scaling_factor_x)
+        h = int(h * scaling_factor_y)
 
-    # Scale the auxiliary variables
-    aux_x1 = int(aux_x1 * scaling_factor_x)
-    aux_y1 = int(aux_y1 * scaling_factor_y)
-    aux_w = int(aux_w * scaling_factor_x)
-    aux_h = int(aux_h * scaling_factor_y)
-
-    global x1, y1, w, h
-    if aux_x1 != x1 or aux_y1 != y1 or aux_w != w or aux_h != h:
-        x1, y1, w, h = aux_x1, aux_y1, aux_w, aux_h
-
-        global line_points, counter
-        # Define the rectangle points using (x1, y1) as the top-left corner and (w, h) as width and height
         line_points = [
-            (x1, y1),          # Top-left corner
-            (x1 + w, y1),      # Top-right corner
-            (x1 + w, y1 + h),  # Bottom-right corner
-            (x1, y1 + h),      # Bottom-left corner
-            (x1, y1)           # Closing the rectangle
+            (x1, y1), (x1 + w, y1), (x1 + w, y1 + h), (x1, y1 + h), (x1, y1)
         ]
-        counter = ObjectCounter(
-            view_img=False, reg_pts=line_points, names=det_model.names, draw_tracks=True, line_thickness=2, view_in_counts=False, view_out_counts=False
-        )
+        initialize_counter()
 
     return Response(gen_frames_with_source(),
-            mimetype='multipart/x-mixed-replace; boundary=frame')
+                    mimetype='multipart/x-mixed-replace; boundary=frame')
 
 if __name__ == '__main__':
     app.run(debug=True, threaded=True)
