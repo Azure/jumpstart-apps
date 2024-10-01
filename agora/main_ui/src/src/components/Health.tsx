@@ -14,14 +14,6 @@ import {
     Text,
   } from "@fluentui/react-components";
 
-  const resolveAsset = (asset: string) => {
-    const ASSET_URL =
-      "https://raw.githubusercontent.com/microsoft/fluentui/master/packages/react-components/react-card/stories/src/assets/";
-  
-    return `${ASSET_URL}${asset}`;
-  };
-
-
 const useStyles = makeStyles({
     card: {
       margin: "auto",
@@ -47,10 +39,10 @@ const Health = () => {
                         }
                         header={
                         <Body1>
-                            Oven Health
+                            Oven Health - Zone 4
                         </Body1>
                         }
-                        description={<Caption1></Caption1>}
+                        description={<Caption1> 8</Caption1>}
                     />
 
                     <CardPreview>
