@@ -1,4 +1,6 @@
 import React from 'react';
+import { BrowserRouter } from "react-router-dom";
+import Router from "./pages/router";
 import {
   FluentProvider,
   webLightTheme,
@@ -28,30 +30,9 @@ const themedMediumStackTokens: IStackTokens = {
 
 function App() {
   return (
-    <FluentProvider theme={webLightTheme}>
-      <CopilotProvider mode='sidecar'>
-        <Header />
-        <Main>
-        <Stack.Item>
-            <SideMenu />
-        </Stack.Item>
-        <Stack.Item grow={3}>
-          <Stack tokens={themedMediumStackTokens}>
-            <Greetings />
-            <Banner></Banner>
-            <Cards />
-            <Stack horizontal>
-              <Cameras />
-              <Stack>
-                <InventoryStatus />
-                <Health />
-              </Stack>
-            </Stack>
-          </Stack>
-        </Stack.Item>
-        </Main>
-      </CopilotProvider>
-    </FluentProvider>
+    <BrowserRouter>
+      <Router />    
+    </BrowserRouter>    
   );
 }
 

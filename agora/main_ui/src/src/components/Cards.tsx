@@ -4,6 +4,8 @@ import {
     Body1,
     Caption1,
     Button,
+    Body2,
+    tokens,
   } from "@fluentui/react-components";
 import { ArrowReplyRegular, ShareRegular } from "@fluentui/react-icons";  
 import {
@@ -28,6 +30,16 @@ const useStyles = makeStyles({
       width: "350px",
       maxWidth: "100%",
       paddingLeft: "40px"
+    },
+    cardpreviewtext: {
+        color: "var(--Text-Primary, #323130)",
+        textAlign: "center",
+        fontfeaturesettings: "'liga' off, 'clig' off",
+        fontfamily: tokens.fontFamilyBase,
+        fontsize: tokens.fontSizeHero800,
+        fontstyle: "normal",
+        fontweight: tokens.fontWeightRegular,
+        lineHeight: tokens.lineHeightHero900
     },
   });
 
@@ -54,7 +66,7 @@ const Cards = () => {
                     />
 
                     <CardPreview>
-                        <Text>5,050</Text>
+                        <Text className={styles.cardpreviewtext}>5,050</Text>
                     </CardPreview>
 
                     <CardFooter>
@@ -78,7 +90,7 @@ const Cards = () => {
                     />
 
                     <CardPreview>
-                        <Text>5,050</Text>
+                        <Text className={styles.cardpreviewtext}>5,050</Text>
                     </CardPreview>
 
                     <CardFooter>
@@ -102,7 +114,7 @@ const Cards = () => {
                     />
 
                     <CardPreview>
-                        <Text>7.5</Text>
+                        <Text className={styles.cardpreviewtext}>7.5</Text>
                     </CardPreview>
 
                     <CardFooter>
@@ -123,9 +135,8 @@ const Cards = () => {
                         }
                         description={<Caption1></Caption1>}
                     />
-
                     <CardPreview>
-                        <Text>7.5</Text>
+                        <Text className={styles.cardpreviewtext}>7.5</Text>
                     </CardPreview>
 
                     <CardFooter>
