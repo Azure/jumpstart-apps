@@ -42,9 +42,11 @@ import {
       },
     
       card: {
-        width: "360px",
+        width: "184px",
         maxWidth: "100%",
-        height: "fit-content",
+        height: "252px",
+        border: "1px solid #E0E0E0",
+        borderRadius: "8px",
       },
     stack: {
       width: "350px",
@@ -111,14 +113,14 @@ import {
       "display": "flex",
       "justify-content": "center",
       "align-items": "center",      
-        "background-color": "#f0f0f0"
+        "background-color": "#fff"
     },
     bottomdiv: {
       "flex": "1",
       "display": "flex",
       "justify-content": "center",
       "align-items": "center",      
-        "background-color": "#e0e0e0"
+        "background-color": "#fff"
     },
     ContainerBoxMainTitle: {
       "font-size": "var(--Font-size-900, 40px)",
@@ -135,6 +137,20 @@ import {
         "font-weight": "350",
         "color": "#000",
         "line-height": "18px",
+    },
+    ContainerBoxHeading: {
+        "font-size": "14px",
+        "font-family": "var(--Font-family-Base, 'Segoe UI')",
+        "font-style": "normal",
+        "font-weight": "600",
+        "color": "#000",
+        "line-height": "20px",
+    },
+    ContainerBoxTopDivider: {
+        "width": "100%",
+        "height": "1px",
+        "background-color": "#C4C4C4",
+        "flex-shrink": "0",
     },
       caption: {
         color: tokens.colorNeutralForeground3,
@@ -166,7 +182,7 @@ const SingleContainerBox = () => {
           alt="Fridge Abc 123"
         />
       }
-      header={<Text weight="semibold">Fridge Abc 123</Text>}
+      header={<Text className={classes.ContainerBoxHeading}>Fridge Abc 123</Text>}
       description={
         <Caption1 className={classes.caption}></Caption1>
       }
@@ -178,6 +194,7 @@ const SingleContainerBox = () => {
         />
       }
     />
+    <div className={classes.ContainerBoxTopDivider}></div>
     <div className={classes.container}>
         <div className={classes.topdiv}>
             <p className={classes.ContainerBoxMainTitle}>-18 (0c)</p>
@@ -187,10 +204,6 @@ const SingleContainerBox = () => {
         </div>
     </div>
 
-    <p className={classes.text}>
-      Donut chocolate bar oat cake. Dragée tiramisu lollipop bear claw.
-      Marshmallow pastry jujubes toffee sugar plum.
-    </p>
   </Card>
         
   );
