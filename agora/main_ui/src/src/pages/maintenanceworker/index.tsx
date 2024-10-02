@@ -43,6 +43,7 @@ const MaintenanceWorker = () => {
               <Stack horizontal>
                 <Cameras />
                 <Stack>
+                  <Health />                  
                   <Health />
                 </Stack>
               </Stack>
