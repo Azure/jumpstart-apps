@@ -101,7 +101,41 @@ import {
         maxWidth: "44px",
         maxHeight: "44px",
       },
-    
+      container: {
+        "display": "flex",
+        "flex-direction": "column",
+        "height": "100%",
+    },
+    topdiv: {
+      "flex": "1",
+      "display": "flex",
+      "justify-content": "center",
+      "align-items": "center",      
+        "background-color": "#f0f0f0"
+    },
+    bottomdiv: {
+      "flex": "1",
+      "display": "flex",
+      "justify-content": "center",
+      "align-items": "center",      
+        "background-color": "#e0e0e0"
+    },
+    ContainerBoxMainTitle: {
+      "font-size": "var(--Font-size-900, 40px)",
+      "font-family": "var(--Font-family-Base, 'Segoe UI')",
+      "font-style": "normal",
+      "font-weight": "600",
+      "color": "#000",
+      "line-height": "var(--Line-height-900, 52px)",
+    },
+    ContainerBoxSubTitle: {
+        "font-size": "11px",
+        "font-family": "var(--Font-family-Base, 'Segoe UI')",
+        "font-style": "normal",
+        "font-weight": "350",
+        "color": "#000",
+        "line-height": "18px",
+    },
       caption: {
         color: tokens.colorNeutralForeground3,
       },
@@ -144,6 +178,14 @@ const SingleContainerBox = () => {
         />
       }
     />
+    <div className={classes.container}>
+        <div className={classes.topdiv}>
+            <p className={classes.ContainerBoxMainTitle}>-18 (0c)</p>
+        </div>
+        <div className={classes.bottomdiv}>
+            <p className={classes.ContainerBoxSubTitle}>Avg. freezer temp</p>
+        </div>
+    </div>
 
     <p className={classes.text}>
       Donut chocolate bar oat cake. Dragée tiramisu lollipop bear claw.
