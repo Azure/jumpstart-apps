@@ -60,9 +60,20 @@ npm -v # should print `10.8.3`
     npm start
     ```
 
-This runs the app in the development mode.\
+This runs the app in the development mode.
 Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
-[Note]: Please make sure you have port 3000 open
+[Note]: Please make sure you have port 3000 open on your environment.
 
-The page will reload if you make edits.\
+- Links to look at latest pages
+
+http://localhost:3000/storemanager
+
+http://localhost:3000/maintenanceworker
+
+These links will work if you have running the app in your local machine. If you have deployed this app on a VM then please change the links accordlingly. For example, these are the links for VM that was use to test:
+
+http://172.179.236.100:3000/storemanager
+
+http://172.179.236.100:3000/maintenanceworker
+
