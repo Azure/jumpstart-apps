@@ -40,8 +40,7 @@ import {
   const Cameras = () => {
     const styles = useStyles();
     return (
-
-        <Stack horizontalAlign="start" grow={1}>
+        <Stack>
             <Stack.Item align="start" grow={3}>
                 <Stack  horizontalAlign="start">
                 <Card className={styles.cardContainer} orientation="vertical">
