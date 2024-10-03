@@ -1,12 +1,20 @@
-# syntax=docker/dockerfile:1
+# Use a base Python image
+FROM mcr.microsoft.com/cbl-mariner/base/python:3
 
-FROM python:3.8-slim-buster
+# Copy application files to the container
+WORKDIR /usr/src/app
 
-WORKDIR /python-docker
+# Install necessary dependencies
+USER root
+RUN tdnf install -y mesa-libGL glib2
 
-COPY requirements.txt requirements.txt
-RUN pip3 install -r requirements.txt
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-CMD [ "python3", "-m" , "flask", "run", "--host=0.0.0.0"]
+# Make port 80 available to the world outside this container
+EXPOSE 80
+
+# Run main.py when the container launches
+CMD ["/usr/bin/python3", "main.py"]

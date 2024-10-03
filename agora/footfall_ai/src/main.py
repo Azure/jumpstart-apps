@@ -10,7 +10,7 @@ from ultralytics.solutions import ObjectCounter
 from video_capture import VideoCapture
 
 # Constants
-MODEL_PATH = "C:\\Users\\fcabrera\\Downloads\\jumpstart-apps\\agora\\footfall_ai\\src\\models\\yolov8n.pt"
+MODEL_PATH = os.getenv("MODEL_PATH", "./models/yolov8n.pt")
 RTSP_URL = os.getenv("RTSP_URL", "rtsp://localhost:554/stream")
 FRAME_RATE = 25
 CLASSES_TO_COUNT = [0]  # person is class 0 in the COCO dataset
