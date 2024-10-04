@@ -169,3 +169,4 @@ eclipse.conf
 /contoso_supermarket/developer/pos/.vscode
 /contoso_supermarket/developer/pos/pgdata
 /contoso_supermarket/developer/pos/flask_session
+agora/main_ui/src/yarn.lock

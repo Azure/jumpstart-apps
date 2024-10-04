@@ -4,6 +4,7 @@ import Home from "./home";
 import StoreManager from "./storemanager";
 import MaintenanceWorker from "./maintenanceworker";
 import CamerasZones from "./cameraszones";
+import Footfall from "./footfall"; // Ensure that the Footfall component exists at this path
 
 const pagesData: routerType[] = [
   {
@@ -30,6 +31,11 @@ const pagesData: routerType[] = [
     path: "cameraszones",
     element: <CamerasZones />,
     title: "Cameras and Zones"
+  },
+  {
+    path: "footfall",
+    element: <Footfall />,
+    title: "Footfall"
   }
 ];
 
