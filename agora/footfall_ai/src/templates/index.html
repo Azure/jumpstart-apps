@@ -32,53 +32,13 @@
     <h2>
         Source
     </h2>
-    <input type="text" placeholder="Enter the URL of the RTSP video stream (rtsp://localhost:554/stream)" value="" name="txtVideoSource"
+    <input type="text" placeholder="Enter the URL of the RTSP video stream" value="" name="txtVideoSource"
         id="txtVideoSource" style="width:700px" onblur="changeVideoURL();" />
     <p>
         <label>OR, select from the following list</label>
     </p>
     <select id="videoSource" name="videoSource" onchange="changeVideoSelection();">
-        <option value="rtsp://localhost:554/stream">rtsp://localhost:554/stream</option>
-        <option value="https://github.com/intel-iot-devkit/sample-videos/raw/master/people-detection.mp4">
-            https://github.com/intel-iot-devkit/sample-videos/raw/master/people-detection.mp4</option>
-        <option
-            value="https://dm0qx8t0i9gc9.cloudfront.net/watermarks/video/49_20HQOeijh9fog1/uae-dubai-february-1-2016-people-near-shop-counter-with-fresh-fruits-inside-dubai-mall-in-united-arab-emirates-dubai-mall-is-the-world-largest-shopping-mall_nixdioorg__54efbe10ef1db686a89eb84a13815e70__P360.mp4">
-            https://dm0qx8t0i9gc9.cloudfront.net/watermarks/video/49_20HQOeijh9fog1/uae-dubai-february-1-2016-people-near-shop-counter-with-fresh-fruits-inside-dubai-mall-in-united-arab-emirates-dubai-mall-is-the-world-largest-shopping-mall_nixdioorg__54efbe10ef1db686a89eb84a13815e70__P360.mp4
-        </option>
-        <option
-            value="https://dm0qx8t0i9gc9.cloudfront.net/watermarks/video/SEcSCp_lol7ukts6n/videoblocks-right-to-left-pan-of-grocery-store-with-very-little-fruit-in-fruit-stands_h1xftggdh__090373eefddab942faba59188b8bea1c__P360.mp4">
-            https://dm0qx8t0i9gc9.cloudfront.net/watermarks/video/SEcSCp_lol7ukts6n/videoblocks-right-to-left-pan-of-grocery-store-with-very-little-fruit-in-fruit-stands_h1xftggdh__090373eefddab942faba59188b8bea1c__P360.mp4
-        </option>
-        <option
-            value="https://dm0qx8t0i9gc9.cloudfront.net/watermarks/video/SEcSCp_lol7ukts6n/videoblocks-aerial-top-down-view-people-grocery-shopping-with-dividers-plexiglass-barri_hw75n3prh__3c8362e8e446a5950783b62bcea64086__P360.mp4">
-            https://dm0qx8t0i9gc9.cloudfront.net/watermarks/video/SEcSCp_lol7ukts6n/videoblocks-aerial-top-down-view-people-grocery-shopping-with-dividers-plexiglass-barri_hw75n3prh__3c8362e8e446a5950783b62bcea64086__P360.mp4
-        </option>
-        <option
-            value="https://dm0qx8t0i9gc9.cloudfront.net/watermarks/video/SEcSCp_lol7ukts6n/videoblocks-aerial-long-lines-of-blue-masked-shoppers-afraid-of-virus-standing-in-line-_bq-sd1-dn__90182c6a70c6bc547346bf2c8ad2a5a9__P360.mp4">
-            https://dm0qx8t0i9gc9.cloudfront.net/watermarks/video/SEcSCp_lol7ukts6n/videoblocks-aerial-long-lines-of-blue-masked-shoppers-afraid-of-virus-standing-in-line-_bq-sd1-dn__90182c6a70c6bc547346bf2c8ad2a5a9__P360.mp4
-        </option>
-        <option
-            value="https://dm0qx8t0i9gc9.cloudfront.net/watermarks/video/e4Gpia8/videoblocks-sarajevo-bosnia-and-herzegovina-may-13th-high-angle-shot-of-a-fruits-and-ve_bzfdqwqk4__6b09cc12146b8d3fa7a9a552b55bd115__P360.mp4">
-            https://dm0qx8t0i9gc9.cloudfront.net/watermarks/video/e4Gpia8/videoblocks-sarajevo-bosnia-and-herzegovina-may-13th-high-angle-shot-of-a-fruits-and-ve_bzfdqwqk4__6b09cc12146b8d3fa7a9a552b55bd115__P360.mp4
-        </option>
-        <option
-            value="https://dm0qx8t0i9gc9.cloudfront.net/watermarks/video/r6uQGb9/drugstore-in-shinkyogoku-shopping-street-in-kyoto-japan-asia-japanese-people-tourists-crowd-shopping-in-shops-and-stores_rdc-wgdpe__0b3d31d50bb1ac11252f8e8b223b8107__P360.mp4">
-            https://dm0qx8t0i9gc9.cloudfront.net/watermarks/video/r6uQGb9/drugstore-in-shinkyogoku-shopping-street-in-kyoto-japan-asia-japanese-people-tourists-crowd-shopping-in-shops-and-stores_rdc-wgdpe__0b3d31d50bb1ac11252f8e8b223b8107__P360.mp4
-        </option>
-        <option
-            value="https://dm0qx8t0i9gc9.cloudfront.net/watermarks/video/49_20HQOeijh9fog1/people-in-shopping-area-in-sharm-el-sheikh-egypt_vdlwoxwye__60cd1b0bc7975228b55a97321e6a676d__P360.mp4">
-            https://dm0qx8t0i9gc9.cloudfront.net/watermarks/video/49_20HQOeijh9fog1/people-in-shopping-area-in-sharm-el-sheikh-egypt_vdlwoxwye__60cd1b0bc7975228b55a97321e6a676d__P360.mp4
-        </option>
-        <option
-            value="https://dm0qx8t0i9gc9.cloudfront.net/watermarks/video/49_20HQOeijh9fog1/greece-thessaloniki-june-12-2013-people-inside-duty-free-store-in-international-airport-in-thessaloniki-greece_v_s17rzke__59486b5487f9bf5407c152edcceee609__P360.mp4">
-            https://dm0qx8t0i9gc9.cloudfront.net/watermarks/video/49_20HQOeijh9fog1/greece-thessaloniki-june-12-2013-people-inside-duty-free-store-in-international-airport-in-thessaloniki-greece_v_s17rzke__59486b5487f9bf5407c152edcceee609__P360.mp4
-        </option>
-        <option
-            value="https://dm0qx8t0i9gc9.cloudfront.net/watermarks/video/SEcSCp_lol7ukts6n/videoblocks-aerial-view-people-walking-down-center-lane-grocery-shopping-by-produce-sec_ryyqlpbp3__9a31ad8ce3f137b6572eefb5e6255d81__P360.mp4">
-            https://dm0qx8t0i9gc9.cloudfront.net/watermarks/video/SEcSCp_lol7ukts6n/videoblocks-aerial-view-people-walking-down-center-lane-grocery-shopping-by-produce-sec_ryyqlpbp3__9a31ad8ce3f137b6572eefb5e6255d81__P360.mp4
-        </option>
-        <option value="https://videos.pond5.com/people-are-pushing-carts-along-footage-111188459_main_xxl.mp4">
-            https://videos.pond5.com/people-are-pushing-carts-along-footage-111188459_main_xxl.mp4</option>
+        <option value="rtsp://rtsp_stream_container:554/stream">rtsp://rtsp_stream_container:554/stream</option>
     </select>
     <input type="text" id="txtX1" name="txtX1" style="display: none;" />
     <input type="text" id="txtY1" name="txtY1" style="display: none;" />
@@ -91,7 +51,7 @@
         <tr>
             <td>
                 <div class="container">
-                    <img id="webCamera" style="width: 640; height: 360;" src="{{ url_for('video_feed') }}?source=rtsp://localhost:554/stream" alt="Web Camera Feed">
+                    <img id="webCamera" style="width: 640; height: 360;" src="{{ url_for('video_feed') }}?source=" alt="Web Camera Feed">
                     <canvas id="videoCanvas"></canvas>
                 </div>
             </td>

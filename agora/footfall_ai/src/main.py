@@ -11,7 +11,7 @@ from video_capture import VideoCapture
 
 # Constants
 MODEL_PATH = os.getenv("MODEL_PATH", "./models/yolov8n.pt")
-RTSP_URL = os.getenv("RTSP_URL", "rtsp://localhost:554/stream")
+RTSP_URL = os.getenv("RTSP_URL", "rtsp://rtsp_stream_container:554/stream")
 FRAME_RATE = 25
 CLASSES_TO_COUNT = [0]  # person is class 0 in the COCO dataset
 
@@ -104,18 +104,21 @@ def run_inference(frame):
 def index():
     return render_template('index.html')
 
-@app.route("/shopper")
-def shopper():
-    return render_template('shopper/landing2.html')
-
 @app.route('/video_feed')
 def video_feed():
     global vs, line_points
     video_source = request.args.get('source', default="")
+    if not video_source:
+        video_source = RTSP_URL
+    
+    print(f"Starting feed with video_source: {video_source}")
+
     x1 = int(request.args.get('x', default=0))
     y1 = int(request.args.get('y', default=0))
     w = int(request.args.get('w', default=0))
     h = int(request.args.get('h', default=0))
+
+    print(f"Bounding Box coordinates: x1={x1}, y1={y1}, w={w}, h={h}")
 
     vs = VideoCapture(video_source)
     frame = vs.read()[0]

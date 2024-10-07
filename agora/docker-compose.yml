@@ -12,6 +12,7 @@ services:
       - "5000:5000"  # Adjusting to expose port 80 as mapped in the Dockerfile
     environment:
       - MODEL_PATH=/tmp/models/yolov8n.pt
+      - RTSP_URL=rtsp://rtsp_stream_container:8554/stream
 
   main_ui:
     build:
@@ -21,7 +22,7 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - REACT_APP_FOOTFALL_VIDEO_URL=http://footfall_ai_container:5000/video_feed?source=rtsp://172.17.0.1:554/stream
+      - REACT_APP_FOOTFALL_VIDEO_URL=http://footfall_ai_container:5000/video_feed?x=50&y=20&w=540&h=320&source=rtsp://rtsp_stream_container:8554/stream
 
   rtsp_stream:
     image: kerberos/virtual-rtsp:1.0.6
