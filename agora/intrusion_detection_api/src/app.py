@@ -1,37 +1,45 @@
 import os
+import time
 from flask import Flask, render_template, Response, request, jsonify
 import cv2
 import numpy as np
 from openvino.runtime import Core
 import hashlib
-import threading
-import queue
+import collections
 from scipy.spatial.distance import cosine
+from video_capture import VideoCapture
 
-app = Flask(__name__)
+# Constants
+#MODEL_PATH = os.getenv("MODEL_PATH", "./models/")
+MODEL_PATH = os.getenv("MODEL_PATH", "C:\\Users\\fcabrera\\Downloads\\models\\")
+RTSP_URL = os.getenv("RTSP_URL", "rtsp://rtsp_stream_container:554/stream")
+FRAME_RATE = 25
+CLASSES_TO_COUNT = [0]  # person is class 0 in the COCO dataset
+FLASK_PORT = int(os.getenv("FLASK_PORT", 5000))
+FLASK_DEBUG = os.getenv("FLASK_DEBUG", "false").lower() in ["true", "1", "t"]
 
-# Global variables
-rtsp_url = ""
 restricted_area = []
 ie = Core()
 detected_persons = 0
 intruders = 0
 last_intruder_hash = None
 current_intruders = 0
+fps = 0
 
-# Thread-safe queue for frames
-frame_queue = queue.Queue(maxsize=10)
+# Initialize Flask app
+app = Flask(__name__)
 
 # Load the person detection model
 det_model_xml = "person-detection-retail-0013.xml"
 det_model_bin = "person-detection-retail-0013.bin"
-det_model = ie.read_model(model=det_model_xml)
+print(f"Loading model: {os.path.join(MODEL_PATH, det_model_xml)}")
+det_model = ie.read_model(model=os.path.join(MODEL_PATH, det_model_xml))
 det_compiled_model = ie.compile_model(model=det_model, device_name="CPU")
 
 # Load the person re-identification model
 reid_model_xml = "person-reidentification-retail-0287.xml"
 reid_model_bin = "person-reidentification-retail-0287.bin"
-reid_model = ie.read_model(model=reid_model_xml)
+reid_model = ie.read_model(model=os.path.join(MODEL_PATH, reid_model_xml))
 reid_compiled_model = ie.compile_model(model=reid_model, device_name="CPU")
 
 # Get input and output layers
@@ -49,6 +57,19 @@ person_tracker = {}
 next_person_id = 0
 max_frames_to_track = 30
 
+def point_in_polygon(point, polygon):
+    x, y = point
+    odd_nodes = False
+    j = len(polygon) - 1
+    for i in range(len(polygon)):
+        xi, yi = polygon[i]['x'], polygon[i]['y']
+        xj, yj = polygon[j]['x'], polygon[j]['y']
+        if yi < y and yj >= y or yj < y and yi >= y:
+            if xi + (y - yi) / (yj - yi) * (xj - xi) < x:
+                odd_nodes = not odd_nodes
+        j = i
+    return odd_nodes
+
 def extract_features(frame, bbox):
     x1, y1, x2, y2 = bbox
     person_image = frame[y1:y2, x1:x2]
@@ -58,13 +79,16 @@ def extract_features(frame, bbox):
     features = reid_compiled_model([person_image])[reid_output_layer]
     return features.flatten()
 
-def process_frame(frame):
+def run_inference(frame):
     global detected_persons, intruders, last_intruder_hash, person_tracker, next_person_id, current_intruders
     
     # Preprocess the frame for person detection
     resized_frame = cv2.resize(frame, (det_width, det_height))
     input_frame = np.expand_dims(resized_frame.transpose(2, 0, 1), 0)
-    
+
+    processing_times = collections.deque(maxlen=200)
+    start_time = time.time()
+
     # Perform person detection
     results = det_compiled_model([input_frame])[det_output_layer]
     
@@ -129,85 +153,90 @@ def process_frame(frame):
         color = (0, 0, 255) if is_intruder else (0, 255, 0)
         cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), color, 2)
         if is_intruder:
-            cv2.putText(frame, f"Intruder: {person_id}", (bbox[0], bbox[1] - 10),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.9, color, 2)
+            cv2.putText(frame, f"Intruder: {person_id}", (bbox[0], bbox[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, color, 2)
 
-    return frame
+    processing_time = (time.time() - start_time) * 1000
+    processing_times.append(processing_time)
+    avg_processing_time = np.mean(processing_times)
+    inference_fps = 1000 / avg_processing_time
 
-def capture_frames():
-    global rtsp_url
+    cv2.putText(frame, f"Inference time: {avg_processing_time:.1f}ms ({inference_fps:.1f} FPS)", 
+                (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 0), 2, cv2.LINE_AA)
+
+    cv2.putText(frame, f"Detected persons: {detected_persons}", (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 0), 2, cv2.LINE_AA)
+    cv2.putText(frame, f"Total intruders: {intruders}", (10, 120), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 0), 2, cv2.LINE_AA)
+    cv2.putText(frame, f"Current intruders: {current_intruders}", (10, 150), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 0), 2, cv2.LINE_AA)
+    if last_intruder_hash:
+        cv2.putText(frame, f"Last intruder hash: {last_intruder_hash}", (10, 180), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 0), 2, cv2.LINE_AA)
+
+    return cv2.imencode('.jpg', frame)
+
+def gen_frames_with_source():
+    global fps, vs
+    last_time = time.time()
+    frame_count = 0
+
     while True:
-        if rtsp_url:
-            cap = cv2.VideoCapture(rtsp_url)
-            while cap.isOpened():
-                success, frame = cap.read()
-                if not success:
-                    break
-                if not frame_queue.full():
-                    frame_queue.put(frame)
-            cap.release()
+        if(vs is None):
+            continue
+
+        frame,success = vs.read()
+        if not success:
+            break
+
+        frame_count += 1
+        current_time = time.time()
+        if current_time - last_time >= 1:
+            fps = frame_count / (current_time - last_time)
+            frame_count = 0
+            last_time = current_time
+
+        cv2.putText(frame, f"FPS: {fps:.2f}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 0), 2, cv2.LINE_AA)
+
+        if all(point == (0, 0) for point in line_points):
+            ret, frame = cv2.imencode('.jpg', frame)
         else:
-            import time
-            time.sleep(1)
+            ret, frame = run_inference(frame)
 
-def generate_frames():
-    while True:
-        if not frame_queue.empty():
-            frame = frame_queue.get()
-            frame = process_frame(frame)
-            ret, buffer = cv2.imencode('.jpg', frame)
-            frame = buffer.tobytes()
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+        ui_bytes = frame.tobytes()
 
-@app.route('/')
-def index():
-    return render_template('index.html')
+        yield (b'--frame\r\n'
+                b'Content-Type: image/jpeg\r\n\r\n' + ui_bytes + b'\r\n')
 
 @app.route('/video_feed')
 def video_feed():
-    return Response(generate_frames(),
+    global vs, line_points
+    video_source = request.args.get('source', default="")
+    if not video_source:
+        video_source = RTSP_URL
+    
+    print(f"Starting feed with video_source: {video_source}")
+
+    x1 = int(request.args.get('x', default=0))
+    y1 = int(request.args.get('y', default=0))
+    w = int(request.args.get('w', default=0))
+    h = int(request.args.get('h', default=0))
+
+    print(f"Bounding Box coordinates: x1={x1}, y1={y1}, w={w}, h={h}")
+
+    vs = VideoCapture(video_source)
+    frame = vs.read()[0]
+    if frame is not None:
+        height, width = frame.shape[:2]
+        scaling_factor_x = width / 640
+        scaling_factor_y = height / 360
+
+        x1 = int(x1 * scaling_factor_x)
+        y1 = int(y1 * scaling_factor_y)
+        w = int(w * scaling_factor_x)
+        h = int(h * scaling_factor_y)
+
+        line_points = [
+            (x1, y1), (x1 + w, y1), (x1 + w, y1 + h), (x1, y1 + h), (x1, y1)
+        ]
+
+    return Response(gen_frames_with_source(),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
-@app.route('/set_restricted_area', methods=['POST'])
-def set_restricted_area():
-    global restricted_area
-    restricted_area = request.json['area']
-    return jsonify({"message": "Restricted area set successfully"}), 200
-
-@app.route('/set_rtsp_url', methods=['POST'])
-def set_rtsp_url():
-    global rtsp_url
-    rtsp_url = request.json['url']
-    return jsonify({"message": "RTSP URL set successfully"}), 200
-
-@app.route('/get_detection_data')
-def get_detection_data():
-    global detected_persons, intruders, last_intruder_hash, current_intruders
-    return jsonify({
-        "detected_persons": detected_persons,
-        "total_intruders": intruders,
-        "current_intruders": current_intruders,
-        "last_intruder_hash": last_intruder_hash
-    })
-
-def point_in_polygon(point, polygon):
-    x, y = point
-    odd_nodes = False
-    j = len(polygon) - 1
-    for i in range(len(polygon)):
-        xi, yi = polygon[i]['x'], polygon[i]['y']
-        xj, yj = polygon[j]['x'], polygon[j]['y']
-        if yi < y and yj >= y or yj < y and yi >= y:
-            if xi + (y - yi) / (yj - yi) * (xj - xi) < x:
-                odd_nodes = not odd_nodes
-        j = i
-    return odd_nodes
-
 if __name__ == '__main__':
-    # Start the frame capture thread
-    capture_thread = threading.Thread(target=capture_frames, daemon=True)
-    capture_thread.start()
-
-    # Run the Flask app
-    app.run(debug=True, threaded=True)
+    app.run(host='0.0.0.0', port=FLASK_PORT, debug=FLASK_DEBUG, threaded=True)

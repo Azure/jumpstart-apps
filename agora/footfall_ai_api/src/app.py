@@ -9,9 +9,12 @@ from ultralytics import YOLO
 from ultralytics.solutions import ObjectCounter
 from video_capture import VideoCapture
 
+
 # Constants
 MODEL_PATH = os.getenv("MODEL_PATH", "./models/yolov8n.pt")
 RTSP_URL = os.getenv("RTSP_URL", "rtsp://rtsp_stream_container:554/stream")
+FLASK_PORT = int(os.getenv("FLASK_PORT", 5000))
+FLASK_DEBUG = os.getenv("FLASK_DEBUG", "false").lower() in ["true", "1", "t"]
 FRAME_RATE = 25
 CLASSES_TO_COUNT = [0]  # person is class 0 in the COCO dataset
 
@@ -137,4 +140,4 @@ def video_feed():
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=True, threaded=True)
+    app.run(host='0.0.0.0', port=FLASK_PORT, debug=FLASK_DEBUG, threaded=True)

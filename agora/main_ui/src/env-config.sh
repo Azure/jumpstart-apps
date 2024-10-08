@@ -6,7 +6,7 @@ awk -F '=' '{ gsub(/"/, "", $2); print $1 ": \"" (ENVIRON[$1] ? ENVIRON[$1] : $2
 echo "}" >> /usr/share/nginx/html/env-config.js
 
 # Check for required environment variables and replace placeholders in nginx config
-required_vars=("REACT_APP_FOOTFALL_VIDEO_URL")
+required_vars=("REACT_APP_FOOTFALL_VIDEO_URL" "REACT_APP_INTRUSION_VIDEO_URL")
 
 # Update or add environment variables in .env file
 for var in "${required_vars[@]}"; do

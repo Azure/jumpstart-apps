@@ -79,6 +79,8 @@ http://localhost:3000/maintenanceworker
 
 http://localhost:3000/footfall
 
+http://localhost:3000/intrusion
+
 These links will work if you have running the app in your local machine. If you have deployed this app on a VM then please change the links accordlingly. For example, these are the links for VM that was use to test:
 
 http://172.179.236.100:3000/storemanager

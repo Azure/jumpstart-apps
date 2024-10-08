@@ -23,7 +23,7 @@ childrenGap: "m",
 padding: "m",
 };
 
-const Footfall = () => {
+const Intrusion = () => {
     return (
         <FluentProvider theme={webLightTheme}>
         <CopilotProvider mode='sidecar'>
@@ -38,8 +38,8 @@ const Footfall = () => {
               <Banner></Banner>
             </Stack>
             <VideoStream 
-              title="Footfall Camera" 
-              videoUrl={process.env.REACT_APP_FOOTFALL_VIDEO_URL || ""} 
+              title="Intrusion Camera" 
+              videoUrl={process.env.REACT_APP_INTRUSION_VIDEO_URL || ""} 
             />
             </Stack.Item>
           </Main>
@@ -48,4 +48,4 @@ const Footfall = () => {
     );
   };
   
-  export default Footfall;
+  export default Intrusion;
