@@ -4,101 +4,104 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Intrusion Detection</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
-    <script src="{{ url_for('static', filename='main.js') }}"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-        }
-        .container {
             display: flex;
             height: 100vh;
         }
         .left-panel {
             width: 30%;
             padding: 20px;
-            background-color: #f0f0f0;
+            box-sizing: border-box;
             overflow-y: auto;
+            background-color: #f0f0f0;
+            display: flex;
+            flex-direction: column;
         }
         .right-panel {
             width: 70%;
-            padding: 20px;
-            background-color: #ffffff;
+            position: relative;
+            background-color: #000;
         }
         #video-container {
             position: relative;
             width: 100%;
-            height: 0;
-            padding-bottom: 75%; /* 4:3 Aspect Ratio */
+            height: 100%;
         }
-        #video-feed, #overlay-canvas {
+        #video-feed {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        #overlay-canvas {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
         }
+        h1 {
+            margin-top: 0;
+        }
         .input-group {
             margin-bottom: 15px;
         }
-        input[type="text"] {
-            width: 100%;
-            padding: 5px;
+        .input-group label {
+            display: block;
             margin-bottom: 5px;
         }
-        button {
-            padding: 5px 10px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            cursor: pointer;
+        .input-group input,
+        .input-group button {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
         }
-        button:hover {
-            background-color: #45a049;
-        }
-        #status-message {
-            margin-top: 10px;
-            font-weight: bold;
-            color: #333;
-        }
-        #console-window {
-            height: 200px;
-            overflow-y: scroll;
+        #data-display {
+            margin-top: 20px;
             border: 1px solid #ccc;
             padding: 10px;
+            background-color: #fff;
+        }
+        #console-window {
             margin-top: 20px;
-            background-color: #f9f9f9;
+            border: 1px solid #ccc;
+            padding: 10px;
+            background-color: #000;
+            color: #00ff00;
             font-family: monospace;
+            height: 200px;
+            overflow-y: auto;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="left-panel">
-            <h1>Intrusion Detection</h1>
-            <div class="input-group">
-                <label for="rtsp-url">RTSP URL:</label>
-                <input type="text" id="rtsp-url" name="rtsp-url">
-                <button onclick="setRtspUrl()">Set URL</button>
-            </div>
-            <div id="status-message"></div>
-            <div id="drawing-controls">
-                <button id="draw-button" onclick="toggleDrawing()">Start Drawing</button>
-            </div>
-            <div id="data-display">
-                <h3>Detection Data:</h3>
-                <div id="detection-info"></div>
-            </div>
-            <div id="console-window"></div>
+    <div class="left-panel">
+        <h1>Intrusion Detection</h1>
+        <div class="input-group">
+            <label for="rtsp-url">RTSP URL:</label>
+            <input type="text" id="rtsp-url" placeholder="Enter RTSP URL">
         </div>
-        <div class="right-panel">
-            <div id="video-container">
-                <canvas id="video-feed"></canvas>
-                <canvas id="overlay-canvas"></canvas>
-            </div>
+        <div class="input-group">
+            <button onclick="setRtspUrl()">Set URL</button>
+        </div>
+        <div class="input-group">
+            <button id="draw-button" onclick="toggleDrawing()">Start Drawing</button>
+        </div>
+        <div id="data-display">
+            <h3>Detection Data:</h3>
+            <div id="detection-info"></div>
+        </div>
+        <div id="console-window"></div>
+    </div>
+    <div class="right-panel">
+        <div id="video-container">
+            <img id="video-feed" src="{{ url_for('video_feed') }}" alt="Video Feed">
+            <canvas id="overlay-canvas"></canvas>
         </div>
     </div>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>
