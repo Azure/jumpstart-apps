@@ -1,4 +1,0 @@
-ultralytics==8.2.24
-torch>=2.1
-openvino>=2024.0.0
-Flask>=1.1.2,<3.0

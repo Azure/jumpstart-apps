@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  footfall_ai_api:
+    build:
+      context: ./footfall_ai_api/src  # This should point to the folder containing the Dockerfile and requirements.txt
+      dockerfile: Dockerfile
+    container_name: footfall_ai_api_container
+    volumes:
+      - C:\Users\fcabrera\Downloads\models:/tmp/models
+    ports:
+      - "5000:5000"  # Adjusting to expose port 80 as mapped in the Dockerfile
+    environment:
+      - MODEL_PATH=/tmp/models/yolov8n.pt
+      - RTSP_URL=rtsp://rtsp_stream_container:8554/stream
+
+  intrusion_detection_api:
+    build:
+      context: ./intrusion_detection_api/src  # This should point to the folder containing the Dockerfile and requirements.txt
+      dockerfile: Dockerfile
+    container_name: intrusion_detection_api_container
+    volumes:
+      - C:\Users\fcabrera\Downloads\models:/tmp/models
+    ports:
+      - "5001:5001"  # Adjusting to expose port 80 as mapped in the Dockerfile
+    environment:
+      - MODEL_PATH=/tmp/models/
+      - RTSP_URL=rtsp://rtsp_stream_container:8554/stream
+      - FLASK_PORT=5001
+
+  main_ui:
+    build:
+      context: ./main_ui/src
+      dockerfile: Dockerfile
+    container_name: main_ui_container
+    ports:
+      - "8080:8080"
+    environment:
+      - REACT_APP_FOOTFALL_VIDEO_URL=http://footfall_ai_api_container:5000/video_feed?x=50&y=20&w=540&h=320&source=rtsp://rtsp_stream_container:8554/stream
+      - REACT_APP_INTRUSION_VIDEO_URL=http://intrusion_detection_api:5001/video_feed?x=50&y=20&w=540&h=320&source=rtsp://rtsp_stream_container:8554/stream
+
+  rtsp_stream:
+    image: kerberos/virtual-rtsp:1.0.6
+    container_name: rtsp_stream_container
+    ports:
+      - "554:8554"
+    volumes:
+      - C:\Users\fcabrera\Downloads\samples:/samples
+    environment:
+      - SOURCE_URL=file:///samples/sample.mp4
+    restart: always

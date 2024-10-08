@@ -4,6 +4,8 @@ import Home from "./home";
 import StoreManager from "./storemanager";
 import MaintenanceWorker from "./maintenanceworker";
 import CamerasZones from "./cameraszones";
+import Footfall from "./footfall"; 
+import Intrusion from "./intrusion"; 
 
 const pagesData: routerType[] = [
   {
@@ -30,6 +32,16 @@ const pagesData: routerType[] = [
     path: "cameraszones",
     element: <CamerasZones />,
     title: "Cameras and Zones"
+  },
+  {
+    path: "footfall",
+    element: <Footfall />,
+    title: "Footfall"
+  },
+  {
+    path: "intrusion",
+    element: <Intrusion />,
+    title: "Intrusion"
   }
 ];
 
