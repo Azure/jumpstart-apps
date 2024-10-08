@@ -162,7 +162,7 @@ cython_debug/
 #.idea/
 eclipse.conf
 /hello_arc/app/node_modules
-/contoso_hypermarket/developer/footfall_ai/src/models
+/contoso_hypermarket/developer/footfall_ai_api/src/models
 
 *.pyc
 /contoso_supermarket/mqtt-simulator/mqtt-simulator/__pycache__
@@ -170,4 +170,4 @@ eclipse.conf
 /contoso_supermarket/developer/pos/pgdata
 /contoso_supermarket/developer/pos/flask_session
 agora/main_ui/src/yarn.lock
-/agora/footfall_ai/src/models
+/agora/footfall_ai_api/src/models

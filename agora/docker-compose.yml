@@ -1,11 +1,11 @@
 version: '3.8'
 
 services:
-  footfall_ai:
+  footfall_ai_api:
     build:
-      context: ./footfall_ai/src  # This should point to the folder containing the Dockerfile and requirements.txt
+      context: ./footfall_ai_api/src  # This should point to the folder containing the Dockerfile and requirements.txt
       dockerfile: Dockerfile
-    container_name: footfall_ai_container
+    container_name: footfall_ai_api_container
     volumes:
       - C:\Users\fcabrera\Downloads\models:/tmp/models
     ports:
@@ -22,7 +22,7 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - REACT_APP_FOOTFALL_VIDEO_URL=http://footfall_ai_container:5000/video_feed?x=50&y=20&w=540&h=320&source=rtsp://rtsp_stream_container:8554/stream
+      - REACT_APP_FOOTFALL_VIDEO_URL=http://footfall_ai_api_container:5000/video_feed?x=50&y=20&w=540&h=320&source=rtsp://rtsp_stream_container:8554/stream
 
   rtsp_stream:
     image: kerberos/virtual-rtsp:1.0.6
