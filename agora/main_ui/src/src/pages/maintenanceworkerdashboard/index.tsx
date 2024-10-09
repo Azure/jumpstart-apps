@@ -12,7 +12,7 @@ import {
   Button,
 } from "@fluentui/react-components";
 import { DismissRegular } from "@fluentui/react-icons";
-import Header from '../../components/Header';
+import SuiteHeader from '../../components/SuiteHeader';
 import SideMenu from "../../components/SideMenu";
 import { Default as Banner } from "../../components/Banner";
 import Cards from "../../components/Cards";
@@ -57,7 +57,7 @@ const MaintenanceWorkerDashboard = () => {
     return (
         <FluentProvider theme={webLightTheme}>
         <CopilotProvider mode='sidecar'>
-          <Header />
+          <SuiteHeader />
           <Main>
           <Stack.Item>
               <SideMenu />

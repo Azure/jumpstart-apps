@@ -4,6 +4,7 @@ import Home from "./home";
 import StoreManager from "./storemanager";
 import MaintenanceWorker from "./maintenanceworker";
 import MaintenanceWorkerDashboard from "./maintenanceworkerdashboard";
+import InventoryDashboard from "./inventorydashboard";
 import CamerasZones from "./cameraszones";
 
 const pagesData: routerType[] = [
@@ -31,6 +32,11 @@ const pagesData: routerType[] = [
     path: "maintenanceworkerdashboard",
     element: <MaintenanceWorkerDashboard />,
     title: "Maintenance Worker Dashboard"
+  },
+  {
+    path: "inventorydashboard",
+    element: <InventoryDashboard />,
+    title: "Inventory Dashboard"
   },
   {
     path: "cameraszones",
