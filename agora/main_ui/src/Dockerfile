@@ -15,9 +15,8 @@ COPY .env /usr/share/nginx/html
 COPY ./nginx.conf.template /etc/nginx/nginx.conf.default
 COPY --from=build /app/build /usr/share/nginx/html
 COPY ./env-config.sh /docker-entrypoint.d/env-config.sh
+RUN sed -i 's/\r$//' /docker-entrypoint.d/env-config.sh
 RUN chmod +x /docker-entrypoint.d/env-config.sh
 
 EXPOSE 80
-#CMD ["nginx", "-g", "daemon off;"]
-#CMD ["tail", "-f", "/dev/null"]
 CMD ["/bin/sh", "-c", "/docker-entrypoint.d/env-config.sh && nginx -g 'daemon off;'"]

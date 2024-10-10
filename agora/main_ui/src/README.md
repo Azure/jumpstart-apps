@@ -44,8 +44,14 @@ npm -v # should print `10.8.3`
 - Browse to cloned repo. We want to make sure we are at the project folder (/jumpstart-apps/agora/main_ui/src)
 
     ```bash
-    cd ~/jumpstart-apps/agora/main_ui/src$
+    cd ~/jumpstart-apps/agora/main_ui/src
 
+    ```
+
+- Install dependencies
+
+    ```bash
+    npm install
     ```
 
 - Building the app
@@ -70,6 +76,10 @@ Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 http://localhost:3000/storemanager
 
 http://localhost:3000/maintenanceworker
+
+http://localhost:3000/footfall
+
+http://localhost:3000/intrusion
 
 These links will work if you have running the app in your local machine. If you have deployed this app on a VM then please change the links accordlingly. For example, these are the links for VM that was use to test:
 

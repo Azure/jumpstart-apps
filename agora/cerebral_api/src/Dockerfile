@@ -24,7 +24,6 @@ ENV AZURE_OPENAI_API_KEY=<your_azure_openai_api_key> \
     INFLUXDB_BUCKET=cerebral \
     INFLUXDB_TOKEN=secret-token \
     INFLUXDB_ORG=InfluxData \
-    REDIS_URL=redis://redis-service.cerebral.svc.cluster.local:6379 \
     SQL_DATABASENAME=RetailDB \
     SQL_SERVER=10.0.0.4 \
     SQL_USERNAME=SA \

@@ -192,7 +192,6 @@ class ClassifyQuestion(Resource):
 
         return jsonify([{'question': question, 'category': category, 'industry': industry, 'role': role}])
         
-
 @ns.route('/api/convert_question_query_influx')
 class ConvertQuestionQueryInflux(Resource):
     @api.doc(responses={200: 'Success', 400: 'Question parameter is required'})
@@ -431,9 +430,6 @@ class CameraDetailResource(Resource):
             ns.abort(500, f'Database error: {str(e)}')
         finally:
             conn.close()
-
-
-
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5004)
