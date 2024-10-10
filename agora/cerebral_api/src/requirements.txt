@@ -1,0 +1,15 @@
+Flask
+Flask-Session
+redis
+influxdb-client
+plotly
+pandas
+openai
+python-dotenv
+kaleido
+
+flask-cors
+prometheus_client 
+fastapi 
+uvicorn
+flask_restx

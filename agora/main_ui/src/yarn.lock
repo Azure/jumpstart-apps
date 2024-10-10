@@ -1375,10 +1375,10 @@
     "@fluentui-copilot/text-editor" "^0.2.0"
     "@swc/helpers" "^0.5.1"
 
-"@fluentui-copilot/react-chat-input@^0.9.0":
-  version "0.9.0"
-  resolved "https://registry.npmjs.org/@fluentui-copilot/react-chat-input/-/react-chat-input-0.9.0.tgz"
-  integrity sha512-WqzK7Bk2uzKT24MmIjDKyWUyCNlFsoHep914LeHjBfe20zWnGL8jk78nVF9/jmV5rv8/P9MWGg5jnhhMJUIxuA==
+"@fluentui-copilot/react-chat-input@^0.9.1":
+  version "0.9.1"
+  resolved "https://registry.npmjs.org/@fluentui-copilot/react-chat-input/-/react-chat-input-0.9.1.tgz"
+  integrity sha512-2ifXIqyEuqbRAgl4yX8mJY3lvdD0RZVR/po4I4a0DOqZ7tVhpvuVkpyC3SSJ932FyIVHw9b7IwiSEEn5jjFckQ==
   dependencies:
     "@fluentui-copilot/chat-input-plugins" "^0.3.0"
     "@fluentui-copilot/react-chat-input-plugins" "^0.3.0"
@@ -1389,40 +1389,40 @@
     "@fluentui-copilot/text-editor" "^0.2.0"
     "@swc/helpers" "^0.5.1"
 
-"@fluentui-copilot/react-copilot-chat@^0.8.1":
-  version "0.8.1"
-  resolved "https://registry.npmjs.org/@fluentui-copilot/react-copilot-chat/-/react-copilot-chat-0.8.1.tgz"
-  integrity sha512-cuLLf7GdLXoY0yxzrIu0NSDIv6kfJFJ6a49SzcrNXm5uf4Ae/qBaK3jDAUH+Rr8PnuhJfNhZw6Qa/pAnfQLkIA==
+"@fluentui-copilot/react-copilot-chat@^0.8.2":
+  version "0.8.2"
+  resolved "https://registry.npmjs.org/@fluentui-copilot/react-copilot-chat/-/react-copilot-chat-0.8.2.tgz"
+  integrity sha512-Jm1NvxGUgxa/f6lsea5b1xXJBgP28oz2STIT9dWIYI5b6Zkdbr+WJl1kYxX64DacvfokW1RzdoXJiQHWY7UB3w==
   dependencies:
     "@fluentui-copilot/react-output-card" "^0.9.1"
     "@fluentui-copilot/react-provider" "^0.9.1"
     "@fluentui/react-positioning" "^9.15.7"
     "@swc/helpers" "^0.5.1"
 
-"@fluentui-copilot/react-copilot@^0.20.0":
-  version "0.20.0"
-  resolved "https://registry.npmjs.org/@fluentui-copilot/react-copilot/-/react-copilot-0.20.0.tgz"
-  integrity sha512-98Wmrp6d9RBwuUNCznWCmM/oGMXn7U8dr2RD1/rRDST9JasYcILLnUljPuroROHsy9hh8f7HJIe//34XV078Lg==
+"@fluentui-copilot/react-copilot@^0.20.1":
+  version "0.20.1"
+  resolved "https://registry.npmjs.org/@fluentui-copilot/react-copilot/-/react-copilot-0.20.1.tgz"
+  integrity sha512-8OGcF1ibQp6i6XOuWAUiiZru8P7CFRvpAeSLdkNwZz/Tq8348FDI796gG/kSvBNXqzHhEINTPtmv7+gN+NOOgw==
   dependencies:
     "@fluentui-copilot/chat-input-plugins" "^0.3.0"
     "@fluentui-copilot/react-attachments" "^0.10.1"
-    "@fluentui-copilot/react-chat-input" "^0.9.0"
+    "@fluentui-copilot/react-chat-input" "^0.9.1"
     "@fluentui-copilot/react-chat-input-plugins" "^0.3.0"
-    "@fluentui-copilot/react-copilot-chat" "^0.8.1"
+    "@fluentui-copilot/react-copilot-chat" "^0.8.2"
     "@fluentui-copilot/react-editor-input" "^0.3.0"
     "@fluentui-copilot/react-feedback-buttons" "^0.9.1"
     "@fluentui-copilot/react-first-run-experience" "^0.6.1"
     "@fluentui-copilot/react-flair" "^0.5.5"
     "@fluentui-copilot/react-latency" "^0.8.1"
     "@fluentui-copilot/react-output-card" "^0.9.1"
-    "@fluentui-copilot/react-preview" "^0.5.4"
+    "@fluentui-copilot/react-preview" "^0.5.5"
     "@fluentui-copilot/react-prompt-input" "^0.4.0"
-    "@fluentui-copilot/react-prompt-listbox" "^0.3.0"
+    "@fluentui-copilot/react-prompt-listbox" "^0.3.1"
     "@fluentui-copilot/react-prompt-starter" "^0.7.1"
     "@fluentui-copilot/react-provider" "^0.9.1"
-    "@fluentui-copilot/react-reference" "^0.13.4"
+    "@fluentui-copilot/react-reference" "^0.13.5"
     "@fluentui-copilot/react-response-count" "^0.2.5"
-    "@fluentui-copilot/react-sensitivity-label" "^0.5.4"
+    "@fluentui-copilot/react-sensitivity-label" "^0.5.5"
     "@fluentui-copilot/react-snippet" "^0.2.6"
     "@fluentui-copilot/react-suggestions" "^0.9.1"
     "@fluentui-copilot/react-text-editor" "^0.3.0"
@@ -1483,10 +1483,10 @@
     "@fluentui-copilot/tokens" "^0.3.3"
     "@swc/helpers" "^0.5.1"
 
-"@fluentui-copilot/react-preview@^0.5.4":
-  version "0.5.4"
-  resolved "https://registry.npmjs.org/@fluentui-copilot/react-preview/-/react-preview-0.5.4.tgz"
-  integrity sha512-dGfdIFtpo9kP8teUgkFYCk1E1CyNDZiY0H3/Td8MoAxRtrKDm1ljzN+cZ+ttI0M0Ue3O5XMj+8JAdavOMzQGhw==
+"@fluentui-copilot/react-preview@^0.5.5":
+  version "0.5.5"
+  resolved "https://registry.npmjs.org/@fluentui-copilot/react-preview/-/react-preview-0.5.5.tgz"
+  integrity sha512-SI7ovkg2znuoGcDo+aDycX/tPiQYwgjrPw9x9zv5mj3CEkK9Y752wkGZ0YbYvMej8L+/DznFVhkqDsAY5j4jfw==
   dependencies:
     "@swc/helpers" "^0.5.1"
 
@@ -1504,10 +1504,10 @@
     "@fluentui-copilot/text-editor" "^0.2.0"
     "@swc/helpers" "^0.5.1"
 
-"@fluentui-copilot/react-prompt-listbox@^0.3.0":
-  version "0.3.0"
-  resolved "https://registry.npmjs.org/@fluentui-copilot/react-prompt-listbox/-/react-prompt-listbox-0.3.0.tgz"
-  integrity sha512-ALPGeo+5jhWqRHt5BrVUCGnwocbgVdyC+6RDJwpPPlY3JheDUuJvCgxxIZWuGDMJ8oiJtl7VSqu6ywQAt9m1kQ==
+"@fluentui-copilot/react-prompt-listbox@^0.3.1":
+  version "0.3.1"
+  resolved "https://registry.npmjs.org/@fluentui-copilot/react-prompt-listbox/-/react-prompt-listbox-0.3.1.tgz"
+  integrity sha512-6WUxm3CL2cL4wcp4mSLL11MHAIm2dIiNqIhGxJEm/AqZS5scGDVdwMrhhP6N4urRt2rpstN2nmmIhHcOk+cZCA==
   dependencies:
     "@fluentui-copilot/chat-input-plugins" "^0.3.0"
     "@fluentui-copilot/react-chat-input-plugins" "^0.3.0"
@@ -1535,14 +1535,14 @@
     "@fluentui-copilot/tokens" "^0.3.3"
     "@swc/helpers" "^0.5.1"
 
-"@fluentui-copilot/react-reference@^0.13.4":
-  version "0.13.4"
-  resolved "https://registry.npmjs.org/@fluentui-copilot/react-reference/-/react-reference-0.13.4.tgz"
-  integrity sha512-kAVU12qm6yD6Cc8bMck0sehTSciebabPpFfIjEtmHd3Eey2Y6kodMEphQliwn3d/MOKmeHPkcdcSNDFvft20Lw==
+"@fluentui-copilot/react-reference@^0.13.5":
+  version "0.13.5"
+  resolved "https://registry.npmjs.org/@fluentui-copilot/react-reference/-/react-reference-0.13.5.tgz"
+  integrity sha512-mePixAVHxLtCEXhhlPK/lye9vn6FuHpBdpt6w7UzaTVOAsz5LqF6tx/COPCG3TUOA3OrSI9TIj6tzzxtfX6v2w==
   dependencies:
-    "@fluentui-copilot/react-preview" "^0.5.4"
+    "@fluentui-copilot/react-preview" "^0.5.5"
     "@fluentui-copilot/react-provider" "^0.9.1"
-    "@fluentui-copilot/react-sensitivity-label" "^0.5.4"
+    "@fluentui-copilot/react-sensitivity-label" "^0.5.5"
     "@fluentui-copilot/react-utilities" "^0.0.3"
     "@swc/helpers" "^0.5.1"
 
@@ -1553,12 +1553,12 @@
   dependencies:
     "@swc/helpers" "^0.5.1"
 
-"@fluentui-copilot/react-sensitivity-label@^0.5.4":
-  version "0.5.4"
-  resolved "https://registry.npmjs.org/@fluentui-copilot/react-sensitivity-label/-/react-sensitivity-label-0.5.4.tgz"
-  integrity sha512-M/Dvcrnq8f/QR+/veOYmf5nXQprn6Uwg1expmzZ9wIheya2PtV7nB/PqgUYnA6/e+jDJr0afin1okoOHih6sFg==
+"@fluentui-copilot/react-sensitivity-label@^0.5.5":
+  version "0.5.5"
+  resolved "https://registry.npmjs.org/@fluentui-copilot/react-sensitivity-label/-/react-sensitivity-label-0.5.5.tgz"
+  integrity sha512-Ol0qOtshIy0Xu5TfuDegJXmwp0l31Pm/uxDfEy026/UWeEIb/CDDoD9I1i3xwdQFRT+1/CGZh76MM8MvmKCdqA==
   dependencies:
-    "@fluentui-copilot/react-preview" "^0.5.4"
+    "@fluentui-copilot/react-preview" "^0.5.5"
     "@swc/helpers" "^0.5.1"
 
 "@fluentui-copilot/react-snippet@^0.2.6":
