@@ -15,4 +15,4 @@ COPY . /usr/src/app
 EXPOSE 5002
 
 # Run the application
-CMD ["python", "app.py"]
+CMD ["/usr/bin/python3", "app.py"]
