@@ -6,6 +6,7 @@ from flask_cors import CORS
 from llm import LLM
 from InfluxDBHandler import InfluxDBHandler
 import logging
+import sqlite3
 
 app = Flask(__name__)
 
@@ -162,13 +163,15 @@ class ProactiveAlerts(Resource):
 
 # Define the expected input model
 question_model = ns.model('Question', {
-    'question': fields.String(required=True, description='The question to classify')
+    'question': fields.String(required=True, description='The question to classify'),
+    'industry': fields.String(required=True, description='The industry context'),
+    'role': fields.String(required=True, description='The role context')
 })
 
 
-@ns.route('/api/classify_question' , methods=['POST'])
+@ns.route('/api/classify_question', methods=['POST'])
 class ClassifyQuestion(Resource):
-    @api.doc(params={'question': 'Specify the question to classify'})
+    @api.doc(params={'question': 'Specify the question to classify', 'industry': 'Specify the industry', 'role': 'Specify the role'})
     @api.expect(question_model)
     def post(self):
         """Classify the provided question"""
@@ -176,48 +179,19 @@ class ClassifyQuestion(Resource):
             raise BadRequest('Content-Type must be application/json')
         
         data = request.get_json(force=True)
-        print("test")
-        print(request)
-
         question = data.get('question')
-        if not question:
-            raise BadRequest('Question parameter is required')
+        industry = data.get('industry')
+        role = data.get('role')
         
-        category = llm.classify_question(question)
+        if not question or not industry or not role:
+            raise BadRequest('Question, industry, and role parameters are required')
+        
+        category = llm.classify_question(question, industry, role)
 
-        print(jsonify({'question': question, 'category': category}))
+        print(jsonify({'question': question, 'category': category, 'industry': industry, 'role': role}))
 
-        return jsonify([{'question': question, 'category': category}])
+        return jsonify([{'question': question, 'category': category, 'industry': industry, 'role': role}])
         
-# Define the expected input model
-login_model = ns.model('Login', {
-    'username': fields.String(required=True, description='The username'),
-    'password': fields.String(required=True, description='The password')
-})
-
-@ns.route('/api/login', methods=['POST'])
-class Login(Resource):
-    @api.doc(responses={200: 'Success', 401: 'Validation Error', 400: 'Missing required parameters'})
-    @api.expect(login_model)
-    def post(self):
-        """Authenticate user and set session"""
-        if request.content_type != 'application/json':
-            raise BadRequest('Content-Type must be application/json')
-        
-        data = request.get_json(force=True)
-        username = data.get('username')
-        password = data.get('password')
-        
-        if not username or not password:
-            api.abort(400, 'Missing required parameters')
-        
-        if username == 'user' and password == 'pass':
-            # session['user'] = {'username': username, 'industry': industry, 'role': role}
-            # return {'message': 'Login successful', 'user': session['user']}, 200
-            return {'message': 'Login successful'}, 200
-        else:
-            return {'error': 'Invalid credentials'}, 401
-
 @ns.route('/api/convert_question_query_influx')
 class ConvertQuestionQueryInflux(Resource):
     @api.doc(responses={200: 'Success', 400: 'Question parameter is required'})
@@ -229,31 +203,56 @@ class ConvertQuestionQueryInflux(Resource):
         
         data = request.get_json(force=True)
         question = data.get('question')
-        if not question:
-            return jsonify({'error': 'Question parameter is required'}), 400
+        industry = data.get('industry')
+        role = data.get('role')
         
-        response = llm.convert_question_query_influx(question)
-        return jsonify({'question': question, 'response': response})
+        if not question or not industry or not role:
+            return jsonify({'error': 'Question, industry, and role parameters are required'}), 400
+        
+        response = llm.convert_question_query_influx(question, industry, role)
+        return jsonify({'question': question, 'response': response, 'industry': industry, 'role': role})
+    
+question_model = ns.model('Question', {
+    'question': fields.String(required=True, description='The question to convert to SQL'),
+    'industry': fields.String(required=True, description='The industry context'),
+    'role': fields.String(required=True, description='The role context')
+})
     
 @ns.route('/api/convert_question_query_sql')
-class ConvertQuestionQueryInflux(Resource):
-    @api.doc(responses={200: 'Success', 400: 'Question parameter is required'})
+class ConvertQuestionQuerySQL(Resource):
+    @api.doc(responses={200: 'Success', 400: 'Missing required parameters'})
     @api.expect(question_model)
     def post(self):
-        """Converts question in query sql"""
+        """Converts question to SQL query"""
         if request.content_type != 'application/json':
             raise BadRequest('Content-Type must be application/json')
         
+        #print(request)
+
         data = request.get_json(force=True)
         question = data.get('question')
-        if not question:
-            return jsonify({'error': 'Question parameter is required'}), 400
-        
-        #response = llm.convert_question_query_influx(question)
-        #TO DO
+        industry = data.get('industry')
+        role = data.get('role')
 
-        response = "SELECT productname, price FROM Products"
-        return jsonify({'question': question, 'response': response})
+        print(question)
+        print(industry)
+        print(role)
+        
+        if not question or not industry or not role:
+            return jsonify({'error': 'Question, industry, and role parameters are required'}), 400
+        
+        try:
+            response = llm.convert_question_query_sql(question, industry, role)
+            return jsonify({
+                'question': question,
+                'sql_query': response,
+                'industry': industry,
+                'role': role
+            })
+        except Exception as e:
+            # Log the error for debugging
+            print(f"Error in convert_question_query_sql: {str(e)}")
+            return jsonify({'error': 'An error occurred while processing your request'}), 500
 
 # Define the expected input model
 query_model = ns.model('Query', {
@@ -348,6 +347,89 @@ class GenerateRecommendations(Resource):
         return jsonify({'question': question, 'response': response, 'result': result, 'recommendations': recommendations})
 
 #api.add_resource(GenerateRecommendations, '/generate-recommendations')
+
+camera_model = api.model('Camera', {
+    'name': fields.String(required=True, description='Camera name'),
+    'endpoint': fields.String(required=True, description='Camera endpoint'),
+    'tags': fields.List(fields.String, description='Camera tags'),
+    'status': fields.String(required=True, description='Camera status')
+})
+
+def get_db_connection():
+    conn = sqlite3.connect('cameras.db')
+    conn.row_factory = sqlite3.Row
+    return conn
+
+def init_db():
+    conn = get_db_connection()
+    conn.execute('''CREATE TABLE IF NOT EXISTS cameras
+                    (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                     name TEXT NOT NULL,
+                     endpoint TEXT NOT NULL,
+                     tags TEXT,
+                     status TEXT NOT NULL)''')
+    conn.close()
+
+init_db()
+
+def validate_json_content_type():
+    if request.content_type != 'application/json':
+        ns.abort(400, 'Content-Type must be application/json')
+
+@ns.route('/api/camera')
+class CameraResource(Resource):
+    @ns.expect(camera_model)
+    @ns.response(201, 'Camera created successfully')
+    @ns.response(400, 'Bad Request')
+    @ns.response(500, 'Internal Server Error')
+    def put(self):
+        """Create a new camera or update an existing one"""
+        validate_json_content_type()
+        data = request.json
+        conn = get_db_connection()
+        
+        try:
+            tags = ','.join(data['tags']) if data.get('tags') else ''
+            conn.execute('INSERT OR REPLACE INTO cameras (name, endpoint, tags, status) VALUES (?, ?, ?, ?)',
+                         (data['name'], data['endpoint'], tags, data['status']))
+            conn.commit()
+            return {'message': 'Camera created/updated successfully'}, 201
+        except sqlite3.Error as e:
+            ns.abort(500, f'Database error: {str(e)}')
+        finally:
+            conn.close()
+
+    @ns.response(200, 'Success', [camera_model])
+    @ns.response(500, 'Internal Server Error')
+    def get(self):
+        """Get all cameras"""
+        conn = get_db_connection()
+        try:
+            cameras = conn.execute('SELECT * FROM cameras').fetchall()
+            return jsonify([dict(camera) for camera in cameras])
+        except sqlite3.Error as e:
+            ns.abort(500, f'Database error: {str(e)}')
+        finally:
+            conn.close()
+
+@ns.route('/api/camera/<string:name>')
+@ns.param('name', 'The camera name')
+class CameraDetailResource(Resource):
+    @ns.response(200, 'Success', camera_model)
+    @ns.response(404, 'Camera not found')
+    @ns.response(500, 'Internal Server Error')
+    def get(self, name):
+        """Get a specific camera by name"""
+        conn = get_db_connection()
+        try:
+            camera = conn.execute('SELECT * FROM cameras WHERE name = ?', (name,)).fetchone()
+            if camera:
+                return dict(camera)
+            ns.abort(404, 'Camera not found')
+        except sqlite3.Error as e:
+            ns.abort(500, f'Database error: {str(e)}')
+        finally:
+            conn.close()
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5004)

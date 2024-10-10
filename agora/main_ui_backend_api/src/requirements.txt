@@ -1,0 +1,9 @@
+Flask
+Flask-Session
+python-dotenv
+
+flask-cors
+prometheus_client 
+fastapi 
+uvicorn
+flask_restx
