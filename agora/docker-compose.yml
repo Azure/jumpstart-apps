@@ -27,7 +27,7 @@ services:
       dockerfile: Dockerfile
     container_name: footfall_ai_api_container
     volumes:
-      - /mnt/C/Users/dakir/models:/tmp/models
+      - ../models:/tmp/models
     ports:
       - "5000:5000"  # Adjusting to expose port 5000 as mapped in the Dockerfile
     environment:
@@ -40,7 +40,7 @@ services:
       dockerfile: Dockerfile
     container_name: intrusion_detection_api_container
     volumes:
-      - /mnt/C/Users/dakir/models:/tmp/models
+      - ../models:/tmp/models
     ports:
       - "5001:5001"  # Adjusting to expose port 5001 as mapped in the Dockerfile
     environment:
@@ -65,7 +65,7 @@ services:
     ports:
       - "554:8554"
     volumes:
-      - /mnt/C/Users/dakir/samples:/samples
+      - ../samples:/samples
     environment:
       - SOURCE_URL=file:///samples/sample.mp4
     restart: always
