@@ -54,15 +54,15 @@ const useStyles = makeStyles({
         display: "flex",
         padding: "var(--card-Vertical, 12px) var(--card-Horizontal, 12px)",
         justifyContent: "center",
-        alignItems: "center",
+        alignItems: "flex-start",
         gap: "var(--card-Gap, 12px)",
         flex: "1 0 0",
+        alignSelf: "stretch",
       },
       cardfootercontent: {
         display: "flex",
         flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
+        alignItems: "flex-start",
         gap: "var(--card-Gap, 12px)",
         flex: "1 0 0",
       },
@@ -89,9 +89,54 @@ const useStyles = makeStyles({
         fontStyle: "normal",
         fontWeight: "400",
         lineHeight: "var(--Line-height-200, 16px)",
+      },
+      explorecategories: {
+        width: "100%",
+        height: "47px",
+        flexShrink: 0,
+        color: "NeutralForeground1.Rest",
+        fontFamily: "var(--Font-family-Base, 'Segoe UI')",
+        fontSize: "var(--Font-size-700, 28px)",
+        fontStyle: "normal",
+        fontWeight: "600",
+        lineHeight: "var(--Line-height-700, 36px)",
+        textAlign: "left",
+        alignSelf: "stretch",
+      },
+      categories: {
+        width: "100%",
+        height: "154px",
+        border: '1px solid #ccc',
       }
     });
+    const childStackStyles = {
+      root: {
+        width: '14.28%', // 100% / 7 for equal width
+        height: '100%',
+        
+      },
+    };
 
+    const categoryStyles = {
+      root: {
+        width: '152px',
+        height: '100%',
+      },
+    };
+    const categoryTextStyles = {
+      root: {
+        display:'inline-flex',
+        alignItems: 'flex-end',
+        gap: '4px',
+        color: '#242424',
+        alignSelf: 'stretch',
+        fontFamily: 'var(--Font-family-Base, "Segoe UI")',
+        fontSize: 'var(--Font-size-300, 14px)',
+        fontStyle: 'normal',
+        fontWeight: 400,
+        lineHeight: 'var(--Line-height-300, 20px)',
+      },
+    };
     const Shopper = () => {
         const styles = useStyles();
           return (
@@ -100,47 +145,78 @@ const useStyles = makeStyles({
                     <Stack>
                         <Header />
                         <TopNav />
-                        <Stack id='MainContent'>
-                            <Stack id='HeroContent' horizontal>
-                            <Card className={styles.card}>
-                    <CardHeader
-                        image={        
-                        <img
-                          src={"ShopperHeroImage1.png"}
-                          alt="Fridge Abc 123"
-                        />}
-                        description={<Caption1></Caption1>}
-                    />
-                    <CardFooter className={styles.cardfooter}>
-                    <div className={styles.cardfootercontent}>
-                      <Text className={styles.cardfootertitlecontenttext}>Now offering curbside pickup</Text>
-                      <Text className={styles.cardfootersubtitlecontenttext}>Start your cart
-                      </Text>                        
-                    </div>
-                    </CardFooter>
-                </Card>
-                <Card className={styles.card}>
-                    <CardHeader
-                        image={        
-                          <img
-                            src={"ShopperHeroImage2.png"}
-                            alt="Fridge Abc 123"
-                          />}
-                        description={<Caption1></Caption1>}
-                    />
-                    <CardFooter className={styles.cardfooter}>  
-                    <div className={styles.cardfootercontent}>
-                      <Text className={styles.cardfootertitlecontenttext}>Let Cerebral handle your dinner recipes</Text>
-                      <Text className={styles.cardfootersubtitlecontenttext}>Ask Genie</Text>                        
-                    </div>
-                    </CardFooter>
-                </Card>                               
+                        <Stack id='MainContent' style={{alignItems: 'center'}}>
+                            <Stack>
+                              <Stack id='HeroContent' horizontal>
+                             <Card className={styles.card}>
+                              <CardHeader
+                                  image={        
+                                  <img
+                                    src={"ShopperHeroImage1.png"}
+                                    alt="Fridge Abc 123"
+                                  />}
+                                  description={<Caption1></Caption1>}
+                              />
+                              <CardFooter className={styles.cardfooter}>
+                              <div className={styles.cardfootercontent}>
+                                <Text className={styles.cardfootertitlecontenttext}>Now offering curbside pickup</Text>
+                                <Text className={styles.cardfootersubtitlecontenttext}>Start your cart
+                                </Text>                        
+                              </div>
+                            </CardFooter>
+                              </Card>
+                              <Card className={styles.card}>
+                            <CardHeader
+                                image={        
+                                  <img
+                                    src={"ShopperHeroImage2.png"}
+                                    alt="Fridge Abc 123"
+                                  />}
+                                description={<Caption1></Caption1>}
+                            />
+                            <CardFooter className={styles.cardfooter}>  
+                            <div className={styles.cardfootercontent}>
+                              <Text className={styles.cardfootertitlecontenttext}>Let Cerebral handle your dinner recipes</Text>
+                              <Text className={styles.cardfootersubtitlecontenttext}>Ask Genie</Text>                        
+                            </div>
+                            </CardFooter>
+                              </Card>      
+                              </Stack>      
+                              <Stack style={{width: '100%'}}>
+                                <Text className={styles.explorecategories}>Explore Categories</Text>
+                              </Stack>                                                 
                             </Stack>
-                            <Stack id='ExploreCategories'>
-                                <Text>Explore Categories</Text>
-                                <Stack horizontal id='Categories'>
-
+                            <Stack horizontal id='ExploreCategories'>
+                             <Stack horizontal id='Categories' className={styles.categories}>
+                                <Stack styles={childStackStyles}>
+                                  <img src="Rectangle 34655402.png" alt="Category 1" style={categoryStyles.root} />
+                                  <Text style={categoryTextStyles.root}>Vegetables</Text>
                                 </Stack>
+                                <Stack styles={childStackStyles}>
+                                  <img src="Rectangle 34655402.png" alt="Category 1" style={categoryStyles.root} />
+                                  <Text style={categoryTextStyles.root}>Vegetables</Text>
+                                </Stack>   
+                                <Stack styles={childStackStyles}>
+                                  <img src="Rectangle 34655402.png" alt="Category 1" style={categoryStyles.root} />
+                                  <Text style={categoryTextStyles.root}>Vegetables</Text>
+                                </Stack>  
+                                <Stack styles={childStackStyles}>
+                                  <img src="Rectangle 34655402.png" alt="Category 1" style={categoryStyles.root} />
+                                  <Text style={categoryTextStyles.root}>Vegetables</Text>
+                                </Stack>  
+                                <Stack styles={childStackStyles}>
+                                  <img src="Rectangle 34655402.png" alt="Category 1" style={categoryStyles.root} />
+                                  <Text style={categoryTextStyles.root}>Vegetables</Text>
+                                </Stack>  
+                                <Stack styles={childStackStyles}>
+                                  <img src="Rectangle 34655402.png" alt="Category 1" style={categoryStyles.root} />
+                                  <Text style={categoryTextStyles.root}>Vegetables</Text>
+                                </Stack>  
+                                <Stack styles={childStackStyles}>
+                                  <img src="Rectangle 34655402.png" alt="Category 1" style={categoryStyles.root} />
+                                  <Text style={categoryTextStyles.root}>Vegetables</Text>
+                                </Stack>                                                                                                                                                                                               
+                              </Stack>
                             </Stack>
                             <Stack id='CardsSection' horizontal>
 
