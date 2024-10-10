@@ -103,6 +103,10 @@ def run_inference(frame):
 
     return cv2.imencode('.jpg', frame)
 
+@app.route('/')
+def index():
+    return render_template('index.html')
+
 @app.route('/video_feed')
 def video_feed():
     global vs, line_points

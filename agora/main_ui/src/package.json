@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@fluentui-copilot/react-copilot": "^0.20.0",
+    "@fluentui-copilot/react-copilot": "^0.20.1",
     "@fluentui/react": "^8.120.9",
     "@fluentui/react-charting": "^5.23.4",
     "@fluentui/react-components": "^9.54.16",
