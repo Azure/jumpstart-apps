@@ -163,13 +163,15 @@ class ProactiveAlerts(Resource):
 
 # Define the expected input model
 question_model = ns.model('Question', {
-    'question': fields.String(required=True, description='The question to classify')
+    'question': fields.String(required=True, description='The question to classify'),
+    'industry': fields.String(required=True, description='The industry context'),
+    'role': fields.String(required=True, description='The role context')
 })
 
 
-@ns.route('/api/classify_question' , methods=['POST'])
+@ns.route('/api/classify_question', methods=['POST'])
 class ClassifyQuestion(Resource):
-    @api.doc(params={'question': 'Specify the question to classify'})
+    @api.doc(params={'question': 'Specify the question to classify', 'industry': 'Specify the industry', 'role': 'Specify the role'})
     @api.expect(question_model)
     def post(self):
         """Classify the provided question"""
@@ -177,47 +179,19 @@ class ClassifyQuestion(Resource):
             raise BadRequest('Content-Type must be application/json')
         
         data = request.get_json(force=True)
-        print("test")
-        print(request)
-
         question = data.get('question')
-        if not question:
-            raise BadRequest('Question parameter is required')
+        industry = data.get('industry')
+        role = data.get('role')
         
-        category = llm.classify_question(question)
+        if not question or not industry or not role:
+            raise BadRequest('Question, industry, and role parameters are required')
+        
+        category = llm.classify_question(question, industry, role)
 
-        print(jsonify({'question': question, 'category': category}))
+        print(jsonify({'question': question, 'category': category, 'industry': industry, 'role': role}))
 
-        return jsonify([{'question': question, 'category': category}])
+        return jsonify([{'question': question, 'category': category, 'industry': industry, 'role': role}])
         
-# Define the expected input model
-login_model = ns.model('Login', {
-    'username': fields.String(required=True, description='The username'),
-    'password': fields.String(required=True, description='The password')
-})
-
-@ns.route('/api/login', methods=['POST'])
-class Login(Resource):
-    @api.doc(responses={200: 'Success', 401: 'Validation Error', 400: 'Missing required parameters'})
-    @api.expect(login_model)
-    def post(self):
-        """Authenticate user and set session"""
-        if request.content_type != 'application/json':
-            raise BadRequest('Content-Type must be application/json')
-        
-        data = request.get_json(force=True)
-        username = data.get('username')
-        password = data.get('password')
-        
-        if not username or not password:
-            api.abort(400, 'Missing required parameters')
-        
-        if username == 'user' and password == 'pass':
-            # session['user'] = {'username': username, 'industry': industry, 'role': role}
-            # return {'message': 'Login successful', 'user': session['user']}, 200
-            return {'message': 'Login successful'}, 200
-        else:
-            return {'error': 'Invalid credentials'}, 401
 
 @ns.route('/api/convert_question_query_influx')
 class ConvertQuestionQueryInflux(Resource):
@@ -230,31 +204,56 @@ class ConvertQuestionQueryInflux(Resource):
         
         data = request.get_json(force=True)
         question = data.get('question')
-        if not question:
-            return jsonify({'error': 'Question parameter is required'}), 400
+        industry = data.get('industry')
+        role = data.get('role')
         
-        response = llm.convert_question_query_influx(question)
-        return jsonify({'question': question, 'response': response})
+        if not question or not industry or not role:
+            return jsonify({'error': 'Question, industry, and role parameters are required'}), 400
+        
+        response = llm.convert_question_query_influx(question, industry, role)
+        return jsonify({'question': question, 'response': response, 'industry': industry, 'role': role})
+    
+question_model = ns.model('Question', {
+    'question': fields.String(required=True, description='The question to convert to SQL'),
+    'industry': fields.String(required=True, description='The industry context'),
+    'role': fields.String(required=True, description='The role context')
+})
     
 @ns.route('/api/convert_question_query_sql')
-class ConvertQuestionQueryInflux(Resource):
-    @api.doc(responses={200: 'Success', 400: 'Question parameter is required'})
+class ConvertQuestionQuerySQL(Resource):
+    @api.doc(responses={200: 'Success', 400: 'Missing required parameters'})
     @api.expect(question_model)
     def post(self):
-        """Converts question in query sql"""
+        """Converts question to SQL query"""
         if request.content_type != 'application/json':
             raise BadRequest('Content-Type must be application/json')
         
+        #print(request)
+
         data = request.get_json(force=True)
         question = data.get('question')
-        if not question:
-            return jsonify({'error': 'Question parameter is required'}), 400
-        
-        #response = llm.convert_question_query_influx(question)
-        #TO DO
+        industry = data.get('industry')
+        role = data.get('role')
 
-        response = "SELECT productname, price FROM Products"
-        return jsonify({'question': question, 'response': response})
+        print(question)
+        print(industry)
+        print(role)
+        
+        if not question or not industry or not role:
+            return jsonify({'error': 'Question, industry, and role parameters are required'}), 400
+        
+        try:
+            response = llm.convert_question_query_sql(question, industry, role)
+            return jsonify({
+                'question': question,
+                'sql_query': response,
+                'industry': industry,
+                'role': role
+            })
+        except Exception as e:
+            # Log the error for debugging
+            print(f"Error in convert_question_query_sql: {str(e)}")
+            return jsonify({'error': 'An error occurred while processing your request'}), 500
 
 # Define the expected input model
 query_model = ns.model('Query', {
