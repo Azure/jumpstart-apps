@@ -75,6 +75,7 @@ const useStyles = makeStyles({
       boxSizing: 'border-box',
       background: '#F3FDF8',
       height: '50px',
+      borderBottom: '1px solid #E0E0E0',
     },
   };
 

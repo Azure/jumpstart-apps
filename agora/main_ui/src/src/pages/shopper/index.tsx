@@ -40,6 +40,21 @@ const useStyles = makeStyles({
         background: "NeutralBackground1.Rest",
         boxShadow: "0px 2px 4px 0px rgba(0, 0, 0, 0.14), 0px 0px 2px 0px rgba(0, 0, 0, 0.12)",
       },
+      cardsmall: {
+        display: "flex",
+        width: "350px",
+        height: "250px",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+        flexShrink: "0",
+        borderRadius: "4px",
+        border: "1px solid TransparentStroke.Rest",
+        background: "NeutralBackground1.Rest",
+        boxShadow: "0px 2px 4px 0px rgba(0, 0, 0, 0.14), 0px 0px 2px 0px rgba(0, 0, 0, 0.12)",
+        marginLeft: '93px',
+        marginRight: '16px',
+      },
       cardpreviewtext: {
           color: "var(--Text-Primary, #323130)",
           textAlign: "center",
@@ -106,7 +121,24 @@ const useStyles = makeStyles({
       categories: {
         width: "100%",
         height: "154px",
-        border: '1px solid #ccc',
+        marginTop: '26px',
+      },
+      categorytext: {
+        color: '#242424',
+        textAlign: 'center',
+        alignSelf: 'stretch',
+        fontFamily: 'var(--Font-family-Base, "Segoe UI")',
+        fontSize: 'var(--Font-size-300, 14px)',
+        fontStyle: 'normal',
+        fontWeight: 400,
+        lineHeight: 'var(--Line-height-300, 20px)',
+      },
+      explorecategoriessection: {
+        marginTop: '26px',
+      },
+      ordersection: {
+        marginTop: '71px',
+        marginBottom: '154px',
       }
     });
     const childStackStyles = {
@@ -121,22 +153,13 @@ const useStyles = makeStyles({
       root: {
         width: '152px',
         height: '100%',
+        paddingBottom: '8px',
+        paddingLeft: '8px',
+        paddingRight: '8px',
+        paddingTop: '8px',
       },
     };
-    const categoryTextStyles = {
-      root: {
-        display:'inline-flex',
-        alignItems: 'flex-end',
-        gap: '4px',
-        color: '#242424',
-        alignSelf: 'stretch',
-        fontFamily: 'var(--Font-family-Base, "Segoe UI")',
-        fontSize: 'var(--Font-size-300, 14px)',
-        fontStyle: 'normal',
-        fontWeight: 400,
-        lineHeight: 'var(--Line-height-300, 20px)',
-      },
-    };
+
     const Shopper = () => {
         const styles = useStyles();
           return (
@@ -145,10 +168,10 @@ const useStyles = makeStyles({
                     <Stack>
                         <Header />
                         <TopNav />
-                        <Stack id='MainContent' style={{alignItems: 'center'}}>
+                        <Stack id='MainContent' style={{alignItems: 'center', marginTop: '21px'}}>
                             <Stack>
                               <Stack id='HeroContent' horizontal>
-                             <Card className={styles.card}>
+                             <Card className={styles.card} style={{marginLeft: '0px', marginRight: '46px'}}>
                               <CardHeader
                                   image={        
                                   <img
@@ -182,7 +205,7 @@ const useStyles = makeStyles({
                             </CardFooter>
                               </Card>      
                               </Stack>      
-                              <Stack style={{width: '100%'}}>
+                              <Stack style={{width: '100%'}} className={styles.explorecategoriessection}>
                                 <Text className={styles.explorecategories}>Explore Categories</Text>
                               </Stack>                                                 
                             </Stack>
@@ -190,36 +213,91 @@ const useStyles = makeStyles({
                              <Stack horizontal id='Categories' className={styles.categories}>
                                 <Stack styles={childStackStyles}>
                                   <img src="Rectangle 34655402.png" alt="Category 1" style={categoryStyles.root} />
-                                  <Text style={categoryTextStyles.root}>Vegetables</Text>
+                                  <Text className={styles.categorytext}>Vegetables</Text>
                                 </Stack>
                                 <Stack styles={childStackStyles}>
-                                  <img src="Rectangle 34655402.png" alt="Category 1" style={categoryStyles.root} />
-                                  <Text style={categoryTextStyles.root}>Vegetables</Text>
+                                  <img src="Rectangle 34655403.png" alt="Category 1" style={categoryStyles.root} />
+                                  <Text className={styles.categorytext}>Seafood</Text>
                                 </Stack>   
                                 <Stack styles={childStackStyles}>
-                                  <img src="Rectangle 34655402.png" alt="Category 1" style={categoryStyles.root} />
-                                  <Text style={categoryTextStyles.root}>Vegetables</Text>
+                                  <img src="Rectangle 34655404.png" alt="Category 1" style={categoryStyles.root} />
+                                  <Text className={styles.categorytext}>Subs and wraps</Text>
                                 </Stack>  
                                 <Stack styles={childStackStyles}>
-                                  <img src="Rectangle 34655402.png" alt="Category 1" style={categoryStyles.root} />
-                                  <Text style={categoryTextStyles.root}>Vegetables</Text>
+                                  <img src="Rectangle 34655405.png" alt="Category 1" style={categoryStyles.root} />
+                                  <Text className={styles.categorytext}>Imported Cheese</Text>
                                 </Stack>  
                                 <Stack styles={childStackStyles}>
-                                  <img src="Rectangle 34655402.png" alt="Category 1" style={categoryStyles.root} />
-                                  <Text style={categoryTextStyles.root}>Vegetables</Text>
+                                  <img src="Rectangle 34655406.png" alt="Category 1" style={categoryStyles.root} />
+                                  <Text className={styles.categorytext}>Natural wine</Text>
                                 </Stack>  
                                 <Stack styles={childStackStyles}>
-                                  <img src="Rectangle 34655402.png" alt="Category 1" style={categoryStyles.root} />
-                                  <Text style={categoryTextStyles.root}>Vegetables</Text>
+                                  <img src="Rectangle 34655407.png" alt="Category 1" style={categoryStyles.root} />
+                                  <Text className={styles.categorytext}>Gluten-free</Text>
                                 </Stack>  
                                 <Stack styles={childStackStyles}>
-                                  <img src="Rectangle 34655402.png" alt="Category 1" style={categoryStyles.root} />
-                                  <Text style={categoryTextStyles.root}>Vegetables</Text>
+                                  <img src="Rectangle 34655408.png" alt="Category 1" style={categoryStyles.root} />
+                                  <Text className={styles.categorytext}>Plant based</Text>
                                 </Stack>                                                                                                                                                                                               
                               </Stack>
-                            </Stack>
                             <Stack id='CardsSection' horizontal>
 
+                            </Stack>
+                            </Stack>
+                            <Stack>
+                              <Stack horizontal id='OrderSection' className={styles.ordersection}>
+                             <Card className={styles.cardsmall}>
+                              <CardHeader
+                                  image={        
+                                  <img
+                                    src={"EasyToCookMealKits.png"}
+                                    alt="Fridge Abc 123"
+                                  />}
+                                  description={<Caption1></Caption1>}
+                              />
+                              <CardFooter className={styles.cardfooter}>
+                              <div className={styles.cardfootercontent}>
+                                <Text className={styles.cardfootertitlecontenttext}>Easy to cook meal kits</Text>
+                                <Text className={styles.cardfootersubtitlecontenttext}>Located in the deli</Text>                        
+                              </div>
+                            </CardFooter>
+                              </Card>
+                              <Card className={styles.cardsmall}>
+                            <CardHeader
+                                image={        
+                                  <img
+                                    src={"GrabAndGoMeals.png"}
+                                    alt="Fridge Abc 123"
+                                  />}
+                                description={<Caption1></Caption1>}
+                            />
+                            <CardFooter className={styles.cardfooter}>  
+                            <div className={styles.cardfootercontent}>
+                              <Text className={styles.cardfootertitlecontenttext}>Grab and go meals</Text>
+                              <Text className={styles.cardfootersubtitlecontenttext}>Located in the deli</Text>                        
+                            </div>
+                            </CardFooter>
+                              </Card>      
+                              <Card className={styles.cardsmall}>
+                            <CardHeader
+                                image={        
+                                  <img
+                                    src={"CakeForAnyOccasion.png"}
+                                    alt="Fridge Abc 123"
+                                  />}
+                                description={<Caption1></Caption1>}
+                            />
+                            <CardFooter className={styles.cardfooter}>  
+                            <div className={styles.cardfootercontent}>
+                              <Text className={styles.cardfootertitlecontenttext}>Cake for any occasion</Text>
+                              <Text className={styles.cardfootersubtitlecontenttext}>Located in the deli</Text>                        
+                            </div>
+                            </CardFooter>
+                              </Card>      
+                              </Stack>      
+                              <Stack style={{width: '100%'}}>
+                                <Text className={styles.explorecategories}>Explore Categories</Text>
+                              </Stack>                                                 
                             </Stack>
                             <Footer />
                         </Stack>
