@@ -37,6 +37,14 @@ spec:
           value: "InfluxData"
         - name: REDIS_URL
           value: "redis://redis-service.cerebral.svc.cluster.local:6379"
+        - name: SQL_DATABASENAME
+          value: "ReatilDB"
+        - name: SQL_SERVER
+          value: "10.0.0.4"
+        - name: SQL_USERNAME
+          value: "SA"
+        - name: SQL_PASSWORD
+          value: "ArcPassword123!!"
 
 ---
 apiVersion: v1
