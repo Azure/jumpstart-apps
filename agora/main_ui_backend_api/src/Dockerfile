@@ -1,5 +1,6 @@
 # Use the official Python image
-FROM python:3.9-slim
+# Use a base Python image
+FROM mcr.microsoft.com/cbl-mariner/base/python:3
 
 # Install Tini and Supervisor
 RUN apt-get update && apt-get install -y --no-install-recommends \

@@ -144,7 +144,7 @@ const Cards = () => {
                     </CardFooter>
                 </Card>                                     
                 </Stack> 
-                {/* <Stack horizontalAlign="center">
+                <Stack horizontalAlign="center">
                 <Card className={styles.card}>
                     <CardHeader
                         image={
@@ -195,7 +195,7 @@ const Cards = () => {
                     <Text>Customers per week</Text>                        
                     </CardFooter>
                 </Card>
-                </Stack>                                  */}
+                </Stack>
             </Stack.Item>
         </Stack>
     );
