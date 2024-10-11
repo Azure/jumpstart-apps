@@ -27,6 +27,16 @@ def init_db():
                      name TEXT NOT NULL,
                      description TEXT NOT NULL)''')
     
+    conn.execute('''CREATE TABLE IF NOT EXISTS ovens
+                    (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                     name TEXT NOT NULL,
+                     description TEXT NOT NULL)''')
+    
+    conn.execute('''CREATE TABLE IF NOT EXISTS fridges
+                    (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                     name TEXT NOT NULL,
+                     description TEXT NOT NULL)''')
+    
     conn.commit()
     conn.close()
 
@@ -67,18 +77,6 @@ fridge_model = api.model('Fridge', {
     'humidity': fields.String(required=True),
     'zone_id': fields.String(required=True)
 })
-
-ovens = [
-    {'id': 1, 'status': 'Operating normally', 'temperature': '202', 'humidity': '35', 'pressure': '1000', 'zone_id': '1'},
-    {'id': 2, 'status': 'Operating normally', 'temperature': '199', 'humidity': '36', 'pressure': '1000', 'zone_id': '1'},
-    {'id': 3, 'status': 'Malfunction', 'temperature': '120', 'humidity': '80', 'pressure': '400', 'zone_id': '2'}
-]
-
-refrigerators = [
-    {'id': 1, 'status': 'Operating normally', 'temperature': '2', 'humidity': '42', 'zone_id': '1'},
-    {'id': 2, 'status': 'Operating normally', 'temperature': '2', 'humidity': '45', 'zone_id': '1'},
-    {'id': 3, 'status': 'Malfunction', 'temperature': '10', 'humidity': '80', 'zone_id': '2'}
-]
 
 # Camera endpoints
 @cameras_ns.route('/')
