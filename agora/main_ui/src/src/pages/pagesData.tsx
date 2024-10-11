@@ -6,6 +6,7 @@ import MaintenanceWorker from "./maintenanceworker";
 import MaintenanceWorkerDashboard from "./maintenanceworkerdashboard";
 import InventoryDashboard from "./inventorydashboard";
 import CamerasZones from "./cameraszones";
+import Shopper from "./shopper";
 import Footfall from "./footfall"; 
 import Intrusion from "./intrusion"; 
 
@@ -44,6 +45,11 @@ const pagesData: routerType[] = [
     path: "cameraszones",
     element: <CamerasZones />,
     title: "Cameras and Zones"
+  },
+  {
+    path: "shopper",
+    element: <Shopper />,
+    title: "Shopper"
   },
   {
     path: "footfall",
