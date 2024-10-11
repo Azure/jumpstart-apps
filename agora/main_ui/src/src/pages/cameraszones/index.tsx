@@ -3,30 +3,44 @@ import {
   FluentProvider,
   webLightTheme,
   Text,
+  makeStyles,
 } from "@fluentui/react-components";
-import Header from '../../components/Header';
-import SideMenu from "../../components/SideMenu";
-import { Default as Banner } from "../../components/Banner";
-import Cards from "../../components/Cards";
-import Greetings from "../../components/Greetings";
-import InventoryStatus from "../../components/InventoryStatus";
-import Health from "../../components/Health";
+import Header from '../../components/SuiteHeader';
+import SideMenu from "../../components/MaintenanceMenu";
+import { Pivot, PivotItem } from '@fluentui/react';
 import { IStackProps, IStackTokens, Stack } from "@fluentui/react";
 
 import { CopilotProvider } from "@fluentui-copilot/react-copilot";
 import logo from './logo.svg';
 import '../../App.css';
-import Cameras from '../../components/Cameras';
+import Cameras from '../../components/MaintenanceCameras';
 const Main = (props: IStackProps) => (
     <Stack horizontal grow={1} disableShrink {...props} />
   );
-
+  const useStyles = makeStyles({
+    categoryTextStyles: {
+        gap: "36px",
+        display: "flex",
+        flexDirection: "column",
+        flexWrap: "wrap",
+      },
+      pivotStyles: {
+        marginTop: '60px',
+      }
+});
 const themedMediumStackTokens: IStackTokens = {
 childrenGap: "m",
 padding: "m",
 };
-
+const categoryTextStyles = {
+  root: {
+    width: '14.28%', // 100% / 7 for equal width
+    height: '100%',
+    
+  },
+};
 const CamerasZones = () => {
+    const styles = useStyles();
     return (
         <FluentProvider theme={webLightTheme}>
         <CopilotProvider mode='sidecar'>
@@ -36,18 +50,21 @@ const CamerasZones = () => {
               <SideMenu />
           </Stack.Item>
           <Stack.Item grow={3}>
-            <Stack tokens={themedMediumStackTokens}>
-              <Greetings />
-              <Banner></Banner>
-              <Cards />
-              <Stack horizontal>
+          <Pivot className={styles.pivotStyles}>
+            <PivotItem headerText="Cameras">
+              <div>
+                {/* Content for Vegetables tab */}
+
                 <Cameras />
-                <Stack>
-                  <InventoryStatus />
-                  <Health />
-                </Stack>
-              </Stack>
-            </Stack>
+              </div>
+            </PivotItem>
+            <PivotItem headerText="Zones">
+              <div>
+                {/* Content for Fruits tab */}
+                <Text className={styles.categoryTextStyles}>Vegetables</Text>
+              </div>
+            </PivotItem>
+          </Pivot>
           </Stack.Item>
           </Main>
         </CopilotProvider>
