@@ -38,11 +38,11 @@ if 'RTSP_URL' in os.environ:
     source = os.environ.get('RTSP_URL')
 print("Incoming video feed read from RTSP_URL: ", source)
 
-"""#esa_storage = "/home/aksedge-user/"  """
-esa_storage = "./esa_storage/faultdata"
+"""#acsa_storage = "/home/aksedge-user/"  """
+acsa_storage = "./acsa_storage/faultdata"
 if 'LOCAL_STORAGE' in os.environ:
-    esa_storage = os.environ.get('LOCAL_STORAGE')
-print("Storing video frames read from LOCAL_STORAGE: ", esa_storage)
+    acsa_storage = os.environ.get('LOCAL_STORAGE')
+print("Storing video frames read from LOCAL_STORAGE: ", acsa_storage)
 
 # initialize the output frame and a lock used to ensure thread-safe
 # exchanges of the output frames (useful when multiple browsers/tabs are viewing the stream)
@@ -76,7 +76,7 @@ def dimensions(box):
     else:
         return y, x
 
-def flaw_detection(base_dir = esa_storage):
+def flaw_detection(base_dir = acsa_storage):
     """
     Measurement and defects such as color, crack and orientation of the object
     are found.
@@ -248,7 +248,7 @@ def get_orientation(contours):
     angle = atan2(eigenvector[0, 1], eigenvector[0, 0])
     return angle
 
-def detect_orientation(frame, contours, base_dir = esa_storage):
+def detect_orientation(frame, contours, base_dir = acsa_storage):
     """
     Identifies the Orientation of the object based on the detected angle.
 
@@ -281,7 +281,7 @@ def detect_orientation(frame, contours, base_dir = esa_storage):
 
     return frame, defect_flag, defect
 
-def detect_color(frame, cnt, base_dir = esa_storage):
+def detect_color(frame, cnt, base_dir = acsa_storage):
     """
     Identifies the color defect W.R.T the set default color of the object.
     Step 1: Increase the brightness of the image.
@@ -340,7 +340,7 @@ def detect_color(frame, cnt, base_dir = esa_storage):
                     cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 255), 2)
     return frame, color_flag, defect
 
-def detect_crack(frame, cnt, base_dir = esa_storage):
+def detect_crack(frame, cnt, base_dir = acsa_storage):
     """
     Identify the Crack defect on the object.
     Step 1: Convert the image to gray scale.
@@ -415,7 +415,7 @@ def store_jpg_frame(frame_data):
     current_time = datetime.datetime.now()
     file_name = current_time.strftime("%Y-%m-%d_%H-%M-%S")
     file_name = file_name + ".jpg"
-    with open(f"{esa_storage}/{file_name}", "wb") as f:
+    with open(f"{acsa_storage}/{file_name}", "wb") as f:
         f.write(frame_data)
 
 @app.route('/video_feed')
@@ -425,8 +425,8 @@ def video_feed():
 @app.route('/data')
 def data():
     files = []
-    for filename in os.listdir(esa_storage):
-        file_path = os.path.join(esa_storage, filename)
+    for filename in os.listdir(acsa_storage):
+        file_path = os.path.join(acsa_storage, filename)
         if os.path.isfile(file_path):
             size = os.path.getsize(file_path)
             modified = os.path.getmtime(file_path)
