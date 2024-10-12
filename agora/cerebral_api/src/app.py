@@ -21,7 +21,7 @@ api = Api(app, version='1.0', title='Cerebral API',
 
 ns = api.namespace('Cerebral', description='Cerebral Operations')
 
-CORS(app, resources={r"/*": {"origins": "*", "methods": ["GET", "POST", "PUT"]}})
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 # Dummy data for demonstration purposes
 industries = [
@@ -267,19 +267,23 @@ class ExecuteQuery(Resource):
     @api.expect(query_model)
     def post(self):
         """Execute an InfluxDB query and return the data"""
-        if request.content_type != 'application/json':
-            raise BadRequest('Content-Type must be application/json')
-        
-        data = request.get_json(force=True)
-        query = data.get('query')
-        if not query:
-            return jsonify({'error': 'Query parameter is required'}), 400
-        
-        result = influx_handler.execute_query_and_return_data(query)
+        try:
+            if request.content_type != 'application/json':
+                raise BadRequest('Content-Type must be application/json')
+            
+            data = request.get_json(force=True)
+            query = data.get('query')
+            if not query:
+                return jsonify({'error': 'Query parameter is required'}), 400
+            
+            result = influx_handler.execute_query_and_return_data(query)
 
-        print(result)
+            print(result)
 
-        return jsonify({'query': query, 'result': result})
+            return jsonify({'query': query, 'result': result})
+        except Exception as e:
+            print(f"Error executing query: {e}")
+            return jsonify({'error': 'Error executing query'}), 500
     
 @ns.route('/api/execute_sql_query')
 class ExecuteQuery(Resource):

@@ -175,3 +175,5 @@ agora/main_ui/src/yarn.lock
 
 
 *.env
+/agora/influxdb-data
+/agora/mssql-data
