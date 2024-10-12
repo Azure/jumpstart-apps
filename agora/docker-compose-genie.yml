@@ -15,7 +15,7 @@ services:
   mssql-setup-job:
     image: mcr.microsoft.com/mssql-tools
     container_name: mssql_setup_job
-    command: ["/bin/bash", "-c", "sleep 5s && /tmp/sql-setup.sh"]
+    command: ["/bin/bash", "-c", "sleep 5s && chmod +x /tmp/sql-setup.sh && /tmp/sql-setup.sh"]
     restart : "no"
     environment:
       - MSSQL_SA_PASSWORD=ArcPassword123!!
@@ -72,16 +72,19 @@ services:
       - "5004:5004"  # Map host port 5003 to container port 5003
       - "8000:8000"  # Map host port 8000 to container port 8000
     environment:
-      AZURE_OPENAI_API_KEY: "1e70e000ac4c44548f055131cec42f5d"  # Environment variables
+      AZURE_OPENAI_API_KEY: ""  # Environment variables
       CHATGPT_MODEL: "gpt-35-turbo"
-      AZURE_OPENAI_ENDPOINT: "https://armbla-openai.openai.azure.com/"
+      AZURE_OPENAI_ENDPOINT: ""
       OPENAI_API_VERSION: "2024-03-01-preview"
       INFLUXDB_URL: "http://influxdb:8086"
       INFLUXDB_BUCKET: "manufacturing"
       INFLUXDB_TOKEN: "secret-token"
       INFLUXDB_ORG: "InfluxData"
+      SQL_DATABASE: "RetailDB" 
+      SQL_SERVER: "10.0.0.4" 
+      SQL_USERNAME: "SA" 
+      SQL_PASSWORD: "ArcPassword123!!"
     restart: always  # Optional: Restart policy
-
 
 volumes:
   mssql-data:

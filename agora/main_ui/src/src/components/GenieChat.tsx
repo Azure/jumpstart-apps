@@ -37,21 +37,39 @@ const SimplifiedCopilotChat = (props: CopilotChatProps) => {
 
   const handleGenieApiCall = async (inputMessage: string): Promise<void> => {
     try {
-      const apiUrl = process.env.REACT_APP_GENIE_API_URL || 'http://localhost:5004/Cerebral/api/classify_question';
+      const apiUrl = process.env.REACT_APP_GENIE_API_URL || 'http://localhost:5004/Cerebral/api/process_question';
+      const industry = process.env.REACT_APP_GENIE_INDUSTRY || 'default';
+      const role = process.env.REACT_APP_GENIE_ROLE || 'default';
+
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ question: inputMessage }),
+        body: JSON.stringify({ 
+          question: inputMessage,
+          industry: industry,
+          role: role
+        }),
       });
 
+      
       const data = await response.json();
-
+      let formattedResponse = "";
+      if (!data) {
+        formattedResponse =  "I apologize, but I couldn't process that request.";
+      }
+      else{
+        formattedResponse = `Category: ${data.category}\n` + 
+        `Query: ${data.query || data.sql_query}\n` + 
+        `Query Result: ${data.query_result}\n` + 
+        `Recommendations: ${data.recommendations}`;
+      }
+ 
       // Add bot response to chat
       const botMessage: ChatMessage = {
-        content: data ? data.response : "I apologize, but I couldn't process that request.",
+        content: formattedResponse,
         isUser: false,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };

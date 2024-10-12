@@ -21,7 +21,7 @@ api = Api(app, version='1.0', title='Cerebral API',
 
 ns = api.namespace('Cerebral', description='Cerebral Operations')
 
-CORS(app, resources={r"/*": {"origins": ["*", "http://localhost:3000"], "methods": ["GET", "POST", "PUT"]}})
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 # Dummy data for demonstration purposes
 industries = [

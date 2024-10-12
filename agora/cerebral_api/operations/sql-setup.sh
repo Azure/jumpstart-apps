@@ -3,7 +3,7 @@
 # Wait until SQL Server is ready to accept connections.
 echo "Waiting for SQL Server to be ready..."
 counter=1
-while ! /opt/mssql-tools/bin/sqlcmd -S mssql -U sa -P ArcPassword123!! -Q "SELECT 1" &>/dev/null; do
+while ! /opt/mssql-tools/bin/sqlcmd -S mssql -U sa -P ArcPassword123\!\! -Q "SELECT 1" &>/dev/null; do
   echo "SQL Server is not ready yet... retrying ($counter)..."
   counter=$((counter+1))
   sleep 5
@@ -16,12 +16,17 @@ while ! /opt/mssql-tools/bin/sqlcmd -S mssql -U sa -P ArcPassword123!! -Q "SELEC
 done
 echo "SQL Server is ready!"
 
+# Check if the database already exists
+db_exists=$(/opt/mssql-tools/bin/sqlcmd -S mssql -U sa -P ArcPassword123\!\! -Q "IF EXISTS (SELECT * FROM sys.databases WHERE name = 'RetailDB') SELECT 1 ELSE SELECT 0" -h -1 -W | grep -oE '^[01]$')
+
+if [ "$db_exists" -eq 1 ]; then
+  echo "Database 'RetailDB' already exists. Exiting..."
+  exit 0
+fi
+
 # Execute the sqlcmd command and capture any output and error
-output=$(/opt/mssql-tools/bin/sqlcmd -S mssql -U SA -P ArcPassword123!! -Q "
-IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'RetailDB')
-BEGIN
-  CREATE DATABASE RetailDB;
-END
+output=$(/opt/mssql-tools/bin/sqlcmd -S mssql -U SA -P ArcPassword123\!\! -Q "
+CREATE DATABASE RetailDB;
 USE RetailDB;
 IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'Products')
 BEGIN

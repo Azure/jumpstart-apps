@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   footfall_ai_api:
     build:

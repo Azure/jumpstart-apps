@@ -6,7 +6,7 @@ from openai import AzureOpenAI
 class LLM:
     def __init__(self):
         # Load environment variables from .env file
-        load_dotenv()
+        #load_dotenv()
         self.api_key = os.getenv('OPENAI_API_KEY')
         self.AZURE_OPENAI_API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
         self.CHATGPT_MODEL = os.getenv("CHATGPT_MODEL")
