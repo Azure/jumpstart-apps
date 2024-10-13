@@ -19,7 +19,7 @@ services:
     volumes:
       - ../models:/tmp/models
     ports:
-      - "5001:5001"  # Adjusting to expose port 5000 as mapped in the Dockerfile
+      - "5003:5003"  # Adjusting to expose port 5000 as mapped in the Dockerfile
     environment:
       - MODEL_PATH=/tmp/models/yolov8n.pt
       - RTSP_URL=rtsp://rtsp_stream_container:8554/stream
