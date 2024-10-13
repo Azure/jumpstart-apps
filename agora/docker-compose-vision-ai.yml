@@ -11,14 +11,6 @@ services:
     volumes: 
       - /mnt/C/Users/dakir/postgresql/data:/var/postgresql/data
 
-  backend_api:
-    build:
-      context: ./backend_data_api/src  # This should point to the folder containing the Dockerfile and requirements.txt
-      dockerfile: Dockerfile
-    container_name: backend_api_container
-    ports:
-      - "5002:5002"  # Adjusting to expose port 5002 as mapped in the Dockerfile
-
   footfall_ai_api:
     build:
       context: ./footfall_ai_api/src  # This should point to the folder containing the Dockerfile and requirements.txt
@@ -27,7 +19,7 @@ services:
     volumes:
       - ../models:/tmp/models
     ports:
-      - "5000:5000"  # Adjusting to expose port 5000 as mapped in the Dockerfile
+      - "5001:5001"  # Adjusting to expose port 5000 as mapped in the Dockerfile
     environment:
       - MODEL_PATH=/tmp/models/yolov8n.pt
       - RTSP_URL=rtsp://rtsp_stream_container:8554/stream
