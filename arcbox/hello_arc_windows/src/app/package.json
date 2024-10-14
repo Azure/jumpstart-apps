@@ -1,0 +1,20 @@
+{
+  "name": "hello-arc-windows",
+  "version": "1.8.0",
+  "description": "Hello Kubernetes!",
+  "author": "Paul Bouwer",
+  "license": "MIT",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "bytes": "^3.1.2",
+    "express": "^4.21.1",
+    "express-handlebars": "^8.0.1",
+    "handlebars": "^4.7.8",
+    "hello-arc-windows": "file:",
+    "minimist": ">=1.2.8",
+    "morgan": "^1.10.0"
+  }
+}
