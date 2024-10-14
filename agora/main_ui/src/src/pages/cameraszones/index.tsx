@@ -4,6 +4,7 @@ import {
   webLightTheme,
   Text,
   makeStyles,
+  Radio,
 } from "@fluentui/react-components";
 import Header from '../../components/SuiteHeader';
 import SideMenu from "../../components/MaintenanceMenu";
@@ -27,8 +28,35 @@ const Main = (props: IStackProps) => (
       },
       pivotStyles: {
         marginTop: '60px',
-      }
+      },
+      cameraimagecontainer: {
+        display: 'flex',
+        width: '100%',
+        height: '396px',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        flexShrink: '0',
+        background: '#EBF3FC',
+      },
+      cameraimage: {
+        display: 'flex',
+        paddingTop: '4px',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        color: '#115EA3',
+        textAlign: 'center',
+        leadingTrim: 'both',
+        textEdge: 'cap',
+        fontFamily: 'Segoe UI',
+        fontSize: '10px',
+        fontStyle: 'normal',
+        fontWeight: '700',
+        lineHeight: '14px',
+        letterSpacing: '0.3px',
+        }
 });
+
 const themedMediumStackTokens: IStackTokens = {
 childrenGap: "m",
 padding: "m",
@@ -56,10 +84,24 @@ const CamerasZones = () => {
         onDismiss={toggleDrawer}
         type={PanelType.custom}
         customWidth="25%"
-        headerText="Drawer Content"
+        headerText="Add camera"
       >
-        {/* Add your drawer content here */}
-        <p>This is the drawer content.</p>
+        <Stack>
+            <Stack.Item>
+              <div className={styles.cameraimagecontainer}>
+                <div className={styles.cameraimage}>Camera Feed</div>
+              </div>
+            </Stack.Item>
+            <Stack.Item>
+              <Radio label="Camera 1" type='radio' />
+            </Stack.Item>
+            <Stack.Item>
+                <Text>Camera name</Text>
+            </Stack.Item>
+            <Stack.Item>
+                <Text>Camera name</Text>
+            </Stack.Item>
+        </Stack>
       </Panel>
           <Stack.Item>
               <SideMenu />
