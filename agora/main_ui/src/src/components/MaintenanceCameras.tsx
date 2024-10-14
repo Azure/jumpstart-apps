@@ -106,7 +106,7 @@ import {
         alignSelf: "stretch",
     }
   });
-  const MaintenanceCameras = () => {
+  const MaintenanceCameras: React.FC<{ callParentFunction: () => void }>  = ({ callParentFunction }) => {
     const classes = useStyles();
     return (
         <Stack id='maincontainer'>
@@ -118,7 +118,7 @@ import {
                         { key: 'option3', text: 'Option 3' },
                     ]} /> 
                     <div className={classes.addcameracontainer}>
-                    <Button appearance="primary" className={classes.addcamerabutton}>+ Add Camera</Button>
+                    <Button appearance="primary" className={classes.addcamerabutton} onClick={callParentFunction}>+ Add Camera</Button>
                     </div>
                 </Stack>
                 <Stack id='searchboxcontainer' className={classes.searchboxcontainer}>
@@ -130,7 +130,7 @@ import {
                     <Text align="center" size={500} style={{marginTop: '126px'}}>No cameras to display</Text>
                     <Text align="center" size={300}>No cameras added yet. Click 'Add Camera' to get started.</Text>
                     <div className={classes.addcameracontainer}>
-                        <Button appearance="primary" className={classes.addcamerabuttoncenter}>+ Add Camera</Button>
+                        <Button appearance="primary" className={classes.addcamerabuttoncenter} onClick={callParentFunction}>+ Add Camera</Button>
                     </div>
                 </Stack>
             </Stack>

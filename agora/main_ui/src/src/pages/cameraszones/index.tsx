@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState }  from 'react';
 import {
   FluentProvider,
   webLightTheme,
@@ -9,6 +9,7 @@ import Header from '../../components/SuiteHeader';
 import SideMenu from "../../components/MaintenanceMenu";
 import { Pivot, PivotItem } from '@fluentui/react';
 import { IStackProps, IStackTokens, Stack } from "@fluentui/react";
+import { Panel, PanelType, DefaultButton } from '@fluentui/react';
 
 import { CopilotProvider } from "@fluentui-copilot/react-copilot";
 import logo from './logo.svg';
@@ -41,11 +42,25 @@ const categoryTextStyles = {
 };
 const CamerasZones = () => {
     const styles = useStyles();
+    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+    const toggleDrawer = () => {
+      setIsDrawerOpen(!isDrawerOpen);
+    };
     return (
         <FluentProvider theme={webLightTheme}>
         <CopilotProvider mode='sidecar'>
           <Header />
           <Main>
+          <Panel
+        isOpen={isDrawerOpen}
+        onDismiss={toggleDrawer}
+        type={PanelType.custom}
+        customWidth="25%"
+        headerText="Drawer Content"
+      >
+        {/* Add your drawer content here */}
+        <p>This is the drawer content.</p>
+      </Panel>
           <Stack.Item>
               <SideMenu />
           </Stack.Item>
@@ -55,7 +70,7 @@ const CamerasZones = () => {
               <div>
                 {/* Content for Vegetables tab */}
 
-                <Cameras />
+                <Cameras callParentFunction={toggleDrawer}/>
               </div>
             </PivotItem>
             <PivotItem headerText="Zones">
