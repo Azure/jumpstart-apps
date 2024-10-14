@@ -1,7 +1,8 @@
 from flask import Flask, request, jsonify
 from flask_restx import Api, Resource, fields
 from flask_cors import CORS
-import sqlite3
+import psycopg2
+import os
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*", "methods": ["GET", "POST", "PUT"]}})
@@ -9,28 +10,15 @@ CORS(app, resources={r"/*": {"origins": "*", "methods": ["GET", "POST", "PUT"]}}
 api = Api(app, version='1.0', title='Agora Backend API',
           description='API for agora')
 
-# SQLite setup
+# PostgreSQL setup
 def get_db_connection():
-    conn = sqlite3.connect('agora.db')
-    conn.row_factory = sqlite3.Row
+    conn = psycopg2.connect(
+        host=os.getenv('DATABASE_HOST', 'localhost'),
+        database=os.getenv('DATABASE_NAME', 'contoso'),
+        user=os.getenv('DATABASE_USER', 'postgres'),
+        password=os.getenv('DATABASE_PASSWORD', 'password')
+    )
     return conn
-
-def init_db():
-    conn = get_db_connection()
-    conn.execute('''CREATE TABLE IF NOT EXISTS cameras
-                    (id INTEGER PRIMARY KEY AUTOINCREMENT,
-                     name TEXT NOT NULL,
-                     location TEXT NOT NULL)''')
-    
-    conn.execute('''CREATE TABLE IF NOT EXISTS zones
-                    (id INTEGER PRIMARY KEY AUTOINCREMENT,
-                     name TEXT NOT NULL,
-                     description TEXT NOT NULL)''')
-    
-    conn.commit()
-    conn.close()
-
-init_db()
 
 # Namespaces
 cameras_ns = api.namespace('cameras', description='Camera operations')
@@ -56,29 +44,15 @@ oven_model = api.model('Oven', {
     'status': fields.String(required=True),
     'temperature': fields.String(required=True),
     'humidity': fields.String(required=True),
-    'pressure': fields.String(required=True),
-    'zone_id': fields.String(required=True)
+    'pressure': fields.String(required=True)
 })
 
 fridge_model = api.model('Fridge', {
     'id': fields.Integer(readonly=True),
     'status': fields.String(required=True),
     'temperature': fields.String(required=True),
-    'humidity': fields.String(required=True),
-    'zone_id': fields.String(required=True)
+    'humidity': fields.String(required=True)
 })
-
-ovens = [
-    {'id': 1, 'status': 'Operating normally', 'temperature': '202', 'humidity': '35', 'pressure': '1000', 'zone_id': '1'},
-    {'id': 2, 'status': 'Operating normally', 'temperature': '199', 'humidity': '36', 'pressure': '1000', 'zone_id': '1'},
-    {'id': 3, 'status': 'Malfunction', 'temperature': '120', 'humidity': '80', 'pressure': '400', 'zone_id': '2'}
-]
-
-refrigerators = [
-    {'id': 1, 'status': 'Operating normally', 'temperature': '2', 'humidity': '42', 'zone_id': '1'},
-    {'id': 2, 'status': 'Operating normally', 'temperature': '2', 'humidity': '45', 'zone_id': '1'},
-    {'id': 3, 'status': 'Malfunction', 'temperature': '10', 'humidity': '80', 'zone_id': '2'}
-]
 
 # Camera endpoints
 @cameras_ns.route('/')
@@ -88,7 +62,10 @@ class CameraList(Resource):
     def get(self):
         """List all cameras"""
         conn = get_db_connection()
-        cameras = conn.execute('SELECT * FROM cameras').fetchall()
+        cur = conn.cursor()
+        cur.execute('SELECT * FROM cameras')
+        cameras = cur.fetchall()
+        cur.close()
         conn.close()
         return [dict(camera) for camera in cameras]
 
@@ -99,10 +76,12 @@ class CameraList(Resource):
         """Create a new camera"""
         new_camera = api.payload
         conn = get_db_connection()
-        cursor = conn.execute('INSERT INTO cameras (name, location) VALUES (?, ?)',
-                              (new_camera['name'], new_camera['location']))
+        cur = conn.cursor()
+        cur.execute('INSERT INTO cameras (name, location) VALUES (%s, %s) RETURNING id',
+                    (new_camera['name'], new_camera['location']))
+        new_id = cur.fetchone()[0]
         conn.commit()
-        new_id = cursor.lastrowid
+        cur.close()
         conn.close()
         new_camera['id'] = new_id
         return new_camera, 201
@@ -116,7 +95,10 @@ class Camera(Resource):
     def get(self, id):
         """Get a camera by its ID"""
         conn = get_db_connection()
-        camera = conn.execute('SELECT * FROM cameras WHERE id = ?', (id,)).fetchone()
+        cur = conn.cursor()
+        cur.execute('SELECT * FROM cameras WHERE id = %s', (id,))
+        camera = cur.fetchone()
+        cur.close()
         conn.close()
         if camera is None:
             cameras_ns.abort(404, f"Camera {id} doesn't exist")
@@ -129,14 +111,19 @@ class Camera(Resource):
         """Update a camera"""
         update_camera = api.payload
         conn = get_db_connection()
-        camera = conn.execute('SELECT * FROM cameras WHERE id = ?', (id,)).fetchone()
+        cur = conn.cursor()
+        cur.execute('SELECT * FROM cameras WHERE id = %s', (id,))
+        camera = cur.fetchone()
         if camera is None:
+            cur.close()
             conn.close()
             cameras_ns.abort(404, f"Camera {id} doesn't exist")
-        conn.execute('UPDATE cameras SET name = ?, location = ? WHERE id = ?',
+        cur.execute('UPDATE cameras SET name = %s, location = %s WHERE id = %s',
                      (update_camera['name'], update_camera['location'], id))
         conn.commit()
-        updated_camera = conn.execute('SELECT * FROM cameras WHERE id = ?', (id,)).fetchone()
+        cur.execute('SELECT * FROM cameras WHERE id = %s', (id,))
+        updated_camera = cur.fetchone()
+        cur.close()
         conn.close()
         return dict(updated_camera)
 
@@ -145,12 +132,16 @@ class Camera(Resource):
     def delete(self, id):
         """Delete a camera"""
         conn = get_db_connection()
-        camera = conn.execute('SELECT * FROM cameras WHERE id = ?', (id,)).fetchone()
+        cur = conn.cursor()
+        cur.execute('SELECT * FROM cameras WHERE id = %s', (id,))
+        camera = cur.fetchone()
         if camera is None:
+            cur.close()
             conn.close()
             cameras_ns.abort(404, f"Camera {id} doesn't exist")
-        conn.execute('DELETE FROM cameras WHERE id = ?', (id,))
+        cur.execute('DELETE FROM cameras WHERE id = %s', (id,))
         conn.commit()
+        cur.close()
         conn.close()
         return '', 204
 
@@ -162,7 +153,10 @@ class ZoneList(Resource):
     def get(self):
         """List all zones"""
         conn = get_db_connection()
-        zones = conn.execute('SELECT * FROM zones').fetchall()
+        cur = conn.cursor()
+        cur.execute('SELECT * FROM zones')
+        zones = cur.fetchall()
+        cur.close()
         conn.close()
         return [dict(zone) for zone in zones]
 
@@ -173,10 +167,12 @@ class ZoneList(Resource):
         """Create a new zone"""
         new_zone = api.payload
         conn = get_db_connection()
-        cursor = conn.execute('INSERT INTO zones (name, description) VALUES (?, ?)',
-                              (new_zone['name'], new_zone['description']))
+        cur = conn.cursor()
+        cur.execute('INSERT INTO zones (name, description) VALUES (%s, %s) RETURNING id',
+                    (new_zone['name'], new_zone['description']))
+        new_id = cur.fetchone()[0]
         conn.commit()
-        new_id = cursor.lastrowid
+        cur.close()
         conn.close()
         new_zone['id'] = new_id
         return new_zone, 201
@@ -190,7 +186,10 @@ class Zone(Resource):
     def get(self, id):
         """Get a zone by its ID"""
         conn = get_db_connection()
-        zone = conn.execute('SELECT * FROM zones WHERE id = ?', (id,)).fetchone()
+        cur = conn.cursor()
+        cur.execute('SELECT * FROM zones WHERE id = %s', (id,))
+        zone = cur.fetchone()
+        cur.close()
         conn.close()
         if zone is None:
             zones_ns.abort(404, f"Zone {id} doesn't exist")
@@ -203,14 +202,19 @@ class Zone(Resource):
         """Update a zone"""
         update_zone = api.payload
         conn = get_db_connection()
-        zone = conn.execute('SELECT * FROM zones WHERE id = ?', (id,)).fetchone()
+        cur = conn.cursor()
+        cur.execute('SELECT * FROM zones WHERE id = %s', (id,))
+        zone = cur.fetchone()
         if zone is None:
+            cur.close()
             conn.close()
             zones_ns.abort(404, f"Zone {id} doesn't exist")
-        conn.execute('UPDATE zones SET name = ?, description = ? WHERE id = ?',
+        cur.execute('UPDATE zones SET name = %s, description = %s WHERE id = %s',
                      (update_zone['name'], update_zone['description'], id))
         conn.commit()
-        updated_zone = conn.execute('SELECT * FROM zones WHERE id = ?', (id,)).fetchone()
+        cur.execute('SELECT * FROM zones WHERE id = %s', (id,))
+        updated_zone = cur.fetchone()
+        cur.close()
         conn.close()
         return dict(updated_zone)
 
@@ -219,15 +223,19 @@ class Zone(Resource):
     def delete(self, id):
         """Delete a zone"""
         conn = get_db_connection()
-        zone = conn.execute('SELECT * FROM zones WHERE id = ?', (id,)).fetchone()
+        cur = conn.cursor()
+        cur.execute('SELECT * FROM zones WHERE id = %s', (id,))
+        zone = cur.fetchone()
         if zone is None:
+            cur.close()
             conn.close()
             zones_ns.abort(404, f"Zone {id} doesn't exist")
-        conn.execute('DELETE FROM zones WHERE id = ?', (id,))
+        cur.execute('DELETE FROM zones WHERE id = %s', (id,))
         conn.commit()
+        cur.close()
         conn.close()
         return '', 204
-    
+
 # Oven endpoints
 @ovens_ns.route('/')
 class OvenList(Resource):
@@ -235,7 +243,30 @@ class OvenList(Resource):
     @ovens_ns.marshal_list_with(oven_model)
     def get(self):
         """List all ovens"""
-        return ovens
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute('SELECT * FROM ovens')
+        ovens = cur.fetchall()
+        cur.close()
+        conn.close()
+        return [dict(id=row[0], name=row[1], description=row[2]) for row in ovens]
+
+    @ovens_ns.doc('create_oven')
+    @ovens_ns.expect(oven_model)
+    @ovens_ns.marshal_with(oven_model, code=201)
+    def post(self):
+        """Create a new oven"""
+        new_oven = api.payload
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute('INSERT INTO ovens (name, description) VALUES (%s, %s) RETURNING id',
+                    (new_oven['name'], new_oven['description']))
+        new_id = cur.fetchone()[0]
+        conn.commit()
+        cur.close()
+        conn.close()
+        new_oven['id'] = new_id
+        return new_oven, 201
 
 @ovens_ns.route('/<int:id>')
 @ovens_ns.response(404, 'Oven not found')
@@ -245,10 +276,51 @@ class Oven(Resource):
     @ovens_ns.marshal_with(oven_model)
     def get(self, id):
         """Get an oven by its ID"""
-        for oven in ovens:
-            if oven['id'] == id:
-                return oven
-        ovens_ns.abort(404, f"Oven {id} doesn't exist")
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute('SELECT * FROM ovens WHERE id = %s', (id,))
+        oven = cur.fetchone()
+        cur.close()
+        conn.close()
+        if oven is None:
+            ovens_ns.abort(404, f"Oven {id} doesn't exist")
+        return dict(id=oven[0], name=oven[1], description=oven[2])
+
+    @ovens_ns.doc('update_oven')
+    @ovens_ns.expect(oven_model)
+    @ovens_ns.marshal_with(oven_model)
+    def put(self, id):
+        """Update an oven by its ID"""
+        updated_oven = api.payload
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute('UPDATE ovens SET name = %s, description = %s WHERE id = %s RETURNING id',
+                    (updated_oven['name'], updated_oven['description'], id))
+        updated_id = cur.fetchone()
+        conn.commit()
+        cur.close()
+        conn.close()
+        if updated_id is None:
+            ovens_ns.abort(404, f"Oven {id} doesn't exist")
+        updated_oven['id'] = id
+        return updated_oven
+
+    @ovens_ns.doc('delete_oven')
+    def delete(self, id):
+        """Delete an oven by its ID"""
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute('SELECT * FROM ovens WHERE id = %s', (id,))
+        oven = cur.fetchone()
+        if oven is None:
+            cur.close()
+            conn.close()
+            ovens_ns.abort(404, f"Oven {id} doesn't exist")
+        cur.execute('DELETE FROM ovens WHERE id = %s', (id,))
+        conn.commit()
+        cur.close()
+        conn.close()
+        return '', 204
 
 # Refrigerator endpoints
 @fridges_ns.route('/')
@@ -257,7 +329,30 @@ class FridgeList(Resource):
     @fridges_ns.marshal_list_with(fridge_model)
     def get(self):
         """List all refrigerators"""
-        return refrigerators
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute('SELECT * FROM fridges')
+        fridges = cur.fetchall()
+        cur.close()
+        conn.close()
+        return [dict(id=row[0], name=row[1], description=row[2]) for row in fridges]
+
+    @fridges_ns.doc('create_fridge')
+    @fridges_ns.expect(fridge_model)
+    @fridges_ns.marshal_with(fridge_model, code=201)
+    def post(self):
+        """Create a new fridge"""
+        new_fridge = api.payload
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute('INSERT INTO fridges (name, description) VALUES (%s, %s) RETURNING id',
+                    (new_fridge['name'], new_fridge['description']))
+        new_id = cur.fetchone()[0]
+        conn.commit()
+        cur.close()
+        conn.close()
+        new_fridge['id'] = new_id
+        return new_fridge, 201
 
 @fridges_ns.route('/<int:id>')
 @fridges_ns.response(404, 'Fridge not found')
@@ -266,11 +361,52 @@ class Fridge(Resource):
     @fridges_ns.doc('get_fridge')
     @fridges_ns.marshal_with(fridge_model)
     def get(self, id):
-        """Get a refrigerator by its ID"""
-        for fridge in refrigerators:
-            if fridge['id'] == id:
-                return fridge
-        fridges_ns.abort(404, f"Fridge {id} doesn't exist")
+        """Get a fridge by its ID"""
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute('SELECT * FROM fridges WHERE id = %s', (id,))
+        fridge = cur.fetchone()
+        cur.close()
+        conn.close()
+        if fridge is None:
+            fridges_ns.abort(404, f"Fridge {id} doesn't exist")
+        return dict(id=fridge[0], name=fridge[1], description=fridge[2])
+
+    @fridges_ns.doc('update_fridge')
+    @fridges_ns.expect(fridge_model)
+    @fridges_ns.marshal_with(fridge_model)
+    def put(self, id):
+        """Update a fridge by its ID"""
+        updated_fridge = api.payload
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute('UPDATE fridges SET name = %s, description = %s WHERE id = %s RETURNING id',
+                    (updated_fridge['name'], updated_fridge['description'], id))
+        updated_id = cur.fetchone()
+        conn.commit()
+        cur.close()
+        conn.close()
+        if updated_id is None:
+            fridges_ns.abort(404, f"Fridge {id} doesn't exist")
+        updated_fridge['id'] = id
+        return updated_fridge
+
+    @fridges_ns.doc('delete_fridge')
+    def delete(self, id):
+        """Delete a fridge by its ID"""
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute('SELECT * FROM fridges WHERE id = %s', (id,))
+        fridge = cur.fetchone()
+        if fridge is None:
+            cur.close()
+            conn.close()
+            fridges_ns.abort(404, f"Fridge {id} doesn't exist")
+        cur.execute('DELETE FROM fridges WHERE id = %s', (id,))
+        conn.commit()
+        cur.close()
+        conn.close()
+        return '', 204
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -10,3 +10,16 @@ services:
       - REACT_APP_FOOTFALL_VIDEO_URL=http://footfall_ai_api_container:5000/video_feed?x=50&y=20&w=540&h=320&source=rtsp://rtsp_stream_container:8554/stream
       - REACT_APP_INTRUSION_VIDEO_URL=http://intrusion_detection_api:5001/video_feed?x=50&y=20&w=540&h=320&source=rtsp://rtsp_stream_container:8554/stream
       - REACT_APP_GENIE_API_URL=http://genie_api:5002
+
+  main_ui_backend_api:
+    build:
+      context: ./main_ui_backend_api/src
+      dockerfile: Dockerfile
+    container_name: main_ui_backend_api_container
+    ports:
+      - "5002:5002"
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@backend_db:5432/contoso
+      - FLASK_APP=app.py
+      - FLASK_ENV=development
+      - FLASK_RUN_HOST=

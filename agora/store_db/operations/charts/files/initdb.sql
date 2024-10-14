@@ -4,6 +4,58 @@ CREATE TABLE IF NOT EXISTS contoso.Orders (orderID SERIAL PRIMARY KEY, orderDate
 CREATE TABLE IF NOT EXISTS contoso.checkout_type (id SERIAL PRIMARY KEY, name TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS contoso.checkout (id INTEGER PRIMARY KEY, type INTEGER REFERENCES contoso.checkout_type(id), avgprocessingtime INTEGER, closed BOOLEAN);
 CREATE TABLE IF NOT EXISTS contoso.checkout_history (timestamp TIMESTAMPTZ, checkout_id INT REFERENCES contoso.checkout(id), checkout_type INT, queue_length INT, average_wait_time_seconds INT, PRIMARY KEY (timestamp, checkout_id));
+CREATE TABLE IF NOT EXISTS contoso.cameras (id SERIAL PRIMARY KEY, name text, description text);
+CREATE TABLE IF NOT EXISTS contoso.zones (id SERIAL PRIMARY KEY, name text, description text);
+CREATE TABLE IF NOT EXISTS contoso.ovens (id SERIAL PRIMARY KEY, name text, description text);
+CREATE TABLE IF NOT EXISTS contoso.fridges (id SERIAL PRIMARY KEY, name text, description text);
+
+-- seeding contoso.cameras
+INSERT INTO contoso.cameras (name, description)
+SELECT *
+FROM (VALUES
+    ('Camera 1', 'Entrance Camera'),
+    ('Camera 2', 'Checkout Camera'),
+    ('Camera 3', 'Fridge Camera'),
+    ('Camera 4', 'Oven Camera')
+) AS data
+WHERE NOT EXISTS (SELECT 1 FROM contoso.cameras);
+
+-- seeding contoso.zones
+INSERT INTO contoso.zones (name, description)
+SELECT *
+FROM (VALUES
+    ('Zone 1', 'Fruit Section'),
+    ('Zone 2', 'Vegetable Section'),
+    ('Zone 3', 'Bread Section'),
+    ('Zone 4', 'Dairy Section'),
+    ('Zone 5', 'Beverage Section'),
+    ('Zone 6', 'Snack Section'),
+    ('Zone 7', 'Egg Section')
+) AS data
+WHERE NOT EXISTS (SELECT 1 FROM contoso.zones);
+
+-- seeding contoso.ovens
+INSERT INTO contoso.ovens (name, description)
+SELECT *
+FROM (VALUES
+    ('Oven 1', 'Bread Oven'),
+    ('Oven 2', 'Pizza Oven'),
+    ('Oven 3', 'Cake Oven')
+) AS data
+WHERE NOT EXISTS (SELECT 1 FROM contoso.ovens);
+
+-- seeding contoso.fridges
+INSERT INTO contoso.fridges (name, description)
+SELECT *
+FROM (VALUES
+    ('Fridge 1', 'Fruit Fridge'),
+    ('Fridge 2', 'Vegetable Fridge'),
+    ('Fridge 3', 'Dairy Fridge'),
+    ('Fridge 4', 'Beverage Fridge'),
+    ('Fridge 5', 'Snack Fridge'),
+    ('Fridge 6', 'Egg Fridge')
+) AS data
+WHERE NOT EXISTS (SELECT 1 FROM contoso.fridges);
 
 -- seeding contoso.checkout_type
 INSERT INTO contoso.checkout_type (id, name)
