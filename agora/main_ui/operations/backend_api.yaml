@@ -66,16 +66,16 @@ data:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: main-ui-backend-api
+  name: backend-api
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: main-ui-backend-api
+      app: backend-api
   template:
     metadata:
       labels:
-        app: main-ui-backend-api
+        app: backend-api
     spec:
       initContainers:
       - name: init-db
@@ -102,7 +102,7 @@ spec:
       - name: main-ui-backend-api
         image: agacrd6777.azurecr.io/main-ui-backend-api:latest
         ports:
-        - containerPort: 5002
+        - containerPort: 5000
         env:
         - name: DATABASE_URL
           value: "postgresql://postgres:password@backend-db:5432/contoso"
@@ -122,12 +122,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: main-ui-backend-api
+  name: backend-api
 spec:
   selector:
-    app: main-ui-backend-api
+    app: backend-api
   ports:
     - protocol: TCP
-      port: 5002
-      targetPort: 5002
+      port: 5000
+      targetPort: 5000
   type: LoadBalancer
