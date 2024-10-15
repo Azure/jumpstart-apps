@@ -17,6 +17,7 @@ import { CopilotProvider } from "@fluentui-copilot/react-copilot";
 import logo from './logo.svg';
 import '../../App.css';
 import Cameras from '../../components/MaintenanceCameras';
+import MaintenanceZones from '../../components/MaintenanceZones';
 const Main = (props: IStackProps) => (
     <Stack horizontal grow={1} disableShrink {...props} />
   );
@@ -55,8 +56,11 @@ const Main = (props: IStackProps) => (
         fontWeight: '700',
         lineHeight: '14px',
         letterSpacing: '0.3px',
+        },
+        main: {
+          background: "#F0F0F0",
         }
-});
+      });
 
 const themedMediumStackTokens: IStackTokens = {
 childrenGap: "m",
@@ -129,7 +133,7 @@ const CamerasZones: React.FC<CameraPanelProps> = ({ isOpen, onDismiss, onSave })
         <FluentProvider theme={webLightTheme}>
         <CopilotProvider mode='sidecar'>
           <Header />
-          <Main>
+          <Main className={styles.main}>
           <Panel
         isOpen={isDrawerOpen}
         onDismiss={toggleDrawer}
@@ -181,7 +185,7 @@ const CamerasZones: React.FC<CameraPanelProps> = ({ isOpen, onDismiss, onSave })
 />
             </Stack.Item>
         </Stack>
-      </Panel>
+          </Panel>
           <Stack.Item>
               <SideMenu />
           </Stack.Item>
@@ -189,15 +193,15 @@ const CamerasZones: React.FC<CameraPanelProps> = ({ isOpen, onDismiss, onSave })
           <Pivot className={styles.pivotStyles}>
             <PivotItem headerText="Cameras">
               <div>
-                {/* Content for Vegetables tab */}
+                {/* Content for Cameras tab */}
 
                 <Cameras callParentFunction={toggleDrawer}/>
               </div>
             </PivotItem>
             <PivotItem headerText="Zones">
               <div>
-                {/* Content for Fruits tab */}
-                <Text className={styles.categoryTextStyles}>Vegetables</Text>
+                {/* Content for Zones tab */}
+                <MaintenanceZones/>
               </div>
             </PivotItem>
           </Pivot>
