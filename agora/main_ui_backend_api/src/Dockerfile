@@ -13,7 +13,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . /app
 
 # Expose the ports that the applications will use
-EXPOSE 5002
+EXPOSE 5000
 
 # Start app
 CMD ["/usr/bin/python3", "app.py"]
