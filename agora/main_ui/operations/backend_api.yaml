@@ -1,0 +1,133 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: initdb-configmap
+data:
+  initdb.sql: |
+    -- Your SQL initialization script here
+    CREATE SCHEMA IF NOT EXISTS contoso;
+    CREATE TABLE IF NOT EXISTS contoso.products (productId SERIAL PRIMARY KEY, name text, description text, price numeric, stock int, photopath text, category text);
+    CREATE TABLE IF NOT EXISTS contoso.Orders (orderID SERIAL PRIMARY KEY, orderDate timestamp, orderdetails JSON, storeId INT, cloudsynced BOOLEAN DEFAULT FALSE);
+    CREATE TABLE IF NOT EXISTS contoso.checkout_type (id SERIAL PRIMARY KEY, name TEXT NOT NULL);
+    CREATE TABLE IF NOT EXISTS contoso.checkout (id INTEGER PRIMARY KEY, type INTEGER REFERENCES contoso.checkout_type(id), avgprocessingtime INTEGER, closed BOOLEAN);
+    CREATE TABLE IF NOT EXISTS contoso.checkout_history (timestamp TIMESTAMPTZ, checkout_id INT REFERENCES contoso.checkout(id), checkout_type INT, queue_length INT, average_wait_time_seconds INT, PRIMARY KEY (timestamp, checkout_id));
+    CREATE TABLE IF NOT EXISTS contoso.cameras (id SERIAL PRIMARY KEY, name text, description text);
+    CREATE TABLE IF NOT EXISTS contoso.zones (id SERIAL PRIMARY KEY, name text, description text);
+    CREATE TABLE IF NOT EXISTS contoso.ovens (id SERIAL PRIMARY KEY, name text, description text);
+    CREATE TABLE IF NOT EXISTS contoso.fridges (id SERIAL PRIMARY KEY, name text, description text);
+
+    -- seeding contoso.cameras
+    INSERT INTO contoso.cameras (name, description)
+    SELECT *
+    FROM (VALUES
+        ('Camera 1', 'Entrance Camera'),
+        ('Camera 2', 'Checkout Camera'),
+        ('Camera 3', 'Fridge Camera'),
+        ('Camera 4', 'Oven Camera')
+    ) AS data
+    WHERE NOT EXISTS (SELECT 1 FROM contoso.cameras);
+
+    -- seeding contoso.zones
+    INSERT INTO contoso.zones (name, description)
+    SELECT *
+    FROM (VALUES
+        ('Zone 1', 'Fruit Section'),
+        ('Zone 2', 'Vegetable Section'),
+        ('Zone 3', 'Bread Section'),
+        ('Zone 4', 'Dairy Section'),
+        ('Zone 5', 'Beverage Section'),
+        ('Zone 6', 'Snack Section'),
+        ('Zone 7', 'Egg Section')
+    ) AS data
+    WHERE NOT EXISTS (SELECT 1 FROM contoso.zones);
+
+    -- seeding contoso.ovens
+    INSERT INTO contoso.ovens (name, description)
+    SELECT *
+    FROM (VALUES
+        ('Oven 1', 'Bread Oven'),
+        ('Oven 2', 'Pizza Oven'),
+        ('Oven 3', 'Cake Oven')
+    ) AS data
+    WHERE NOT EXISTS (SELECT 1 FROM contoso.ovens);
+
+    -- seeding contoso.fridges
+    INSERT INTO contoso.fridges (name, description)
+    SELECT *
+    FROM (VALUES
+        ('Fridge 1', 'Dairy Fridge'),
+        ('Fridge 2', 'Meat Fridge'),
+        ('Fridge 3', 'Vegetable Fridge')
+    ) AS data
+    WHERE NOT EXISTS (SELECT 1 FROM contoso.fridges);
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: main-ui-backend-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: main-ui-backend-api
+  template:
+    metadata:
+      labels:
+        app: main-ui-backend-api
+    spec:
+      initContainers:
+      - name: init-db
+        image: postgres:latest
+        command: ["sh", "-c"]
+        args:
+          - |
+            PGPASSWORD=$POSTGRES_PASSWORD
+            PGUSER=$POSTGRES_USER
+            export PGPASSWORD
+            export PGUSER
+            until pg_isready -h backend-db -p 5432 -U postgres; do
+              echo "Waiting for database to be ready...";
+              sleep 2;
+            done;
+            psql -h backend-db -U postgres -d contoso -f /docker-entrypoint-initdb.d/initdb.sql
+        envFrom:
+        - configMapRef:
+            name: postgres-configuration
+        volumeMounts:
+        - mountPath: /docker-entrypoint-initdb.d
+          name: initdb-script
+      containers:
+      - name: main-ui-backend-api
+        image: agacrd6777.azurecr.io/main-ui-backend-api:latest
+        ports:
+        - containerPort: 5002
+        env:
+        - name: DATABASE_URL
+          value: "postgresql://postgres:password@backend-db:5432/contoso"
+        - name: FLASK_APP
+          value: "app.py"
+        - name: FLASK_ENV
+          value: "development"
+        - name: FLASK_RUN_HOST
+          value: ""
+      volumes:
+      - name: initdb-script
+        configMap:
+          name: initdb-configmap
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: main-ui-backend-api
+spec:
+  selector:
+    app: main-ui-backend-api
+  ports:
+    - protocol: TCP
+      port: 5002
+      targetPort: 5002
+  type: LoadBalancer
