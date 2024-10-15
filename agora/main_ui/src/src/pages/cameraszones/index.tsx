@@ -8,7 +8,7 @@ import {
 } from "@fluentui/react-components";
 import Header from '../../components/SuiteHeader';
 import SideMenu from "../../components/MaintenanceMenu";
-import { Pivot, PivotItem } from '@fluentui/react';
+import { ITag, Pivot, PivotItem, TagPicker, TextField } from '@fluentui/react';
 import { IStackProps, IStackTokens, Stack } from "@fluentui/react";
 import { Panel, PanelType, DefaultButton } from '@fluentui/react';
 
@@ -71,6 +71,39 @@ const categoryTextStyles = {
 const CamerasZones = () => {
     const styles = useStyles();
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+    const [cameraNameInputValue, setCameraNameInputValue] = React.useState('');
+    const handleCameraNameInputChange = (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
+      setCameraNameInputValue(newValue || '');
+    };
+    const [cameraEndpointInputValue, setCameraEndpointInputValue] = React.useState('');
+    const handleCameraEndpointInputChange = (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
+      setCameraEndpointInputValue(newValue || '');
+    };
+    const [tags, setTags] = React.useState<ITag[]>([]);
+
+    const onTagsChange = (items?: ITag[]) => {
+      setTags(items || []);
+    };
+    const directionTags: ITag[] = [
+      { key: 'red', name: 'Red' },
+      { key: 'blue', name: 'Blue' },
+      { key: 'green', name: 'Green' },
+      { key: 'yellow', name: 'Yellow' },
+    ];
+    const onResolveSuggestions = (filterText: string, selectedItems?: ITag[]): ITag[] => {
+      return filterText
+        ? directionTags.filter(
+            tag => tag.name.toLowerCase().indexOf(filterText.toLowerCase()) === 0 &&
+            !(selectedItems || []).some(selectedItem => selectedItem.key === tag.key)
+          )
+        : [];
+    };
+    const onFilterChanged = (filterText: string, tag: ITag) => {
+      return tag.name.toLowerCase().startsWith(filterText.toLowerCase());
+    };
+    const onEmptyInputFocus = () => {
+      return true;
+    };
     const toggleDrawer = () => {
       setIsDrawerOpen(!isDrawerOpen);
     };
@@ -93,13 +126,39 @@ const CamerasZones = () => {
               </div>
             </Stack.Item>
             <Stack.Item>
-              <Radio label="Camera 1" type='radio' />
+              <Radio label="Add region" type='radio' />
             </Stack.Item>
             <Stack.Item>
-                <Text>Camera name</Text>
+                <TextField
+                  label="Camera name"
+                  value={cameraNameInputValue}
+                  onChange={handleCameraNameInputChange}
+                  placeholder="Enter camera name"
+                />
             </Stack.Item>
             <Stack.Item>
-                <Text>Camera name</Text>
+            <TextField
+                  label="Camera endpoint"
+                  value={cameraEndpointInputValue}
+                  onChange={handleCameraEndpointInputChange}
+                  placeholder="Enter the URL"
+                />
+            </Stack.Item>
+            <Stack.Item>
+            <Radio label="Add region" type='radio' />
+            </Stack.Item>
+            <Stack.Item>
+            <TagPicker
+  onResolveSuggestions={onResolveSuggestions}
+  selectedItems={tags}
+  onChange={onTagsChange}
+  pickerSuggestionsProps={{
+    suggestionsHeaderText: 'Suggested tags',
+    noResultsFoundText: 'No tags found',
+  }}
+  itemLimit={5} // Optional: set a limit to the number of tags
+
+/>
             </Stack.Item>
         </Stack>
       </Panel>
