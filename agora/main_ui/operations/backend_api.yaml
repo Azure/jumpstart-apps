@@ -104,8 +104,14 @@ spec:
         ports:
         - containerPort: 5002
         env:
-        - name: DATABASE_URL
-          value: "postgresql://postgres:password@backend-db:5432/contoso"
+        - name: DATABASE_HOST
+          value: "backend-db"
+        - name: DATABASE_NAME
+          value: "contoso"
+        - name: DATABASE_USER
+          value: "postgres"
+        - name: DATABASE_PASSWORD
+          value: "password"
         - name: FLASK_APP
           value: "app.py"
         - name: FLASK_ENV
