@@ -9,6 +9,7 @@ import CamerasZones from "./cameraszones";
 import Shopper from "./shopper";
 import Footfall from "./footfall"; 
 import Intrusion from "./intrusion"; 
+import CamerasZonesWizard from "./camerazoneswizard";
 import Genie from "./genie";
 
 const pagesData: routerType[] = [
@@ -44,8 +45,13 @@ const pagesData: routerType[] = [
   },
   {
     path: "cameraszones",
-    element: <CamerasZones />,
+    element: <CamerasZones isOpen={false} onDismiss={() => {}} onSave={() => {}} />,
     title: "Cameras and Zones"
+  },
+  {
+    path: "camerazoneswizard",
+    element: <CamerasZonesWizard />,
+    title: "Cameras and Zones Wizard"
   },
   {
     path: "shopper",

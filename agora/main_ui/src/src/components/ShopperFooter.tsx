@@ -138,9 +138,9 @@ const ShopperFooter: React.FC = () => {
             <Stack.Item grow styles={itemStyles} id='CopyRight'>
                 <Text className={classes.footerText}>© 2024. All rights reserved.</Text>
             </Stack.Item>
-            <Stack.Item grow styles={itemStyles} id='visamastercard'>
+            {/* <Stack.Item grow styles={itemStyles} id='visamastercard'>
                 <img src='Payment.png' alt='Visa' className={classes.footerPayment}/>
-            </Stack.Item>
+            </Stack.Item> */}
             <Stack.Item grow styles={itemStyles} id='socialmedia'>
                 <div className={classes.footerSocial}>
                     <div className={classes.footerSocialIcon}>
