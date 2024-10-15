@@ -7,3 +7,4 @@ prometheus_client
 fastapi 
 uvicorn
 flask_restx
+psycopg2-binary

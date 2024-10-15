@@ -172,3 +172,8 @@ eclipse.conf
 /contoso_supermarket/developer/pos/flask_session
 agora/main_ui/src/yarn.lock
 /agora/footfall_ai_api/src/models
+
+
+*.env
+/agora/influxdb-data
+/agora/mssql-data

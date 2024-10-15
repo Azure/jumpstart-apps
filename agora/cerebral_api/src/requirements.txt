@@ -13,3 +13,4 @@ prometheus_client
 fastapi 
 uvicorn
 flask_restx
+pyodbc

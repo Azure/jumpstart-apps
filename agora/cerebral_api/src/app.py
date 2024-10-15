@@ -6,12 +6,14 @@ from flask_cors import CORS
 from llm import LLM
 from InfluxDBHandler import InfluxDBHandler
 import logging
-import sqlite3
+from SqlDBHandler import SqlDBHandler
 
 app = Flask(__name__)
 
 llm = LLM()
 influx_handler = InfluxDBHandler()
+sql_handler = SqlDBHandler()
+
 logger = logging.getLogger(__name__)
 
 api = Api(app, version='1.0', title='Cerebral API',
@@ -19,7 +21,7 @@ api = Api(app, version='1.0', title='Cerebral API',
 
 ns = api.namespace('Cerebral', description='Cerebral Operations')
 
-CORS(app, resources={r"/*": {"origins": "*", "methods": ["GET", "POST", "PUT"]}})
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 # Dummy data for demonstration purposes
 industries = [
@@ -265,19 +267,23 @@ class ExecuteQuery(Resource):
     @api.expect(query_model)
     def post(self):
         """Execute an InfluxDB query and return the data"""
-        if request.content_type != 'application/json':
-            raise BadRequest('Content-Type must be application/json')
-        
-        data = request.get_json(force=True)
-        query = data.get('query')
-        if not query:
-            return jsonify({'error': 'Query parameter is required'}), 400
-        
-        result = influx_handler.execute_query_and_return_data(query)
+        try:
+            if request.content_type != 'application/json':
+                raise BadRequest('Content-Type must be application/json')
+            
+            data = request.get_json(force=True)
+            query = data.get('query')
+            if not query:
+                return jsonify({'error': 'Query parameter is required'}), 400
+            
+            result = influx_handler.execute_query_and_return_data(query)
 
-        print(result)
+            print(result)
 
-        return jsonify({'query': query, 'result': result})
+            return jsonify({'query': query, 'result': result})
+        except Exception as e:
+            print(f"Error executing query: {e}")
+            return jsonify({'error': 'Error executing query'}), 500
     
 @ns.route('/api/execute_sql_query')
 class ExecuteQuery(Resource):
@@ -348,88 +354,85 @@ class GenerateRecommendations(Resource):
 
 #api.add_resource(GenerateRecommendations, '/generate-recommendations')
 
-camera_model = api.model('Camera', {
-    'name': fields.String(required=True, description='Camera name'),
-    'endpoint': fields.String(required=True, description='Camera endpoint'),
-    'tags': fields.List(fields.String, description='Camera tags'),
-    'status': fields.String(required=True, description='Camera status')
+integrated_query_model = ns.model('IntegratedQuery', {
+    'question': fields.String(required=True, description='The question to process'),
+    'industry': fields.String(required=True, description='The industry context'),
+    'role': fields.String(required=True, description='The role context')
 })
 
-def get_db_connection():
-    conn = sqlite3.connect('cameras.db')
-    conn.row_factory = sqlite3.Row
-    return conn
-
-def init_db():
-    conn = get_db_connection()
-    conn.execute('''CREATE TABLE IF NOT EXISTS cameras
-                    (id INTEGER PRIMARY KEY AUTOINCREMENT,
-                     name TEXT NOT NULL,
-                     endpoint TEXT NOT NULL,
-                     tags TEXT,
-                     status TEXT NOT NULL)''')
-    conn.close()
-
-init_db()
-
-def validate_json_content_type():
-    if request.content_type != 'application/json':
-        ns.abort(400, 'Content-Type must be application/json')
-
-@ns.route('/api/camera')
-class CameraResource(Resource):
-    @ns.expect(camera_model)
-    @ns.response(201, 'Camera created successfully')
-    @ns.response(400, 'Bad Request')
-    @ns.response(500, 'Internal Server Error')
-    def put(self):
-        """Create a new camera or update an existing one"""
-        validate_json_content_type()
-        data = request.json
-        conn = get_db_connection()
+@ns.route('/api/process_question')
+class ProcessQuestion(Resource):
+    @api.doc(responses={200: 'Success', 400: 'Missing required parameters', 500: 'Server error'})
+    @api.expect(integrated_query_model)
+    def post(self):
+        """Process question based on classification and generate appropriate response"""
+        print("****Process question based on classification and generate appropriate response***\n")
+        if request.content_type != 'application/json':
+            raise BadRequest('Content-Type must be application/json')
         
         try:
-            tags = ','.join(data['tags']) if data.get('tags') else ''
-            conn.execute('INSERT OR REPLACE INTO cameras (name, endpoint, tags, status) VALUES (?, ?, ?, ?)',
-                         (data['name'], data['endpoint'], tags, data['status']))
-            conn.commit()
-            return {'message': 'Camera created/updated successfully'}, 201
-        except sqlite3.Error as e:
-            ns.abort(500, f'Database error: {str(e)}')
-        finally:
-            conn.close()
+            data = request.get_json(force=True)
+            question = data.get('question')
+            industry = data.get('industry')
+            role = data.get('role')
+            
+            if not question or not industry or not role:
+                return jsonify({'error': 'Question, industry, and role parameters are required'}), 400
+            
+            # Step 1: Classify the question
+            category = llm.classify_question(question, industry, role)
+            print("Step 1: Classify the question :" + category + "\n")
+            
+            if category == 'data':
+                # Step 2a: Handle data query (InfluxDB)
+                influx_query = llm.convert_question_query_influx(question, industry, role)
+                print("Step 2a: Handle data query (InfluxDB)" + influx_query + "\n")
 
-    @ns.response(200, 'Success', [camera_model])
-    @ns.response(500, 'Internal Server Error')
-    def get(self):
-        """Get all cameras"""
-        conn = get_db_connection()
-        try:
-            cameras = conn.execute('SELECT * FROM cameras').fetchall()
-            return jsonify([dict(camera) for camera in cameras])
-        except sqlite3.Error as e:
-            ns.abort(500, f'Database error: {str(e)}')
-        finally:
-            conn.close()
+                query_result = influx_handler.execute_query_and_return_data(influx_query)
+                print("Step 2a: execute_query_and_return_data (InfluxDB)" + query_result + "\n")
 
-@ns.route('/api/camera/<string:name>')
-@ns.param('name', 'The camera name')
-class CameraDetailResource(Resource):
-    @ns.response(200, 'Success', camera_model)
-    @ns.response(404, 'Camera not found')
-    @ns.response(500, 'Internal Server Error')
-    def get(self, name):
-        """Get a specific camera by name"""
-        conn = get_db_connection()
-        try:
-            camera = conn.execute('SELECT * FROM cameras WHERE name = ?', (name,)).fetchone()
-            if camera:
-                return dict(camera)
-            ns.abort(404, 'Camera not found')
-        except sqlite3.Error as e:
-            ns.abort(500, f'Database error: {str(e)}')
-        finally:
-            conn.close()
+                recommendations = llm.generate_recommendations(question, influx_query, query_result, industry, role)
+                
+                return jsonify({
+                    'question': question,
+                    'category': category,
+                    'influx_query': influx_query,
+                    'query_result': query_result,
+                    'recommendations': recommendations
+                })
+                
+            elif category == 'relational':
+                # Step 2b: Handle relational query (SQL)
+                print("Step 2b: Handle relational query (SQL)\n")
+                sql_query = llm.convert_question_query_sql(question, industry, role)
+                query_result = sql_handler.test_data(sql_query) 
+                recommendations = llm.generate_recommendations(question, sql_query, query_result, industry, role)
+                
+                return jsonify({
+                    'question': question,
+                    'category': category,
+                    'sql_query': sql_query,
+                    'query_result': query_result,
+                    'recommendations': recommendations
+                })
+                
+            elif category == 'documentation':
+                # Step 2c: Handle documentation query
+                response = llm.chat_llm(question, industry, role)  # You need to implement this method in your LLM class
+                
+                return jsonify({
+                    'question': question,
+                    'category': category,
+                    'response': response
+                })
+            
+            else:
+                return jsonify({'error': 'Unknown question category'}), 400
+            
+        except Exception as e:
+            print(f"Error in process_question route: {str(e)}")
+            return jsonify({'error': 'An unexpected error occurred'}), 500
+
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5004)
