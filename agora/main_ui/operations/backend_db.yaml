@@ -1,0 +1,73 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-configuration
+data:
+  POSTGRES_USER: "postgres"
+  POSTGRES_PASSWORD: "password"
+  POSTGRES_DB: "contoso"
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-db
+  labels:
+    app: backend-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend-db
+  template:
+    metadata:
+      labels:
+        app: backend-db
+    spec:
+      containers:
+      - name: backend-db
+        image: postgres:11
+        ports:
+        - containerPort: 5432
+        envFrom:
+        - configMapRef:
+            name: postgres-configuration
+        volumeMounts:
+        - mountPath: /var/lib/postgresql/data
+          name: postgres-storage
+          subPath: postgres
+      volumes:
+      - name: postgres-storage
+        persistentVolumeClaim:
+          claimName: postgres-pvc
+      - name: initdb-script
+        configMap:
+          name: initdb-configmap
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-db
+spec:
+  selector:
+    app: backend-db
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432
