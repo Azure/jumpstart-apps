@@ -5,10 +5,11 @@ import {
   Text,
   makeStyles,
   Radio,
+  Label,
 } from "@fluentui/react-components";
 import Header from '../../components/SuiteHeader';
 import SideMenu from "../../components/MaintenanceMenu";
-import { ITag, Pivot, PivotItem, TagPicker, TextField } from '@fluentui/react';
+import { ITag, Pivot, PivotItem, PrimaryButton, TagPicker, TextField } from '@fluentui/react';
 import { IStackProps, IStackTokens, Stack } from "@fluentui/react";
 import { Panel, PanelType, DefaultButton } from '@fluentui/react';
 
@@ -68,7 +69,12 @@ const categoryTextStyles = {
     
   },
 };
-const CamerasZones = () => {
+interface CameraPanelProps {
+  isOpen: boolean;
+  onDismiss: () => void;
+  onSave: () => void;
+}
+const CamerasZones: React.FC<CameraPanelProps> = ({ isOpen, onDismiss, onSave }) => {
     const styles = useStyles();
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [cameraNameInputValue, setCameraNameInputValue] = React.useState('');
@@ -85,10 +91,10 @@ const CamerasZones = () => {
       setTags(items || []);
     };
     const directionTags: ITag[] = [
-      { key: 'red', name: 'Red' },
-      { key: 'blue', name: 'Blue' },
-      { key: 'green', name: 'Green' },
-      { key: 'yellow', name: 'Yellow' },
+      { key: 'upperleft', name: 'Upper Left' },
+      { key: 'upperright', name: 'Upper Right' },
+      { key: 'lowerleft', name: 'Lower Left' },
+      { key: 'lowerright', name: 'Lower Right' },
     ];
     const onResolveSuggestions = (filterText: string, selectedItems?: ITag[]): ITag[] => {
       return filterText
@@ -98,6 +104,18 @@ const CamerasZones = () => {
           )
         : [];
     };
+
+
+    const onRenderFooterContent = React.useCallback(
+      () => (
+        <Stack horizontal tokens={{ childrenGap: 10 }}>
+          <PrimaryButton onClick={onSave}>Save</PrimaryButton>
+          <DefaultButton onClick={onDismiss}>Cancel</DefaultButton>
+        </Stack>
+      ),
+      [onSave, onDismiss]
+    );
+
     const onFilterChanged = (filterText: string, tag: ITag) => {
       return tag.name.toLowerCase().startsWith(filterText.toLowerCase());
     };
@@ -118,6 +136,8 @@ const CamerasZones = () => {
         type={PanelType.custom}
         customWidth="25%"
         headerText="Add camera"
+        onRenderFooterContent={onRenderFooterContent}
+        isFooterAtBottom={true}
       >
         <Stack>
             <Stack.Item>
@@ -145,7 +165,7 @@ const CamerasZones = () => {
                 />
             </Stack.Item>
             <Stack.Item>
-            <Radio label="Add region" type='radio' />
+            <Label>Direction tag</Label>
             </Stack.Item>
             <Stack.Item>
             <TagPicker

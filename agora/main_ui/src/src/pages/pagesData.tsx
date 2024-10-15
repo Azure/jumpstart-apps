@@ -43,7 +43,7 @@ const pagesData: routerType[] = [
   },
   {
     path: "cameraszones",
-    element: <CamerasZones />,
+    element: <CamerasZones isOpen={false} onDismiss={() => {}} onSave={() => {}} />,
     title: "Cameras and Zones"
   },
   {
