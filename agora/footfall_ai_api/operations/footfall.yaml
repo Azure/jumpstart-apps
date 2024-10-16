@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: footfall-ai-api
-        image: agacrd6777.azurecr.io/footfall-ai-api:latest
+        image: agacr6b99f.azurecr.io/footfall-ai-api:latest
         ports:
         - containerPort: 5003
         env:
@@ -45,3 +45,4 @@ spec:
     - protocol: TCP
       port: 5003
       targetPort: 5003
+  type: LoadBalancer
