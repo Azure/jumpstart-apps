@@ -5,6 +5,9 @@ FROM mcr.microsoft.com/cbl-mariner/base/python:3
 # Create the application directory
 WORKDIR /app
 
+# Install PostgreSQL client
+RUN tdnf install -y postgresql
+
 # Copy requirements.txt and install dependencies
 COPY requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt

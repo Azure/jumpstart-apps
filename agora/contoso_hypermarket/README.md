@@ -13,4 +13,3 @@ docker compose -f docker-compose-vision-ai.yml -f docker-compose-main-ui.yml -f 
 kubectl apply -f ./main_ui/operations/rtsp.yaml
 kubectl apply -f ./main_ui_backend_api/operations/backend_db.yaml
 kubectl apply -f ./main_ui_backend_api/operations/backend_api.yaml
-
