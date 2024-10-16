@@ -5,19 +5,18 @@ metadata:
 data:
   initdb.sql: |
     -- Your SQL initialization script here
-    CREATE SCHEMA IF NOT EXISTS contoso;
-    CREATE TABLE IF NOT EXISTS contoso.products (productId SERIAL PRIMARY KEY, name text, description text, price numeric, stock int, photopath text, category text);
-    CREATE TABLE IF NOT EXISTS contoso.Orders (orderID SERIAL PRIMARY KEY, orderDate timestamp, orderdetails JSON, storeId INT, cloudsynced BOOLEAN DEFAULT FALSE);
-    CREATE TABLE IF NOT EXISTS contoso.checkout_type (id SERIAL PRIMARY KEY, name TEXT NOT NULL);
-    CREATE TABLE IF NOT EXISTS contoso.checkout (id INTEGER PRIMARY KEY, type INTEGER REFERENCES contoso.checkout_type(id), avgprocessingtime INTEGER, closed BOOLEAN);
-    CREATE TABLE IF NOT EXISTS contoso.checkout_history (timestamp TIMESTAMPTZ, checkout_id INT REFERENCES contoso.checkout(id), checkout_type INT, queue_length INT, average_wait_time_seconds INT, PRIMARY KEY (timestamp, checkout_id));
-    CREATE TABLE IF NOT EXISTS contoso.cameras (id SERIAL PRIMARY KEY, name text, description text);
-    CREATE TABLE IF NOT EXISTS contoso.zones (id SERIAL PRIMARY KEY, name text, description text);
-    CREATE TABLE IF NOT EXISTS contoso.ovens (id SERIAL PRIMARY KEY, name text, description text);
-    CREATE TABLE IF NOT EXISTS contoso.fridges (id SERIAL PRIMARY KEY, name text, description text);
+    CREATE TABLE IF NOT EXISTS products (productId SERIAL PRIMARY KEY, name text, description text, price numeric, stock int, photopath text, category text);
+    CREATE TABLE IF NOT EXISTS Orders (orderID SERIAL PRIMARY KEY, orderDate timestamp, orderdetails JSON, storeId INT, cloudsynced BOOLEAN DEFAULT FALSE);
+    CREATE TABLE IF NOT EXISTS checkout_type (id SERIAL PRIMARY KEY, name TEXT NOT NULL);
+    CREATE TABLE IF NOT EXISTS checkout (id INTEGER PRIMARY KEY, type INTEGER REFERENCES checkout_type(id), avgprocessingtime INTEGER, closed BOOLEAN);
+    CREATE TABLE IF NOT EXISTS checkout_history (timestamp TIMESTAMPTZ, checkout_id INT REFERENCES checkout(id), checkout_type INT, queue_length INT, average_wait_time_seconds INT, PRIMARY KEY (timestamp, checkout_id));
+    CREATE TABLE IF NOT EXISTS cameras (id SERIAL PRIMARY KEY, name text, description text);
+    CREATE TABLE IF NOT EXISTS zones (id SERIAL PRIMARY KEY, name text, description text);
+    CREATE TABLE IF NOT EXISTS ovens (id SERIAL PRIMARY KEY, name text, description text);
+    CREATE TABLE IF NOT EXISTS fridges (id SERIAL PRIMARY KEY, name text, description text);
 
-    -- seeding contoso.cameras
-    INSERT INTO contoso.cameras (name, description)
+    -- seeding cameras
+    INSERT INTO cameras (name, description)
     SELECT *
     FROM (VALUES
         ('Camera 1', 'Entrance Camera'),
@@ -25,10 +24,10 @@ data:
         ('Camera 3', 'Fridge Camera'),
         ('Camera 4', 'Oven Camera')
     ) AS data
-    WHERE NOT EXISTS (SELECT 1 FROM contoso.cameras);
+    WHERE NOT EXISTS (SELECT 1 FROM cameras);
 
-    -- seeding contoso.zones
-    INSERT INTO contoso.zones (name, description)
+    -- seeding zones
+    INSERT INTO zones (name, description)
     SELECT *
     FROM (VALUES
         ('Zone 1', 'Fruit Section'),
@@ -39,27 +38,27 @@ data:
         ('Zone 6', 'Snack Section'),
         ('Zone 7', 'Egg Section')
     ) AS data
-    WHERE NOT EXISTS (SELECT 1 FROM contoso.zones);
+    WHERE NOT EXISTS (SELECT 1 FROM zones);
 
-    -- seeding contoso.ovens
-    INSERT INTO contoso.ovens (name, description)
+    -- seeding ovens
+    INSERT INTO ovens (name, description)
     SELECT *
     FROM (VALUES
         ('Oven 1', 'Bread Oven'),
         ('Oven 2', 'Pizza Oven'),
         ('Oven 3', 'Cake Oven')
     ) AS data
-    WHERE NOT EXISTS (SELECT 1 FROM contoso.ovens);
+    WHERE NOT EXISTS (SELECT 1 FROM ovens);
 
-    -- seeding contoso.fridges
-    INSERT INTO contoso.fridges (name, description)
+    -- seeding fridges
+    INSERT INTO fridges (name, description)
     SELECT *
     FROM (VALUES
         ('Fridge 1', 'Dairy Fridge'),
         ('Fridge 2', 'Meat Fridge'),
         ('Fridge 3', 'Vegetable Fridge')
     ) AS data
-    WHERE NOT EXISTS (SELECT 1 FROM contoso.fridges);
+    WHERE NOT EXISTS (SELECT 1 FROM fridges);
 
 ---
 
