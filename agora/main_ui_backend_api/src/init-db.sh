@@ -8,7 +8,7 @@ done
 
 echo "Running initdb.sql..."
 export PGPASSWORD=$DATABASE_PASSWORD
-psql -h $DATABASE_HOST -U $DATABASE_USER -d $DATABASE_NAME -f /docker-entrypoint-initdb.d/initdb.sql
+psql -h $DATABASE_HOST -U $DATABASE_USER -d $DATABASE_NAME -f initdb.sql
 
 echo "Initialization complete."
 

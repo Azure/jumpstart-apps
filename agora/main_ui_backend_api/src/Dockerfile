@@ -19,4 +19,4 @@ COPY . /app
 EXPOSE 5002
 
 # Start app
-CMD ["/usr/bin/python3", "app.py"]
+ENTRYPOINT ["/bin/bash", "init-db.sh"]
