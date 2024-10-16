@@ -99,7 +99,7 @@ spec:
           name: initdb-script
       containers:
       - name: main-ui-backend-api
-        image: agacrd6777.azurecr.io/main-ui-backend-api:latest
+        image: agacr6b99f.azurecr.io/main-ui-backend-api:latest
         ports:
         - containerPort: 5002
         env:
@@ -117,6 +117,8 @@ spec:
           value: "development"
         - name: FLASK_RUN_HOST
           value: ""
+      imagePullSecrets:
+      - name: acr-secret
       volumes:
       - name: initdb-script
         configMap:
