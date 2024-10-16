@@ -27,7 +27,7 @@ services:
         condition: service_started
 
   influxdb:
-    image: influxdb:latest
+    image: mcr.microsoft.com/azurelinux/base/influxdb:2.7
     container_name: influxdb
     ports:
       - "9999:9999"
@@ -41,7 +41,7 @@ services:
     restart: always
 
   influxdb-setup-job:
-    image: influxdb:latest
+    image: mcr.microsoft.com/azurelinux/base/influxdb:2.7
     container_name: influxdb_setup_job
     volumes:
       - ./cerebral_api/operations/influxdb-setup.sh:/docker-entrypoint-initdb.d/influxdb-setup.sh  # Mount the setup script

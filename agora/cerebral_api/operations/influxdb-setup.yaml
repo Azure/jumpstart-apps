@@ -8,7 +8,7 @@ spec:
     spec:
       containers:
       - name: bash-job
-        image: influxdb:latest
+        image: mcr.microsoft.com/azurelinux/base/influxdb:2.7
         command: ["/bin/bash", "-c"]
         args:
         - |

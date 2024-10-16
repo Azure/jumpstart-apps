@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: intrusion-detection-api
-        image: agacrd6777.azurecr.io/intrusion-detection-api:latest
+        image: agacr6b99f.azurecr.io/intrusion-detection-api:latest
         ports:
         - containerPort: 5001
         env:
@@ -47,3 +47,4 @@ spec:
     - protocol: TCP
       port: 5001
       targetPort: 5001
+  type: LoadBalancer
