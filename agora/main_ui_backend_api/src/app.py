@@ -30,7 +30,7 @@ fridges_ns = api.namespace('fridges', description='Refrigerator operations')
 camera_model = api.model('Camera', {
     'id': fields.Integer(readonly=True),
     'name': fields.String(required=True),
-    'location': fields.String(required=True)
+    'description': fields.String(required=True)
 })
 
 zone_model = api.model('Zone', {
@@ -77,8 +77,8 @@ class CameraList(Resource):
         new_camera = api.payload
         conn = get_db_connection()
         cur = conn.cursor()
-        cur.execute('INSERT INTO cameras (name, location) VALUES (%s, %s) RETURNING id',
-                    (new_camera['name'], new_camera['location']))
+        cur.execute('INSERT INTO cameras (name, description) VALUES (%s, %s) RETURNING id',
+                    (new_camera['name'], new_camera['description']))
         new_id = cur.fetchone()[0]
         conn.commit()
         cur.close()
@@ -118,8 +118,8 @@ class Camera(Resource):
             cur.close()
             conn.close()
             cameras_ns.abort(404, f"Camera {id} doesn't exist")
-        cur.execute('UPDATE cameras SET name = %s, location = %s WHERE id = %s',
-                     (update_camera['name'], update_camera['location'], id))
+        cur.execute('UPDATE cameras SET name = %s, description = %s WHERE id = %s',
+                     (update_camera['name'], update_camera['description'], id))
         conn.commit()
         cur.execute('SELECT * FROM cameras WHERE id = %s', (id,))
         updated_camera = cur.fetchone()
