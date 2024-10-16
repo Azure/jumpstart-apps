@@ -2,7 +2,7 @@
 set -e
 
 echo "Waiting for PostgreSQL to be ready..."
-until pg_isready -h backend_db -p 5432 -U postgres; do
+until pg_isready -h $DATABASE_HOST -p 5432 -U $DATABASE_USER; do
   sleep 2
 done
 
