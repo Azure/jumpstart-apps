@@ -1,0 +1,15 @@
+services:
+  store_api:
+    build:
+      context: ./main_ui_backend_api/src  # This should point to the folder containing the Dockerfile and requirements.txt
+      dockerfile: Dockerfile
+    container_name: store_api_container
+    volumes:
+      - /mnt/C/Users/dakir/postgresql/data:/var/postgresql/data
+    ports:
+      - "5002:5002"  # Adjusting to expose port 5001 as mapped in the Dockerfile
+    environment:
+      - DATABASE_HOST=backend_db
+      - DATABASE_PASSWORD=password
+      - DATABASE_NAME=contoso
+      - DATABASE_USER=postgres

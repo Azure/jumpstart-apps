@@ -20,6 +20,18 @@ def get_db_connection():
     )
     return conn
 
+def initdb():
+    conn = get_db_connection()
+    cur = conn.cursor()
+    with open('initdb.sql', 'r') as f:
+        sql_script = f.read()
+    cur.execute(sql_script)
+    conn.commit()
+    cur.close()
+    conn.close()
+
+
+
 # Namespaces
 cameras_ns = api.namespace('cameras', description='Camera operations')
 zones_ns = api.namespace('zones', description='Zone operations')
