@@ -1,11 +1,4 @@
 apiVersion: v1
-kind: Namespace
-metadata:
-  name: contoso-hypermarket
-
----
-
-apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: video-storage
