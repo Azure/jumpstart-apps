@@ -57,11 +57,11 @@ const useStyles = makeStyles({
     },
     footerText: {
         color: 'var(--Black, #253D4E)',
-        fontSize: '16px',
-        fontWeight: '500',
+        fontSize: '14px',
+        fontWeight: '400',
         fontStyle: 'normal',
-        fontFamily: 'Quicksand',
-        lineHeight: 'normal',
+        fontFamily: 'Segoe UI',
+        lineHeight: '20px',
         letterSpacing: '0px',
         textAlign: 'left',
     },
@@ -74,7 +74,7 @@ const useStyles = makeStyles({
         padding: '6px',
         display: 'flex',
         justifyContent: 'space-between',
-        alignItems: 'flex-start',
+        alignItems: 'flex-end',
     },
     footerSocialIcon: {
         width: '44px',
@@ -117,6 +117,7 @@ const useStyles = makeStyles({
         alignItems: 'center',
         gap: '253px',
         alignSelf: 'stretch',
+        width: '100%'
     },
   };
 
@@ -136,7 +137,7 @@ const ShopperFooter: React.FC = () => {
     <Stack horizontal styles={containerStyles} tokens={stackTokens}>
         <Stack id='footerbottom' styles={footerBottom}>
             <Stack.Item grow styles={itemStyles} id='CopyRight'>
-                <Text className={classes.footerText}>© 2024. All rights reserved.</Text>
+                <Text className={classes.footerText}>© 2024, All rights reserved Arc JumpStart</Text>
             </Stack.Item>
             {/* <Stack.Item grow styles={itemStyles} id='visamastercard'>
                 <img src='Payment.png' alt='Visa' className={classes.footerPayment}/>

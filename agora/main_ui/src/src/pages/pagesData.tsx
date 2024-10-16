@@ -11,6 +11,7 @@ import Footfall from "./footfall";
 import Intrusion from "./intrusion"; 
 import CamerasZonesWizard from "./camerazoneswizard";
 import Genie from "./genie";
+import ShopperProducts from "./shopperproducts";
 
 const pagesData: routerType[] = [
   {
@@ -57,6 +58,11 @@ const pagesData: routerType[] = [
     path: "shopper",
     element: <Shopper />,
     title: "Shopper"
+  },
+  {
+    path: "shopperproducts",
+    element: <ShopperProducts />,
+    title: "Shopper Products Search"
   },
   {
     path: "footfall",
