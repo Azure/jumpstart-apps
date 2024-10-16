@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: footfall-ai-api
+  namespace: contoso-hypermarket
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: footfall-ai-api
+  template:
+    metadata:
+      labels:
+        app: footfall-ai-api
+    spec:
+      containers:
+      - name: footfall-ai-api
+        image: agacrd6777.azurecr.io/footfall-ai-api:latest
+        ports:
+        - containerPort: 5003
+        env:
+        - name: MODEL_PATH
+          value: "/tmp/models/yolov8n.pt"
+        - name: RTSP_URL
+          value: "rtsp://rtsp-stream:8554/stream"
+        volumeMounts:
+        - mountPath: /tmp/models
+          name: models-volume
+      volumes:
+      - name: models-volume
+        hostPath:
+          path: /mnt/C/Users/dakir/models
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: footfall-ai-api
+  namespace: contoso-hypermarket
+spec:
+  selector:
+    app: footfall-ai-api
+  ports:
+    - protocol: TCP
+      port: 5003
+      targetPort: 5003

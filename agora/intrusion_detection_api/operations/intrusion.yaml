@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: intrusion-detection-api
+  namespace: contoso-hypermarket
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: intrusion-detection-api
+  template:
+    metadata:
+      labels:
+        app: intrusion-detection-api
+    spec:
+      containers:
+      - name: intrusion-detection-api
+        image: agacrd6777.azurecr.io/intrusion-detection-api:latest
+        ports:
+        - containerPort: 5001
+        env:
+        - name: MODEL_PATH
+          value: "/tmp/models/"
+        - name: RTSP_URL
+          value: "rtsp://rtsp-stream:8554/stream"
+        - name: FLASK_PORT
+          value: "5001"
+        volumeMounts:
+        - mountPath: /tmp/models
+          name: models-volume
+      volumes:
+      - name: models-volume
+        hostPath:
+          path: /mnt/C/Users/dakir/models
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: intrusion-detection-api
+  namespace: contoso-hypermarket
+spec:
+  selector:
+    app: intrusion-detection-api
+  ports:
+    - protocol: TCP
+      port: 5001
+      targetPort: 5001
