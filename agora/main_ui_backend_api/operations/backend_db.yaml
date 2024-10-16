@@ -50,7 +50,7 @@ spec:
     spec:
       containers:
       - name: backend-db
-        image: mcr.microsoft.com/cbl-mariner/base/postgres
+        image: mcr.microsoft.com/cbl-mariner/base/postgres:14
         ports:
         - containerPort: 5432
         envFrom:
