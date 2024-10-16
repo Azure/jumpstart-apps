@@ -14,9 +14,8 @@ import {
 const stackTokens: IStackTokens = { childrenGap: 10 };
 const stackStyles: Partial<IStackStyles> = {
   root: {
-    width: 300,
+    width: 250,
     paddingLeft: '30px',
-    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
     backgroundColor: 'white',
     alignItems: 'flex-start'
   },

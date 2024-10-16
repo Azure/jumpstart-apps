@@ -228,6 +228,9 @@ const useStyles = makeStyles({
       fontStyle: 'normal',
       fontWeight: 400,
       maxWidth: '125px'
+    },
+    productdetails: {
+      marginRight: '100px'
     }
     });
     const childStackStyles = {
@@ -262,6 +265,42 @@ const useStyles = makeStyles({
       width: 300,
       height: 300,
     };
+
+    const californiaSundriedTomatoeProps: IImageProps = {
+        src: 'CaliforniaSundriedTomatoes.png',
+        alt: 'CaliforniaSundriedTomatoes',
+        width: 300,
+        height: 300,
+      };
+
+    const rotelFinelyChoppedTomatoesProps: IImageProps = {
+        src: 'RotelFinelyChoppedTomatoes.png',
+        alt: 'RotelFinelyChoppedTomatoes',
+        width: 300,
+        height: 300,
+      };
+      
+      const grapetomatoesProps: IImageProps = {
+        src: 'Grapetomatoes.png',
+        alt: 'Grapetomatoes',
+        width: 300,
+        height: 300,
+      };
+      
+      const tomatoesonvineProps: IImageProps = {
+        src: 'Tomatoesonvine.png',
+        alt: 'Tomatoesonvine',
+        width: 300,
+        height: 300,
+      };
+      
+      const HierloomProps: IImageProps = {
+        src: 'Hierloom.png',
+        alt: 'Hierloom',
+        width: 300,
+        height: 300,
+      };
+
     const ShopperProducts = (props: Partial<DropdownProps>) => {
       const dropdownId = useId("dropdown-default");
       const options = [
@@ -304,8 +343,8 @@ const useStyles = makeStyles({
                                     <Stack>
                                         <ShopperProdcutsInteraction />    
                                         <Stack id='producefirstrow'>
-                                            <Stack horizontal id='firstrowhorizontalcontainer'>
-                                                <Stack tokens={stackTokens} id='ProductDetails'>
+                                            <Stack horizontal id='firstrowhorizontalcontainer' style={{justifyContent: 'center', width:'100%', marginBottom:'30px'}}>
+                                                <Stack tokens={stackTokens} id='ProductDetails' className={styles.productdetails}>
                                                     <Image {...imageProps} />
                                                     <Text variant="large" block className={styles.productname}>
                                                         Tomatoes, on vine
@@ -342,13 +381,13 @@ const useStyles = makeStyles({
                                                         </Stack>       
                                                     </Stack>
                                                 </Stack>  
-                                                <Stack tokens={stackTokens} id='ProductDetails'>
-                                                    <Image {...imageProps} />
+                                                <Stack tokens={stackTokens} id='ProductDetails' className={styles.productdetails}>
+                                                    <Image {...grapetomatoesProps} />
                                                     <Text variant="large" block className={styles.productname}>
-                                                        Tomatoes, on vine
+                                                    Grape tomatoes
                                                     </Text>
                                                     <Text variant="large" block className={styles.productprice}>
-                                                    $4.99 / lb
+                                                    $4.99 / 1 ct container
                                                     </Text>
                                                     <Stack horizontal style={{alignItems: 'bottom'}}>
                                                         <Stack horizontal>       
@@ -379,13 +418,13 @@ const useStyles = makeStyles({
                                                         </Stack>       
                                                     </Stack>
                                                 </Stack>  
-                                                <Stack tokens={stackTokens} id='ProductDetails'>
-                                                    <Image {...imageProps} />
+                                                <Stack tokens={stackTokens} id='ProductDetails' className={styles.productdetails}>
+                                                    <Image {...rotelFinelyChoppedTomatoesProps} />
                                                     <Text variant="large" block className={styles.productname}>
-                                                        Tomatoes, on vine
+                                                    Rotel Finely Chopped Tomatoes, 284 mL, can
                                                     </Text>
                                                     <Text variant="large" block className={styles.productprice}>
-                                                    $4.99 / lb
+                                                    $5.99
                                                     </Text>
                                                     <Stack horizontal style={{alignItems: 'bottom'}}>
                                                         <Stack horizontal>       
@@ -419,47 +458,120 @@ const useStyles = makeStyles({
                                             </Stack>
                                         </Stack>     
                                         <Stack id='producesecondrow'>
-                                            <Stack horizontal id='secondrowhorizontalcontainer'>
-                                            
+                                            <Stack horizontal id='secondrowhorizontalcontainer' style={{justifyContent: 'center', width:'100%', marginBottom:'30px'}}>
+                                            <Stack tokens={stackTokens} id='ProductDetails' className={styles.productdetails}>
+                                                    <Image {...tomatoesonvineProps} />
+                                                    <Text variant="large" block className={styles.productname}>
+                                                        Tomatoes, on vine
+                                                    </Text>
+                                                    <Text variant="large" block className={styles.productprice}>
+                                                    $4.99 / lb
+                                                    </Text>
+                                                    <Stack horizontal style={{alignItems: 'bottom'}}>
+                                                        <Stack horizontal>       
+                                                            <Stack>
+                                                                <label id={dropdownId}>Weight</label>
+                                                                <Dropdown
+                                                                aria-labelledby={dropdownId}
+                                                                className={styles.dropdown}
+                                                                placeholder="Select weight"
+                                                                {...props}
+                                                                >
+                                                                {options.map((option) => (
+                                                                <option key={option} value={option} disabled={option === "Ferret"}>
+                                                                    {option}
+                                                                </option>
+                                                                ))}                                                  
+                                                                </Dropdown> 
+                                                                
+                                                            </Stack>         
+                                                            <div  style={{
+                                                            display: 'flex',
+                                                            flexDirection: 'column',
+                                                            justifyContent: 'flex-end',
+                                                            height: '100%'
+                                                            }}>
+                                                            <PrimaryButton className={styles.addtocartbutton} text="Add to cart" iconProps={{ iconName: 'CustomIconName' }}></PrimaryButton>
+                                                            </div>
+                                                        </Stack>       
+                                                    </Stack>
+                                                </Stack>  
+                                                <Stack tokens={stackTokens} id='ProductDetails' className={styles.productdetails}>
+                                                    <Image {...HierloomProps} />
+                                                    <Text variant="large" block className={styles.productname}>
+                                                        Tomatoes, on vine
+                                                    </Text>
+                                                    <Text variant="large" block className={styles.productprice}>
+                                                    $4.99 / lb
+                                                    </Text>
+                                                    <Stack horizontal style={{alignItems: 'bottom'}}>
+                                                        <Stack horizontal>       
+                                                            <Stack>
+                                                                <label id={dropdownId}>Weight</label>
+                                                                <Dropdown
+                                                                aria-labelledby={dropdownId}
+                                                                className={styles.dropdown}
+                                                                placeholder="Select weight"
+                                                                {...props}
+                                                                >
+                                                                {options.map((option) => (
+                                                                <option key={option} value={option} disabled={option === "Ferret"}>
+                                                                    {option}
+                                                                </option>
+                                                                ))}                                                  
+                                                                </Dropdown> 
+                                                                
+                                                            </Stack>         
+                                                            <div  style={{
+                                                            display: 'flex',
+                                                            flexDirection: 'column',
+                                                            justifyContent: 'flex-end',
+                                                            height: '100%'
+                                                            }}>
+                                                            <PrimaryButton className={styles.addtocartbutton} text="Add to cart" iconProps={{ iconName: 'CustomIconName' }}></PrimaryButton>
+                                                            </div>
+                                                        </Stack>       
+                                                    </Stack>
+                                                </Stack>  
+                                                <Stack tokens={stackTokens} id='ProductDetails' className={styles.productdetails}>
+                                                    <Image {...californiaSundriedTomatoeProps} />
+                                                    <Text variant="large" block className={styles.productname}>
+                                                    California Sun-Dry Tomatoes, Sun-Dried, with Herbs
+                                                    </Text>
+                                                    <Text variant="large" block className={styles.productprice}>
+                                                    $5.99
+                                                    </Text>
+                                                    <Stack horizontal style={{alignItems: 'bottom'}}>
+                                                        <Stack horizontal>       
+                                                            <Stack>
+                                                                <label id={dropdownId}>Weight</label>
+                                                                <Dropdown
+                                                                aria-labelledby={dropdownId}
+                                                                className={styles.dropdown}
+                                                                placeholder="Select weight"
+                                                                {...props}
+                                                                >
+                                                                {options.map((option) => (
+                                                                <option key={option} value={option} disabled={option === "Ferret"}>
+                                                                    {option}
+                                                                </option>
+                                                                ))}                                                  
+                                                                </Dropdown> 
+                                                                
+                                                            </Stack>         
+                                                            <div  style={{
+                                                            display: 'flex',
+                                                            flexDirection: 'column',
+                                                            justifyContent: 'flex-end',
+                                                            height: '100%'
+                                                            }}>
+                                                            <PrimaryButton className={styles.addtocartbutton} text="Add to cart" iconProps={{ iconName: 'CustomIconName' }}></PrimaryButton>
+                                                            </div>
+                                                        </Stack>       
+                                                    </Stack>
+                                                </Stack>                                                                                              
                                             </Stack>
-                                        </Stack>                           
-                                        <Stack tokens={stackTokens} id='ProductDetails'>
-                                          <Image {...imageProps} />
-                                          <Text variant="large" block className={styles.productname}>
-                                            Tomatoes, on vine
-                                          </Text>
-                                          <Text variant="large" block className={styles.productprice}>
-                                          $4.99 / lb
-                                          </Text>
-                                          <Stack horizontal style={{alignItems: 'bottom'}}>
-                                            <Stack horizontal>       
-                                                <Stack>
-                                                    <label id={dropdownId}>Weight</label>
-                                                    <Dropdown
-                                                    aria-labelledby={dropdownId}
-                                                    className={styles.dropdown}
-                                                    placeholder="Select weight"
-                                                    {...props}
-                                                    >
-                                                    {options.map((option) => (
-                                                    <option key={option} value={option} disabled={option === "Ferret"}>
-                                                        {option}
-                                                    </option>
-                                                    ))}                                                  
-                                                    </Dropdown> 
-                                                    
-                                                </Stack>         
-                                                <div  style={{
-                                                display: 'flex',
-                                                flexDirection: 'column',
-                                                justifyContent: 'flex-end',
-                                                height: '100%'
-                                                }}>
-                                                <PrimaryButton className={styles.addtocartbutton} text="Add to cart" iconProps={{ iconName: 'CustomIconName' }}></PrimaryButton>
-                                                </div>
-                                            </Stack>       
-                                          </Stack>
-                                        </Stack>                                        
+                                        </Stack>                                                                 
                                     </Stack>
                                 </Stack>
                             </Stack.Item>

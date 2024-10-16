@@ -86,7 +86,6 @@ const useStyles = makeStyles({
       width: '100%',
       boxSizing: 'border-box',
       height: '50px',
-      borderBottom: '1px solid #E0E0E0',
       justifyContent: 'space-between',
       alignItems: 'center',
       display: 'flex',
