@@ -2,6 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: initdb-configmap
+  namespace: contoso-hypermarket
 data:
   initdb.sql: |
     -- Your SQL initialization script here
@@ -66,6 +67,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: backend-api
+  namespace: contoso-hypermarket
 spec:
   replicas: 1
   selector:
@@ -130,6 +132,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: backend-api
+  namespace: contoso-hypermarket
 spec:
   selector:
     app: backend-api
