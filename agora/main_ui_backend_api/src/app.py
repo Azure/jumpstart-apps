@@ -67,7 +67,7 @@ class CameraList(Resource):
         cameras = cur.fetchall()
         cur.close()
         conn.close()
-        return [dict(camera) for camera in cameras]
+        return [dict(id=row[0], name=row[1], description=row[2]) for row in cameras]
 
     @cameras_ns.doc('create_camera')
     @cameras_ns.expect(camera_model)
@@ -158,7 +158,7 @@ class ZoneList(Resource):
         zones = cur.fetchall()
         cur.close()
         conn.close()
-        return [dict(zone) for zone in zones]
+        return [dict(id=row[0], name=row[1], description=row[2]) for row in zones]
 
     @zones_ns.doc('create_zone')
     @zones_ns.expect(zone_model)
