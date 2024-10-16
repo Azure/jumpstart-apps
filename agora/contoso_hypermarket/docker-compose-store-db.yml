@@ -1,6 +1,6 @@
 services:
   backend_db:
-    image: postgres:latest
+    image: mcr.microsoft.com/cbl-mariner/base/postgres
     restart: always
     environment: 
       POSTGRES_USER: postgres

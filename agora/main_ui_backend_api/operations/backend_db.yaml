@@ -43,7 +43,7 @@ spec:
     spec:
       containers:
       - name: backend-db
-        image: postgres:latest
+        image: mcr.microsoft.com/cbl-mariner/base/postgres
         ports:
         - containerPort: 5432
         envFrom:
