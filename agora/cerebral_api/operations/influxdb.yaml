@@ -97,7 +97,7 @@ spec:
       serviceAccount: contosoba    
       containers:
       - name: influxdb
-        image: influxdb:latest
+        image: mcr.microsoft.com/azurelinux/base/influxdb:2.7
         resources:
           limits:
             memory: "8Gi"

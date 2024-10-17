@@ -14,7 +14,7 @@ api = Api(app, version='1.0', title='Agora Backend API',
 def get_db_connection():
     conn = psycopg2.connect(
         host=os.getenv('DATABASE_HOST', 'localhost'),
-        database=os.getenv('DATABASE_NAME', 'contoso'),
+        dbname=os.getenv('DATABASE_NAME', 'contoso'),
         user=os.getenv('DATABASE_USER', 'postgres'),
         password=os.getenv('DATABASE_PASSWORD', 'password')
     )
@@ -30,7 +30,7 @@ fridges_ns = api.namespace('fridges', description='Refrigerator operations')
 camera_model = api.model('Camera', {
     'id': fields.Integer(readonly=True),
     'name': fields.String(required=True),
-    'location': fields.String(required=True)
+    'description': fields.String(required=True)
 })
 
 zone_model = api.model('Zone', {
@@ -67,7 +67,7 @@ class CameraList(Resource):
         cameras = cur.fetchall()
         cur.close()
         conn.close()
-        return [dict(camera) for camera in cameras]
+        return [dict(id=row[0], name=row[1], description=row[2]) for row in cameras]
 
     @cameras_ns.doc('create_camera')
     @cameras_ns.expect(camera_model)
@@ -77,8 +77,8 @@ class CameraList(Resource):
         new_camera = api.payload
         conn = get_db_connection()
         cur = conn.cursor()
-        cur.execute('INSERT INTO cameras (name, location) VALUES (%s, %s) RETURNING id',
-                    (new_camera['name'], new_camera['location']))
+        cur.execute('INSERT INTO cameras (name, description) VALUES (%s, %s) RETURNING id',
+                    (new_camera['name'], new_camera['description']))
         new_id = cur.fetchone()[0]
         conn.commit()
         cur.close()
@@ -118,8 +118,8 @@ class Camera(Resource):
             cur.close()
             conn.close()
             cameras_ns.abort(404, f"Camera {id} doesn't exist")
-        cur.execute('UPDATE cameras SET name = %s, location = %s WHERE id = %s',
-                     (update_camera['name'], update_camera['location'], id))
+        cur.execute('UPDATE cameras SET name = %s, description = %s WHERE id = %s',
+                     (update_camera['name'], update_camera['description'], id))
         conn.commit()
         cur.execute('SELECT * FROM cameras WHERE id = %s', (id,))
         updated_camera = cur.fetchone()
@@ -158,7 +158,7 @@ class ZoneList(Resource):
         zones = cur.fetchall()
         cur.close()
         conn.close()
-        return [dict(zone) for zone in zones]
+        return [dict(id=row[0], name=row[1], description=row[2]) for row in zones]
 
     @zones_ns.doc('create_zone')
     @zones_ns.expect(zone_model)
@@ -409,4 +409,4 @@ class Fridge(Resource):
         return '', 204
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0', port=5002)
