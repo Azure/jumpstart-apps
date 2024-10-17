@@ -1,3 +1,17 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: model-pvc
+  namespace: contoso-hypermarket
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -13,6 +27,13 @@ spec:
       labels:
         app: footfall-ai-api
     spec:
+      initContainers:
+      - name: init-download-model
+        image: mcr.microsoft.com/onebranch/cbl-mariner/build:2.0
+        command: ['sh', '-c', 'wget -O /tmp/models/yolov8n.pt https://huggingface.co/Ultralytics/YOLOv8/resolve/main/yolov8n.pt']
+        volumeMounts:
+        - name: models-volume
+          mountPath: /tmp/models
       containers:
       - name: footfall-ai-api
         image: agacr6b99f.azurecr.io/footfall-ai-api:latest
@@ -28,8 +49,8 @@ spec:
           name: models-volume
       volumes:
       - name: models-volume
-        hostPath:
-          path: /mnt/C/Users/dakir/models
+        persistentVolumeClaim:
+          claimName: model-pvc
 
 ---
 
