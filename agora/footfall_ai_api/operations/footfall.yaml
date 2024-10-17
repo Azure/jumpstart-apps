@@ -29,7 +29,7 @@ spec:
     spec:
       initContainers:
       - name: init-download-model
-        image: mcr.microsoft.com/onebranch/cbl-mariner/build:2.0
+        image: mcr.microsoft.com/cbl-mariner/busybox:1.35   
         command: ['sh', '-c', 'wget -O /tmp/models/yolov8n.pt https://huggingface.co/Ultralytics/YOLOv8/resolve/main/yolov8n.pt']
         volumeMounts:
         - name: models-volume
