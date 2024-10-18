@@ -36,7 +36,7 @@ spec:
           mountPath: /tmp/models
       containers:
       - name: footfall-ai-api
-        image: agacr6b99f.azurecr.io/footfall-ai-api:latest
+        image: agacrd2f52.azurecr.io/footfall-ai-api:latest
         ports:
         - containerPort: 5003
         env:
