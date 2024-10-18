@@ -6,7 +6,8 @@ from influxdb_client.client.query_api import QueryOptions
 class InfluxDBHandler:
     def __init__(self):
         # Load environment variables from .env file
-        load_dotenv()
+        #development
+        #load_dotenv()
         self.INFLUXDB_URL=os.getenv("INFLUXDB_URL")
         self.INFLUXDB_BUCKET=os.getenv("INFLUXDB_BUCKET")
         self.INFLUXDB_TOKEN=os.getenv("INFLUXDB_TOKEN")

@@ -15,7 +15,8 @@ from prometheus_client.exposition import generate_latest
 from prometheus_client.core import CollectorRegistry
 from flask import Flask, Response
 
-load_dotenv()
+#development
+#load_dotenv()
 
 # InfluxDB Settings
 INFLUXDB_URL = os.getenv("INFLUXDB_URL")
