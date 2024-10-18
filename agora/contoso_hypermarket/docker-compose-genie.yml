@@ -65,7 +65,7 @@ services:
 
   cerebral-api:
     build:
-        context: ./cerebral_api/src  # This should point to the folder containing the Dockerfile and requirements.txt
+        context: ../cerebral_api/src  # This should point to the folder containing the Dockerfile and requirements.txt
         dockerfile: Dockerfile
     container_name: cerebral_api  # Name of the container
     ports:
