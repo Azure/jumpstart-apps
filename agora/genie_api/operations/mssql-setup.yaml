@@ -2,7 +2,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: mssql-setup-job
-  namespace: cerebral
+  namespace: genie
 spec:
   template:
     spec:

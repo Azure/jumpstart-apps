@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: cerebral-api-deployment
-  namespace: cerebral
+  name: genie-api-deployment
+  namespace: genie
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: cerebral-api
+      app: genie-api
   template:
     metadata:
       labels:
-        app: cerebral-api
+        app: genie-api
     spec:
       containers:
-      - name: cerebral-api
-        image: agoraarmbladev.azurecr.io/cerebral-api:0.1
+      - name: genie-api
+        image: agoraarmbladev.azurecr.io/genie-api:0.1
         ports:
         - containerPort: 5003
         env:
@@ -28,15 +28,15 @@ spec:
         - name: OPENAI_API_VERSION
           value: "2024-03-01-preview"
         - name: INFLUXDB_URL
-          value: "http://influxdb.cerebral.svc.cluster.local:8086"
+          value: "http://influxdb.genie.svc.cluster.local:8086"
         - name: INFLUXDB_BUCKET
-          value: "cerebral"
+          value: "genie"
         - name: INFLUXDB_TOKEN
           value: "secret-token"
         - name: INFLUXDB_ORG
           value: "InfluxData"
         - name: REDIS_URL
-          value: "redis://redis-service.cerebral.svc.cluster.local:6379"
+          value: "redis://redis-service.genie.svc.cluster.local:6379"
         - name: SQL_DATABASENAME
           value: "ReatilDB"
         - name: SQL_SERVER
@@ -50,12 +50,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: cerebral-api-service
-  namespace: cerebral
+  name: genie-api-service
+  namespace: genie
 spec:
   type: LoadBalancer
   selector:
-    app: cerebral-api
+    app: genie-api
   ports:
     - protocol: TCP
       port: 5003

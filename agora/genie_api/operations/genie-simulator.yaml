@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: rag-on-edge-simulator
-  namespace: cerebral
+  namespace: genie
 spec:
   replicas: 1
   selector:
@@ -20,7 +20,7 @@ spec:
         - containerPort: 5000
         env:
         - name: INFLUXDB_URL
-          value: "http://influxdb.cerebral.svc.cluster.local:8086"
+          value: "http://influxdb.genie.svc.cluster.local:8086"
         - name: INFLUXDB_TOKEN
           value: "secret-token"
         - name: INFLUXDB_ORG

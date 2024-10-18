@@ -2,7 +2,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: bash-influx-setup-job
-  namespace: cerebral
+  namespace: genie
 spec:
   template:
     spec:
@@ -15,7 +15,7 @@ spec:
           #!/bin/bash
 
           # Run the influx setup command and capture any output and error
-          output=$(influx setup --host http://influxdb.cerebral.svc.cluster.local:8086 --bucket manufacturing --org InfluxData --password ArcPassword123!! --username admin --token secret-token --force 2>&1)
+          output=$(influx setup --host http://influxdb.genie.svc.cluster.local:8086 --bucket manufacturing --org InfluxData --password ArcPassword123!! --username admin --token secret-token --force 2>&1)
 
           # If the command was successful, print the output and exit
           if [ $? -eq 0 ]; then
