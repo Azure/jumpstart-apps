@@ -25,6 +25,7 @@ cameras_ns = api.namespace('cameras', description='Camera operations')
 zones_ns = api.namespace('zones', description='Zone operations')
 ovens_ns = api.namespace('ovens', description='Oven operations')
 fridges_ns = api.namespace('fridges', description='Refrigerator operations')
+regions_ns = api.namespace('regions', description='Region operations')
 
 # Models
 camera_model = api.model('Camera', {
@@ -53,6 +54,89 @@ fridge_model = api.model('Fridge', {
     'temperature': fields.String(required=True),
     'humidity': fields.String(required=True)
 })
+# Region model
+region_model = api.model('Region', {
+    'id': fields.Integer(readonly=True),
+    'name': fields.String(required=True),
+    'description': fields.String(required=True),
+    'camera_id': fields.Integer(required=True)
+})
+
+# Region endpoints
+@regions_ns.route('/')
+class RegionList(Resource):
+    @regions_ns.doc('list_regions')
+    @regions_ns.marshal_list_with(region_model)
+    def get(self):
+        """List all regions"""
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute('SELECT * FROM regions')
+        regions = cur.fetchall()
+        cur.close()
+        conn.close()
+        return [dict(id=row[0], name=row[1], description=row[2], camera_id=row[3]) for row in regions]
+
+    @regions_ns.doc('create_region')
+    @regions_ns.expect(region_model)
+    @regions_ns.marshal_with(region_model, code=201)
+    def post(self):
+        """Create a new region"""
+        new_region = api.payload
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute('INSERT INTO regions (name, description, camera_id) VALUES (%s, %s, %s) RETURNING id',
+                    (new_region['name'], new_region['description'], new_region['camera_id']))
+        new_id = cur.fetchone()[0]
+        conn.commit()
+        cur.close()
+        conn.close()
+        new_region['id'] = new_id
+        return new_region, 201
+
+@regions_ns.route('/<int:id>')
+class Region(Resource):
+    @regions_ns.doc('get_region')
+    @regions_ns.marshal_with(region_model)
+    def get(self, id):
+        """Fetch a region given its identifier"""
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute('SELECT * FROM regions WHERE id = %s', (id,))
+        row = cur.fetchone()
+        cur.close()
+        conn.close()
+        if row is None:
+            api.abort(404, "Region {} doesn't exist".format(id))
+        return dict(id=row[0], name=row[1], description=row[2], camera_id=row[3])
+
+    @regions_ns.doc('update_region')
+    @regions_ns.expect(region_model)
+    @regions_ns.marshal_with(region_model)
+    def put(self, id):
+        """Update a region given its identifier"""
+        updated_region = api.payload
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute('UPDATE regions SET name = %s, description = %s, camera_id = %s WHERE id = %s',
+                    (updated_region['name'], updated_region['description'], updated_region['camera_id'], id))
+        conn.commit()
+        cur.close()
+        conn.close()
+        updated_region['id'] = id
+        return updated_region
+
+    @regions_ns.doc('delete_region')
+    @regions_ns.response(204, 'Region deleted')
+    def delete(self, id):
+        """Delete a region given its identifier"""
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute('DELETE FROM regions WHERE id = %s', (id,))
+        conn.commit()
+        cur.close()
+        conn.close()
+        return '', 204
 
 # Camera endpoints
 @cameras_ns.route('/')
