@@ -392,7 +392,7 @@ class ProcessQuestion(Resource):
                 return jsonify({
                     'question': question,
                     'category': category,
-                    'influx_query': influx_query,
+                    'query': influx_query,
                     'query_result': query_result,
                     'recommendations': recommendations
                 })
@@ -407,7 +407,7 @@ class ProcessQuestion(Resource):
                 return jsonify({
                     'question': question,
                     'category': category,
-                    'sql_query': sql_query,
+                    'query': sql_query,
                     'query_result': query_result,
                     'recommendations': recommendations
                 })
@@ -419,7 +419,7 @@ class ProcessQuestion(Resource):
                 return jsonify({
                     'question': question,
                     'category': category,
-                    'response': response
+                    'recommendations': response
                 })
             
             else:

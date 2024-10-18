@@ -16,6 +16,9 @@ ENV INFLUXDB_TOKEN="secret-token"
 ENV INFLUXDB_ORG="InfluxData"
 ENV INFLUXDB_BUCKET="cerebral"
 ENV VERBOSE=True
+ENV PORT=8001
+
+EXPOSE 8001
 
 # Command to run the application
 CMD ["python", "app.py"]
