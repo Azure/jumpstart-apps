@@ -38,7 +38,7 @@ spec:
       - name: footfall-ai-api
         image: agacrd2f52.azurecr.io/footfall-ai-api:latest
         ports:
-        - containerPort: 5003
+        - containerPort: 5000
         env:
         - name: MODEL_PATH
           value: "/tmp/models/yolov8n.pt"
@@ -64,6 +64,6 @@ spec:
     app: footfall-ai-api
   ports:
     - protocol: TCP
-      port: 5003
-      targetPort: 5003
+      port: 5000
+      targetPort: 5000
   type: LoadBalancer
