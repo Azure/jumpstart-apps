@@ -1,13 +1,15 @@
 import os
-import time
 from flask import Flask, render_template, Response, request, jsonify
 import cv2
 import numpy as np
-from openvino.runtime import Core
+from openvino.runtime import Core, get_version as ov_get_version
 import hashlib
-import collections
+import threading
+import queue
 from scipy.spatial.distance import cosine
-from video_capture import VideoCapture
+import time
+from collections import defaultdict
+# from video_capture import VideoCapture
 
 # Constants
 #MODEL_PATH = os.getenv("MODEL_PATH", "./models/")
@@ -15,32 +17,28 @@ MODEL_PATH = os.getenv("MODEL_PATH", "C:\\Users\\fcabrera\\Downloads\\models\\")
 RTSP_URL = os.getenv("RTSP_URL", "rtsp://rtsp_stream_container:554/stream")
 FRAME_RATE = 25
 CLASSES_TO_COUNT = [0]  # person is class 0 in the COCO dataset
-FLASK_PORT = int(os.getenv("FLASK_PORT", 5000))
+FLASK_PORT = int(os.getenv("FLASK_PORT", 5001))
 FLASK_DEBUG = os.getenv("FLASK_DEBUG", "false").lower() in ["true", "1", "t"]
 
-restricted_area = []
+app = Flask(__name__)
+
+# Global variables
+video_source = "your_video_file.mp4"
+restricted_areas = []
 ie = Core()
 detected_persons = 0
 intruders = 0
 last_intruder_hash = None
 current_intruders = 0
-fps = 0
 
-# Initialize Flask app
-app = Flask(__name__)
+# Thread-safe queue for frames
+frame_queue = queue.Queue(maxsize=10)
 
-# Load the person detection model
-det_model_xml = "person-detection-retail-0013.xml"
-det_model_bin = "person-detection-retail-0013.bin"
-print(f"Loading model: {os.path.join(MODEL_PATH, det_model_xml)}")
-det_model = ie.read_model(model=os.path.join(MODEL_PATH, det_model_xml))
+# Load models
+det_model = ie.read_model("person-detection-retail-0013.xml")
 det_compiled_model = ie.compile_model(model=det_model, device_name="CPU")
-
-# Load the person re-identification model
-reid_model_xml = "person-reidentification-retail-0287.xml"
-reid_model_bin = "person-reidentification-retail-0287.bin"
-reid_model = ie.read_model(model=os.path.join(MODEL_PATH, reid_model_xml))
-reid_compiled_model = ie.compile_model(model=reid_model, device_name="CPU")
+reid_model = ie.read_model("person-reidentification-retail-0287.xml")
+reid_compiled_model = ie.compile_model(model=reid_model, device_name="GPU" if "GPU" in ie.available_devices else "CPU")
 
 # Get input and output layers
 det_input_layer = det_compiled_model.input(0)
@@ -55,9 +53,211 @@ reid_height, reid_width = list(reid_input_layer.shape)[2:]
 # Person tracking variables
 person_tracker = {}
 next_person_id = 0
-max_frames_to_track = 30
+max_frames_to_track = 60
+max_distance_threshold = 0.3
+min_detection_confidence = 0.6
+
+# New variables for tracking people near detection areas
+people_near_areas = defaultdict(lambda: defaultdict(dict))
+area_stats = defaultdict(lambda: {"current_count": 0, "total_count": 0})
+
+def extract_features(frame, bbox):
+    """Extract features from a person's bounding box using the re-identification model."""
+    x1, y1, x2, y2 = bbox
+    person_image = frame[y1:y2, x1:x2]
+    person_image = cv2.resize(person_image, (reid_width, reid_height))
+    person_image = np.expand_dims(person_image.transpose(2, 0, 1), 0)
+    return reid_compiled_model([person_image])[reid_output_layer].flatten()
+
+def process_video():
+    global detected_persons, intruders, last_intruder_hash, person_tracker, next_person_id, current_intruders, video_source
+    
+    cap = cv2.VideoCapture(video_source)
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    process_every_n_frames = max(1, int(fps / 10))  # Process 10 frames per second
+    frame_count = 0
+    
+    while cap.isOpened():
+        success, frame = cap.read()
+        if not success:
+            cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+            continue
+        
+        frame_count += 1
+        if frame_count % process_every_n_frames != 0:
+            continue
+        
+        current_time = time.time()
+        
+        resized_frame = cv2.resize(frame, (det_width, det_height))
+        input_frame = np.expand_dims(resized_frame.transpose(2, 0, 1), 0)
+        
+        detections = det_compiled_model([input_frame])[det_output_layer][0][0]
+        
+        detected_persons = 0
+        current_frame_detections = []
+
+        for detection in detections:
+            if detection[2] > min_detection_confidence:
+                detected_persons += 1
+                bbox = [int(detection[i] * dim) for i, dim in zip([3, 4, 5, 6], [frame.shape[1], frame.shape[0]] * 2)]
+                features = extract_features(frame, bbox)
+                current_frame_detections.append((bbox, features))
+
+        new_person_tracker = {}
+        for person_id, (last_bbox, last_features, frames_tracked, is_intruder, person_hash) in person_tracker.items():
+            best_match = min(
+                ((i, cosine(last_features, features)) for i, (_, features) in enumerate(current_frame_detections)),
+                key=lambda x: x[1],
+                default=(None, float('inf'))
+            )
+            
+            if best_match[0] is not None and best_match[1] < max_distance_threshold:
+                bbox, features = current_frame_detections.pop(best_match[0])
+                new_person_tracker[person_id] = (bbox, features, frames_tracked + 1, is_intruder, person_hash)
+                update_area_presence(person_hash, bbox, frame.shape, current_time)
+            elif frames_tracked < max_frames_to_track:
+                new_person_tracker[person_id] = (last_bbox, last_features, frames_tracked + 1, is_intruder, person_hash)
+            else:
+                update_area_exit(person_hash, current_time)
+
+        for bbox, features in current_frame_detections:
+            person_hash = hashlib.md5(features.tobytes()).hexdigest()[:8]
+            new_person_tracker[next_person_id] = (bbox, features, 1, False, person_hash)
+            update_area_presence(person_hash, bbox, frame.shape, current_time, is_new=True)
+            next_person_id += 1
+
+        frame_intruders = set()
+        for person_id, (bbox, features, frames_tracked, is_intruder, person_hash) in new_person_tracker.items():
+            center = ((bbox[0] + bbox[2]) // 2 / frame.shape[1], (bbox[1] + bbox[3]) // 2 / frame.shape[0])
+            
+            for area in restricted_areas:
+                if point_in_polygon(center, area['area']):
+                    if not is_intruder:
+                        intruders += 1
+                        new_person_tracker[person_id] = (bbox, features, frames_tracked, True, person_hash)
+                        last_intruder_hash = person_hash
+                    frame_intruders.add(person_id)
+                    break
+
+        current_intruders = len(frame_intruders)
+        person_tracker = new_person_tracker
+
+        for person_id, (bbox, _, _, is_intruder, person_hash) in person_tracker.items():
+            color = (0, 0, 255) if is_intruder else (0, 255, 0)
+            cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), color, 2)
+            cv2.putText(frame, f"ID: {person_hash}", (bbox[0], bbox[1] - 10),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.9, color, 2)
+
+        for i, area in enumerate(restricted_areas):
+            points = np.array([(p['x'] * frame.shape[1], p['y'] * frame.shape[0]) for p in area['area']], np.int32)
+            cv2.polylines(frame, [points.reshape((-1, 1, 2))], True, (255, 0, 0), 2)
+            cv2.putText(frame, f"Area {i}: {area_stats[i]['current_count']}", 
+                        (int(points[0][0]), int(points[0][1]) - 10),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 0, 0), 2)
+
+        if not frame_queue.full():
+            frame_queue.put(frame)
+
+    cap.release()
+
+def update_area_presence(person_hash, bbox, frame_shape, current_time, is_new=False):
+    """Update the presence of a person near detection areas."""
+    center = ((bbox[0] + bbox[2]) // 2 / frame_shape[1], (bbox[1] + bbox[3]) // 2 / frame_shape[0])
+    
+    for i, area in enumerate(restricted_areas):
+        if point_in_polygon(center, area['area']):
+            if is_new or i not in people_near_areas[person_hash]:
+                people_near_areas[person_hash][i] = {"start_time": current_time, "end_time": current_time}
+                area_stats[i]["current_count"] += 1
+                area_stats[i]["total_count"] += 1
+            else:
+                people_near_areas[person_hash][i]["end_time"] = current_time
+
+def update_area_exit(person_hash, current_time):
+    """Update statistics when a person exits all areas."""
+    for area_id in people_near_areas[person_hash]:
+        people_near_areas[person_hash][area_id]["end_time"] = current_time
+        area_stats[area_id]["current_count"] -= 1
+    del people_near_areas[person_hash]
+
+def generate_frames():
+    while True:
+        if not frame_queue.empty():
+            frame = frame_queue.get()
+            _, buffer = cv2.imencode('.jpg', frame)
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+
+@app.route('/video_feed')
+def video_feed():
+    global vs, line_points
+#    video_source = request.args.get('source', default="")
+#    if not video_source:
+#        video_source = RTSP_URL
+    
+    print(f"Starting feed with video_source: {video_source}")
+
+    x1 = int(request.args.get('x', default=0))
+    y1 = int(request.args.get('y', default=0))
+    w = int(request.args.get('w', default=0))
+    h = int(request.args.get('h', default=0))
+
+    print(f"Bounding Box coordinates: x1={x1}, y1={y1}, w={w}, h={h}")
+
+  #  vs = cv2.VideoCapture(video_source)
+  #  frame = vs.read()[0]
+  #  if frame is not None:
+  #      height, width = frame.shape[:2]
+  #      scaling_factor_x = width / 640
+  #      scaling_factor_y = height / 360
+
+  #      x1 = int(x1 * scaling_factor_x)
+  #      y1 = int(y1 * scaling_factor_y)
+  #      w = int(w * scaling_factor_x)
+  #      h = int(h * scaling_factor_y)
+
+  #      line_points = [
+  #          (x1, y1), (x1 + w, y1), (x1 + w, y1 + h), (x1, y1 + h), (x1, y1)
+  #      ]
+
+    return Response(generate_frames(),
+                    mimetype='multipart/x-mixed-replace; boundary=frame')
+
+
+
+@app.route('/set_restricted_areas', methods=['POST'])
+def set_restricted_areas():
+    global restricted_areas
+    restricted_areas = request.json['areas']
+    return jsonify({"message": "Restricted areas set successfully"}), 200
+
+@app.route('/set_video_source', methods=['POST'])
+def set_video_source():
+    global video_source
+    video_source = request.json['url']
+    return jsonify({"message": "Video source set successfully"}), 200
+
+@app.route('/get_detection_data')
+def get_detection_data():
+    global detected_persons, intruders, last_intruder_hash, current_intruders
+    return jsonify({
+        "detected_persons": detected_persons,
+        "total_intruders": intruders,
+        "current_intruders": current_intruders,
+        "last_intruder_hash": last_intruder_hash,
+        "area_stats": dict(area_stats),
+        "people_near_areas": {k: {int(area_id): v for area_id, v in areas.items()} 
+                              for k, areas in people_near_areas.items()}
+    })
 
 def point_in_polygon(point, polygon):
+    """Check if a point is inside a polygon."""
     x, y = point
     odd_nodes = False
     j = len(polygon) - 1
@@ -70,173 +270,10 @@ def point_in_polygon(point, polygon):
         j = i
     return odd_nodes
 
-def extract_features(frame, bbox):
-    x1, y1, x2, y2 = bbox
-    person_image = frame[y1:y2, x1:x2]
-    person_image = cv2.resize(person_image, (reid_width, reid_height))
-    person_image = np.transpose(person_image, (2, 0, 1))
-    person_image = np.expand_dims(person_image, axis=0)
-    features = reid_compiled_model([person_image])[reid_output_layer]
-    return features.flatten()
-
-def run_inference(frame):
-    global detected_persons, intruders, last_intruder_hash, person_tracker, next_person_id, current_intruders
-    
-    # Preprocess the frame for person detection
-    resized_frame = cv2.resize(frame, (det_width, det_height))
-    input_frame = np.expand_dims(resized_frame.transpose(2, 0, 1), 0)
-
-    processing_times = collections.deque(maxlen=200)
-    start_time = time.time()
-
-    # Perform person detection
-    results = det_compiled_model([input_frame])[det_output_layer]
-    
-    detected_persons = 0
-    current_frame_detections = []
-
-    for detection in results[0][0]:
-        if detection[2] > 0.5:  # Confidence threshold
-            detected_persons += 1
-            xmin = int(detection[3] * frame.shape[1])
-            ymin = int(detection[4] * frame.shape[0])
-            xmax = int(detection[5] * frame.shape[1])
-            ymax = int(detection[6] * frame.shape[0])
-            
-            # Extract features for re-identification
-            features = extract_features(frame, (xmin, ymin, xmax, ymax))
-            
-            current_frame_detections.append((xmin, ymin, xmax, ymax, features))
-
-    # Update person tracker
-    new_person_tracker = {}
-    for person_id, person_data in person_tracker.items():
-        last_bbox, last_features, frames_tracked, is_intruder = person_data
-        best_match = None
-        min_distance = float('inf')
-        
-        for detection in current_frame_detections:
-            distance = cosine(last_features, detection[4])
-            if distance < min_distance:
-                min_distance = distance
-                best_match = detection
-
-        if best_match and min_distance < 0.3:  # Adjust this threshold as needed
-            new_person_tracker[person_id] = (best_match[:4], best_match[4], frames_tracked + 1, is_intruder)
-            current_frame_detections.remove(best_match)
-        elif frames_tracked < max_frames_to_track:
-            new_person_tracker[person_id] = (last_bbox, last_features, frames_tracked + 1, is_intruder)
-
-    # Add new detections
-    for detection in current_frame_detections:
-        new_person_tracker[next_person_id] = (detection[:4], detection[4], 1, False)
-        next_person_id += 1
-
-    # Check for intruders and update counters
-    frame_intruders = set()
-    for person_id, (bbox, features, frames_tracked, is_intruder) in new_person_tracker.items():
-        center_x = (bbox[0] + bbox[2]) // 2
-        center_y = (bbox[1] + bbox[3]) // 2
-        if point_in_polygon((center_x / frame.shape[1], center_y / frame.shape[0]), restricted_area):
-            if not is_intruder:
-                intruders += 1
-                new_person_tracker[person_id] = (bbox, features, frames_tracked, True)
-                intruder_hash = hashlib.md5(f"{center_x},{center_y}".encode()).hexdigest()[:8]
-                last_intruder_hash = intruder_hash
-            frame_intruders.add(person_id)
-
-    current_intruders = len(frame_intruders)
-    person_tracker = new_person_tracker
-
-    # Draw bounding boxes and labels
-    for person_id, (bbox, _, _, is_intruder) in person_tracker.items():
-        color = (0, 0, 255) if is_intruder else (0, 255, 0)
-        cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), color, 2)
-        if is_intruder:
-            cv2.putText(frame, f"Intruder: {person_id}", (bbox[0], bbox[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, color, 2)
-
-    processing_time = (time.time() - start_time) * 1000
-    processing_times.append(processing_time)
-    avg_processing_time = np.mean(processing_times)
-    inference_fps = 1000 / avg_processing_time
-
-    cv2.putText(frame, f"Inference time: {avg_processing_time:.1f}ms ({inference_fps:.1f} FPS)", 
-                (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 0), 2, cv2.LINE_AA)
-
-    cv2.putText(frame, f"Detected persons: {detected_persons}", (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 0), 2, cv2.LINE_AA)
-    cv2.putText(frame, f"Total intruders: {intruders}", (10, 120), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 0), 2, cv2.LINE_AA)
-    cv2.putText(frame, f"Current intruders: {current_intruders}", (10, 150), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 0), 2, cv2.LINE_AA)
-    if last_intruder_hash:
-        cv2.putText(frame, f"Last intruder hash: {last_intruder_hash}", (10, 180), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 0), 2, cv2.LINE_AA)
-
-    return cv2.imencode('.jpg', frame)
-
-def gen_frames_with_source():
-    global fps, vs
-    last_time = time.time()
-    frame_count = 0
-
-    while True:
-        if(vs is None):
-            continue
-
-        frame,success = vs.read()
-        if not success:
-            break
-
-        frame_count += 1
-        current_time = time.time()
-        if current_time - last_time >= 1:
-            fps = frame_count / (current_time - last_time)
-            frame_count = 0
-            last_time = current_time
-
-        cv2.putText(frame, f"FPS: {fps:.2f}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 0), 2, cv2.LINE_AA)
-
-        if all(point == (0, 0) for point in line_points):
-            ret, frame = cv2.imencode('.jpg', frame)
-        else:
-            ret, frame = run_inference(frame)
-
-        ui_bytes = frame.tobytes()
-
-        yield (b'--frame\r\n'
-                b'Content-Type: image/jpeg\r\n\r\n' + ui_bytes + b'\r\n')
-
-@app.route('/video_feed')
-def video_feed():
-    global vs, line_points
-    video_source = request.args.get('source', default="")
-    if not video_source:
-        video_source = RTSP_URL
-    
-    print(f"Starting feed with video_source: {video_source}")
-
-    x1 = int(request.args.get('x', default=0))
-    y1 = int(request.args.get('y', default=0))
-    w = int(request.args.get('w', default=0))
-    h = int(request.args.get('h', default=0))
-
-    print(f"Bounding Box coordinates: x1={x1}, y1={y1}, w={w}, h={h}")
-
-    vs = VideoCapture(video_source)
-    frame = vs.read()[0]
-    if frame is not None:
-        height, width = frame.shape[:2]
-        scaling_factor_x = width / 640
-        scaling_factor_y = height / 360
-
-        x1 = int(x1 * scaling_factor_x)
-        y1 = int(y1 * scaling_factor_y)
-        w = int(w * scaling_factor_x)
-        h = int(h * scaling_factor_y)
-
-        line_points = [
-            (x1, y1), (x1 + w, y1), (x1 + w, y1 + h), (x1, y1 + h), (x1, y1)
-        ]
-
-    return Response(gen_frames_with_source(),
-                    mimetype='multipart/x-mixed-replace; boundary=frame')
-
 if __name__ == '__main__':
+    print(f"OpenVINO version: {ov_get_version()}")
+    print(f"Available devices: {ie.available_devices}")
+    
+    video_thread = threading.Thread(target=process_video, daemon=True)
+    video_thread.start()
     app.run(host='0.0.0.0', port=FLASK_PORT, debug=FLASK_DEBUG, threaded=True)
