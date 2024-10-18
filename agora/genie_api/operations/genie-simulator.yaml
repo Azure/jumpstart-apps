@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: rag-on-edge-simulator
-  namespace: genie
+  namespace: contoso-hypermarket
 spec:
   replicas: 1
   selector:

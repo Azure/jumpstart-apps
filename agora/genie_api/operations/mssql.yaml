@@ -2,7 +2,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: mssql-data
-  namespace: genie
+  namespace: contoso-hypermarket
 spec:
   accessModes:
     - ReadWriteOnce
@@ -14,7 +14,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: mssql-deployment
-  namespace: genie
+  namespace: contoso-hypermarket
 spec:
   replicas: 1
   selector:
@@ -47,7 +47,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: mssql-service
-  namespace: genie
+  namespace: contoso-hypermarket
 spec:
   selector:
     app: mssql

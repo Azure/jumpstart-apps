@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: contosoba
-  namespace: genie
+  namespace: contoso-hypermarket
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -15,13 +15,13 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: contosoba
-  namespace: genie
+  namespace: contoso-hypermarket
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: contosoba-role
-  namespace: genie
+  namespace: contoso-hypermarket
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -29,13 +29,13 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: contosoba
-  namespace: genie
+  namespace: contoso-hypermarket
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: influxdb
-  namespace: genie
+  namespace: contoso-hypermarket
 spec:
   type: LoadBalancer
   selector:
@@ -54,7 +54,7 @@ apiVersion: v1
 kind: PersistentVolume
 metadata:
   name: influxdb-pv
-  namespace: genie
+  namespace: contoso-hypermarket
   labels:
     type: local
 spec:
@@ -70,7 +70,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: influxdb-pvc
-  namespace: genie
+  namespace: contoso-hypermarket
 spec:
   storageClassName: manual
   accessModes:
@@ -83,7 +83,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: influxdb
-  namespace: genie
+  namespace: contoso-hypermarket
 spec:
   serviceName: "influxdb"
   selector:
