@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   FluentProvider,
   webLightTheme,
@@ -28,6 +28,7 @@ import ShopperProdcutsInteraction from '../../components/ShopperProdcutsInteract
 import Footer from '../../components/ShopperFooter';
 import { CopilotProvider } from "@fluentui-copilot/react-copilot";
 import { IDropdownOption, IImageProps, IStackProps, IStackTokens, Stack,   PrimaryButton, Image, Text} from "@fluentui/react";
+import { Panel, PanelType, DefaultButton } from '@fluentui/react';
 import {
   Card,
   CardFooter,
@@ -501,8 +502,26 @@ const useStyles = makeStyles({
         width: 300,
         height: 300,
       };
+      interface CartPanelProps {
+        isOpen: boolean;
+        onDismiss: () => void;
+        onSave: () => void;
+      }    
+    const ShopperReviewCart: React.FC<CartPanelProps> = ({ isOpen, onDismiss, onSave },props: Partial<DropdownProps>) => {
+        const [isDrawerOpen, setIsDrawerOpen] = useState(false);        
+        const toggleDrawer = () => {
+            setIsDrawerOpen(!isDrawerOpen);
+          };
 
-    const ShopperReviewCart = (props: Partial<DropdownProps>) => {
+        const onRenderFooterContent = React.useCallback(
+        () => (
+            <Stack horizontal tokens={{ childrenGap: 10 }}>
+            <PrimaryButton onClick={onSave}>Save</PrimaryButton>
+            <DefaultButton onClick={onDismiss}>Cancel</DefaultButton>
+            </Stack>
+        ),
+        [onSave, onDismiss]
+        );          
       const dropdownId = useId("dropdown-default");
       const options = [
         "1/2 lb",
@@ -515,7 +534,7 @@ const useStyles = makeStyles({
               <FluentProvider theme={webLightTheme}>
                 <CopilotProvider mode='sidecar'>
                     <Stack>
-                        <Header />
+                        <Header callParentFunction={toggleDrawer}/>
                         <TopNav />
                         <Stack id='body' style={{marginLeft: '90px'}}>
                             <Breadcrumb className={styles.breadcrumb}>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   FluentProvider,
   webLightTheme,
@@ -12,7 +12,10 @@ import Header from '../../components/ShopperHeader';
 import TopNav from '../../components/ShopperTopNav';
 import Footer from '../../components/ShopperFooter';
 import { CopilotProvider } from "@fluentui-copilot/react-copilot";
-import { IStackProps, IStackTokens, Stack } from "@fluentui/react";
+
+import { Panel, PanelType, DefaultButton } from '@fluentui/react';
+import { IDropdownOption, IImageProps, IStackProps, IStackTokens, Stack,   PrimaryButton, Image} from "@fluentui/react";
+
 import {
   Card,
   CardFooter,
@@ -160,13 +163,56 @@ const useStyles = makeStyles({
       },
     };
 
-    const Shopper = () => {
+    interface CartPanelProps {
+      isOpen: boolean;
+      onDismiss: () => void;
+      onSave: () => void;
+    }  
+    const Shopper: React.FC<CartPanelProps> = ({ isOpen, onDismiss, onSave }) => {
         const styles = useStyles();
+        const [isDrawerOpen, setIsDrawerOpen] = useState(false);        
+        const toggleDrawer = () => {
+            setIsDrawerOpen(!isDrawerOpen);
+          };
+
+        const onRenderFooterContent = React.useCallback(
+        () => (
+            <Stack horizontal tokens={{ childrenGap: 10 }}>
+            <PrimaryButton onClick={onSave}>Save</PrimaryButton>
+            <DefaultButton onClick={onDismiss}>Cancel</DefaultButton>
+            </Stack>
+        ),
+        [onSave, onDismiss]
+        );          
           return (
               <FluentProvider theme={webLightTheme}>
                 <CopilotProvider mode='sidecar'>
                     <Stack>
-                        <Header />
+                    <Panel
+                        isOpen={isDrawerOpen}
+                        onDismiss={toggleDrawer}
+                        type={PanelType.custom}
+                        customWidth="25%"
+                        headerText="Add camera"
+                        onRenderFooterContent={onRenderFooterContent}
+                        isFooterAtBottom={true}
+                    >
+                        <Stack>
+                            <Stack.Item>
+                            </Stack.Item>
+                            <Stack.Item>
+                            </Stack.Item>
+                            <Stack.Item>
+                            </Stack.Item>
+                            <Stack.Item>
+                            </Stack.Item>
+                            <Stack.Item>
+                            </Stack.Item>
+                            <Stack.Item>
+                            </Stack.Item>
+                        </Stack>
+                        </Panel>                          
+                        <Header callParentFunction={toggleDrawer}/>
                         <TopNav />
                         <Stack id='MainContent' style={{alignItems: 'center', marginTop: '21px'}}>
                             <Stack>

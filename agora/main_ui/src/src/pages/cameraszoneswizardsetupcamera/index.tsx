@@ -10,7 +10,9 @@ import {
   BreadcrumbItem,
   Button,
   Card,
-  tokens
+  tokens,
+  Toolbar,
+  Dropdown
 } from "@fluentui/react-components";
 import { useNavigate } from "react-router-dom";
 import Header from '../../components/SuiteHeader';
@@ -243,7 +245,7 @@ interface CameraPanelProps {
   onDismiss: () => void;
   onSave: () => void;
 }
-const CamerasZonesWizard = () => {
+const CamerasZonesWizardSetupCamera = () => {
     const styles = useStyles();
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [cameraNameInputValue, setCameraNameInputValue] = React.useState('');
@@ -301,11 +303,10 @@ const CamerasZonesWizard = () => {
         "Setup regions (optional)",
         "Finish"
       ];      
-      const [activeStep, setActiveStep] = useState(0);      
+      const [activeStep, setActiveStep] = useState(2);      
       const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
-
-      const stackTokens: IStackTokens = { childrenGap: 10 };
       const navigate = useNavigate();
+      const stackTokens: IStackTokens = { childrenGap: 10 };
     return (
         <FluentProvider theme={webLightTheme}>
         <CopilotProvider mode='sidecar'>
@@ -337,42 +338,34 @@ const CamerasZonesWizard = () => {
       </div>            
           </Stack.Item>
           <Stack.Item grow={3}>
-            <Stack>
-                <Text className={styles.wizardheader}>Upload floor plan file</Text>
-                <Text className={styles.wizardtext}>Upload a high-quality floor plan to monitor your store and prevent losses. This allows precise placement of security cameras, ensuring coverage of all areas, including high-traffic zones, entry and exit points, and vulnerable spots.</Text>
+          <Stack>
+                <Text className={styles.wizardheader}>Setup camera region</Text>
+                <Text className={styles.wizardtext}>Use the drawing tools provided to outline different areas on the floor plan. Simply click and drag to draw shapes that represent various zones within the store.</Text>
                 <Stack>
                     <Stack.Item>
                         <Stack tokens={{ childrenGap: 10 }}>
-                    <Label required>Upload file
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                            <path d="M8.49902 7.49998C8.49902 7.22384 8.27517 6.99998 7.99902 6.99998C7.72288 6.99998 7.49902 7.22384 7.49902 7.49998V10.5C7.49902 10.7761 7.72288 11 7.99902 11C8.27517 11 8.49902 10.7761 8.49902 10.5V7.49998ZM8.74807 5.50001C8.74807 5.91369 8.41271 6.24905 7.99903 6.24905C7.58535 6.24905 7.25 5.91369 7.25 5.50001C7.25 5.08633 7.58535 4.75098 7.99903 4.75098C8.41271 4.75098 8.74807 5.08633 8.74807 5.50001ZM8 1C4.13401 1 1 4.13401 1 8C1 11.866 4.13401 15 8 15C11.866 15 15 11.866 15 8C15 4.13401 11.866 1 8 1ZM2 8C2 4.68629 4.68629 2 8 2C11.3137 2 14 4.68629 14 8C14 11.3137 11.3137 14 8 14C4.68629 14 2 11.3137 2 8Z" fill="#424242"/>
-                        </svg>
-                        </Label>
-                    <div {...getRootProps({ className: styles.dropzone })}>
-                        <input {...getInputProps()} />
-                    <Stack horizontalAlign="center" tokens={{ childrenGap: 10 }}>
-                        <Text className={styles.icon}>📄+</Text>
-                        <Text>
-                        {isDragActive
-                        ? 'Drop the files here'
-                        : 'Drag and drop files here or'}
-                        </Text>
-                        <PrimaryButton text="Browse files" onClick={() => {}} />
-                    </Stack>
-                    </div>
-                        </Stack>                        
+                          <Toolbar></Toolbar>
+                        </Stack>            
+                        <Stack>
+                          <Text>Select Camera</Text>
+                          <Dropdown></Dropdown>
+                        </Stack>            
                     </Stack.Item>
                     <Stack.Item>
                     <Stack style={{border: '1px solid #ccc'}} tokens={stackTokens}>
                       {/* Preview area */}
                       <Stack.Item>
                           <Text style={{fontSize: '16px', fontWeight: '400', lineHeight: '22px', color: '#000', textAlign: 'center'}}>Preview area</Text>
-                          <div style={{ flexShrink: '0', width: '865', height: 575, border: '1px solid #D9D9D9', marginBottom: 20, backgroundImage: `url('Floorplan.png')`, backgroundSize: 'cover', }} />
+                          <div style={{ flexShrink: '0', width: '865', height: 575, border: '1px solid #D9D9D9', marginBottom: 20 }} />
                       </Stack.Item>
 
                       {/* Main content area */}
 
                       {/* Footer */}
+                      <Stack.Item>
+                          <div style={{ height: 50, border: '1px solid #ccc', marginTop: 20 }} />
+                      </Stack.Item>
+
                       {/* Search and Add buttons */}
                     </Stack>                        
                     </Stack.Item>
@@ -386,8 +379,8 @@ const CamerasZonesWizard = () => {
           </Stack>
           <div className={styles.footer}>
             <Stack horizontal>
-          <Button appearance="secondary" className={styles.footerpreviousbutton}>Previous</Button>
-          <Button appearance="primary" className={styles.footernextbutton} onClick={() => navigate("/camerazoneswizardfloor")}>Next</Button>
+            <Button appearance="secondary" className={styles.footerpreviousbutton}onClick={() => navigate("/camerazoneswizardassigncameras")}>Previous</Button>
+            <Button appearance="primary" className={styles.footernextbutton} onClick={() => navigate("/camerazoneswizardreview")}>Next</Button>
           </Stack>
           </div>
           </Stack.Item>
@@ -397,4 +390,4 @@ const CamerasZonesWizard = () => {
     );
   };
   
-  export default CamerasZonesWizard;
+  export default CamerasZonesWizardSetupCamera;
