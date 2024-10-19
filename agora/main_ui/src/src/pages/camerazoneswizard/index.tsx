@@ -12,6 +12,7 @@ import {
   Card,
   tokens
 } from "@fluentui/react-components";
+import { useNavigate } from "react-router-dom";
 import Header from '../../components/SuiteHeader';
 import SideMenu from "../../components/MaintenanceMenu";
 import { ITag, Pivot, PivotItem, PrimaryButton, TagPicker, TextField } from '@fluentui/react';
@@ -304,6 +305,7 @@ const CamerasZonesWizard = () => {
       const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
 
       const stackTokens: IStackTokens = { childrenGap: 10 };
+      const navigate = useNavigate();
     return (
         <FluentProvider theme={webLightTheme}>
         <CopilotProvider mode='sidecar'>
@@ -362,40 +364,16 @@ const CamerasZonesWizard = () => {
                     </Stack.Item>
                     <Stack.Item>
                     <Stack style={{border: '1px solid #ccc'}} tokens={stackTokens}>
-                    {/* Preview area */}
-                    <Stack.Item>
-                        <Text style={{fontSize: '16px', fontWeight: '400', lineHeight: '22px', color: '#000', textAlign: 'center'}}>Preview area</Text>
-                        <div style={{ height: 50, border: '1px solid #ccc', marginBottom: 20 }} />
-                    </Stack.Item>
+                      {/* Preview area */}
+                      <Stack.Item>
+                          <Text style={{fontSize: '16px', fontWeight: '400', lineHeight: '22px', color: '#000', textAlign: 'center'}}>Preview area</Text>
+                          <div style={{ flexShrink: '0', width: '865', height: 575, border: '1px solid #D9D9D9', marginBottom: 20, backgroundImage: `url('Floorplan.png')`, backgroundSize: 'cover', }} />
+                      </Stack.Item>
 
-                    {/* Main content area */}
-                    <Stack horizontal tokens={stackTokens} wrap>
-                        {/* Sidebar */}
-                        <Stack.Item>
-                        <div style={{ width: 50, height: 200, border: '1px solid #ccc', transform: 'skew(-10deg)' }} />
-                        </Stack.Item>
+                      {/* Main content area */}
 
-                        {/* Content blocks */}
-                        <Stack.Item grow>
-                        <Stack horizontal wrap tokens={stackTokens}>
-                            {[...Array(8)].map((_, index) => (
-                            <div key={index} style={{ 
-                                width: index % 3 === 0 ? 200 : 100, 
-                                height: index % 2 === 0 ? 150 : 100, 
-                                border: '1px solid #ccc',
-                                margin: 5
-                            }} />
-                            ))}
-                        </Stack>
-                        </Stack.Item>
-                    </Stack>
-
-                    {/* Footer */}
-                    <Stack.Item>
-                        <div style={{ height: 50, border: '1px solid #ccc', marginTop: 20 }} />
-                    </Stack.Item>
-
-                    {/* Search and Add buttons */}
+                      {/* Footer */}
+                      {/* Search and Add buttons */}
                     </Stack>                        
                     </Stack.Item>
                 </Stack>
@@ -409,7 +387,7 @@ const CamerasZonesWizard = () => {
           <div className={styles.footer}>
             <Stack horizontal>
           <Button appearance="secondary" className={styles.footerpreviousbutton}>Previous</Button>
-          <Button appearance="primary" className={styles.footernextbutton}>Next</Button>
+          <Button appearance="primary" className={styles.footernextbutton} onClick={() => navigate("/camerazoneswizardfloor")}>Next</Button>
           </Stack>
           </div>
           </Stack.Item>

@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: genie-simulator
+  namespace: contoso-hypermarket
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: genie-simulator
+  template:
+    metadata:
+      labels:
+        app: genie-simulator
+    spec:
+      containers:
+      - name: genie-simulator
+        image: agacrd2f52.azurecr.io/genie-simulator:latest
+        env:
+        - name: INFLUXDB_URL
+          value: "http://influxdb.contoso-hypermarket.svc.cluster.local:8086"
+        - name: INFLUXDB_TOKEN
+          value: "secret-token"
+        - name: INFLUXDB_ORG
+          value: "InfluxData"
+        - name: INFLUXDB_BUCKET
+          value: "hypermarket"
+        - name: VERBOSE
+          value: "true"
+        - name: PORT
+          value: "8001"
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: genie-simulator-service
+  namespace: contoso-hypermarket
+spec:
+  type: LoadBalancer
+  selector:
+    app: genie-simulator
+  ports:
+    - protocol: TCP
+      port: 8001
+      targetPort: 8001

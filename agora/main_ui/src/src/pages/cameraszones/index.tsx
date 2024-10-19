@@ -194,7 +194,6 @@ const CamerasZones: React.FC<CameraPanelProps> = ({ isOpen, onDismiss, onSave })
             <PivotItem headerText="Cameras">
               <div>
                 {/* Content for Cameras tab */}
-
                 <Cameras callParentFunction={toggleDrawer}/>
               </div>
             </PivotItem>

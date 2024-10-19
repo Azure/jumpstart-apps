@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: intrusion-detection-api
+  namespace: contoso-hypermarket
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: intrusion-detection-api
+  template:
+    metadata:
+      labels:
+        app: intrusion-detection-api
+    spec:
+      initContainers:
+      - name: init-download-model
+        image: mcr.microsoft.com/onebranch/cbl-mariner/build:2.0
+        command: ['sh', '-c', 'wget -O /tmp/models/person-detection-retail-0013.xml https://raw.githubusercontent.com/vyzboy92/people_detection_tracking-CPU/refs/heads/master/utils/person-detection-retail-0013.xml']
+        volumeMounts:
+        - name: models-volume
+          mountPath: /tmp/models
+      containers:
+      - name: intrusion-detection-api
+        image: agacr6b99f.azurecr.io/intrusion-detection-api:latest
+        ports:
+        - containerPort: 5001
+        env:
+        - name: MODEL_PATH
+          value: "/tmp/models/"
+        - name: RTSP_URL
+          value: "rtsp://rtsp-stream:8554/stream"
+        - name: FLASK_PORT
+          value: "5001"
+        volumeMounts:
+        - mountPath: /tmp/models
+          name: models-volume
+      volumes:
+      - name: models-volume
+        persistentVolumeClaim:
+          claimName: model-pvc
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: intrusion-detection-api
+  namespace: contoso-hypermarket
+spec:
+  selector:
+    app: intrusion-detection-api
+  ports:
+    - protocol: TCP
+      port: 5001
+      targetPort: 5001
+  type: LoadBalancer
