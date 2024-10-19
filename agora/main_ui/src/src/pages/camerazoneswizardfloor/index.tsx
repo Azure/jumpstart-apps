@@ -1,4 +1,4 @@
-import React, { useState }  from 'react';
+import React, { useState, useEffect, useRef}  from 'react';
 import {
   FluentProvider,
   webLightTheme,
@@ -10,8 +10,25 @@ import {
   BreadcrumbItem,
   Button,
   Card,
-  tokens
+  tokens,
+  Toolbar,
+  ToolbarButton,
+  ToolbarDivider,
+  Popover,
+  PopoverSurface,
+  PopoverTrigger,
+
 } from "@fluentui/react-components";
+import {
+  MathFormatLinear24Regular,
+  CalligraphyPen24Regular,
+  ArrowUndo24Regular,
+  ArrowRedo24Regular,
+  DeleteRegular,
+  DrawerRegular,
+} from "@fluentui/react-icons";
+import type { ToolbarProps } from "@fluentui/react-components";
+import BBoxAnnotator, { EntryType } from 'react-bbox-annotator';
 import { useNavigate } from "react-router-dom";
 import Header from '../../components/SuiteHeader';
 import SideMenu from "../../components/MaintenanceMenu";
@@ -243,7 +260,7 @@ interface CameraPanelProps {
   onDismiss: () => void;
   onSave: () => void;
 }
-const CamerasZonesWizard = () => {
+const CamerasZonesWizardFloor: React.FC = () => {
     const styles = useStyles();
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [cameraNameInputValue, setCameraNameInputValue] = React.useState('');
@@ -303,10 +320,59 @@ const CamerasZonesWizard = () => {
       ];      
       const [activeStep, setActiveStep] = useState(0);      
       const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
-
-      const stackTokens: IStackTokens = { childrenGap: 10 };
       const navigate = useNavigate();
-    return (
+      const stackTokens: IStackTokens = { childrenGap: 10 };
+
+
+      ///TOP
+      class MousePosition {
+        public x: number = 0 ;
+        public y: number = 0 ;
+      }
+
+      const [isDrawing, setIsDrawing] = useState(false);
+      const canvasRef = useRef<HTMLCanvasElement>(null);
+      //const start: MousePosition;
+      let x = 0;
+      let y = 0;
+      let hasDrawn = false;
+      let [start, setStart] = useState({});      
+      const getMousePos = (e:React.MouseEvent<HTMLCanvasElement, MouseEvent>) => {
+        var rect = e.currentTarget.getBoundingClientRect(),
+        scaleX =  e.currentTarget.width / rect.width,
+        scaleY =  e.currentTarget.height / rect.height;
+    
+        return {
+        x: Math.floor((e.clientX - rect.left) * scaleX),
+        y: Math.floor((e.clientY - rect.top) * scaleY)
+        }
+    }               
+      useEffect(
+        () => {
+          // define the resize function, which uses the re
+          const resize = () => {
+            const canvas = canvasRef.current;
+            if (canvas) {
+              canvas.width = window.innerWidth;
+              canvas.height = window.innerHeight;
+            }
+          };
+    
+          // call resize() once.
+          resize();
+    
+          // attach event listeners.
+          window.addEventListener("resize", resize);
+    
+          // remove listeners on unmount.
+          return () => {
+            window.removeEventListener("resize", resize);
+          };
+        },
+        [] // no dependencies means that it will be called once on mount.
+      );
+
+      return (
         <FluentProvider theme={webLightTheme}>
         <CopilotProvider mode='sidecar'>
           <Header />
@@ -338,40 +404,89 @@ const CamerasZonesWizard = () => {
           </Stack.Item>
           <Stack.Item grow={3}>
             <Stack>
-                <Text className={styles.wizardheader}>Upload floor plan file</Text>
-                <Text className={styles.wizardtext}>Upload a high-quality floor plan to monitor your store and prevent losses. This allows precise placement of security cameras, ensuring coverage of all areas, including high-traffic zones, entry and exit points, and vulnerable spots.</Text>
+                <Text className={styles.wizardheader}>Draw floor zones</Text>
+                <Text className={styles.wizardtext}>Use the drawing tools provided to outline different areas on the floor plan. Simply click and drag to draw shapes that represent various zones within the store.</Text>
                 <Stack>
                     <Stack.Item>
                         <Stack tokens={{ childrenGap: 10 }}>
-                    <Label required>Upload file
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                            <path d="M8.49902 7.49998C8.49902 7.22384 8.27517 6.99998 7.99902 6.99998C7.72288 6.99998 7.49902 7.22384 7.49902 7.49998V10.5C7.49902 10.7761 7.72288 11 7.99902 11C8.27517 11 8.49902 10.7761 8.49902 10.5V7.49998ZM8.74807 5.50001C8.74807 5.91369 8.41271 6.24905 7.99903 6.24905C7.58535 6.24905 7.25 5.91369 7.25 5.50001C7.25 5.08633 7.58535 4.75098 7.99903 4.75098C8.41271 4.75098 8.74807 5.08633 8.74807 5.50001ZM8 1C4.13401 1 1 4.13401 1 8C1 11.866 4.13401 15 8 15C11.866 15 15 11.866 15 8C15 4.13401 11.866 1 8 1ZM2 8C2 4.68629 4.68629 2 8 2C11.3137 2 14 4.68629 14 8C14 11.3137 11.3137 14 8 14C4.68629 14 2 11.3137 2 8Z" fill="#424242"/>
-                        </svg>
-                        </Label>
-                    <div {...getRootProps({ className: styles.dropzone })}>
-                        <input {...getInputProps()} />
-                    <Stack horizontalAlign="center" tokens={{ childrenGap: 10 }}>
-                        <Text className={styles.icon}>📄+</Text>
-                        <Text>
-                        {isDragActive
-                        ? 'Drop the files here'
-                        : 'Drag and drop files here or'}
-                        </Text>
-                        <PrimaryButton text="Browse files" onClick={() => {}} />
-                    </Stack>
-                    </div>
+                          <Toolbar size="large">
+                            <ToolbarButton aria-label="Insert image" icon={<CalligraphyPen24Regular />}>Draw</ToolbarButton>
+                            <ToolbarButton
+                              appearance="primary"
+                              icon={<ArrowUndo24Regular />}
+                              aria-label="Insert Table"
+                            >
+                              Undo
+                            </ToolbarButton>
+                            <ToolbarButton
+                              aria-label="Insert Formula"
+                              icon={<ArrowRedo24Regular />}
+                            >Redo</ToolbarButton>
+                            <ToolbarDivider />
+                            <ToolbarButton
+                             icon={<DeleteRegular />}
+                            >
+                              Delete
+                            </ToolbarButton>
+                          </Toolbar>
                         </Stack>                        
                     </Stack.Item>
                     <Stack.Item>
                     <Stack style={{border: '1px solid #ccc'}} tokens={stackTokens}>
                       {/* Preview area */}
                       <Stack.Item>
-                          <Text style={{fontSize: '16px', fontWeight: '400', lineHeight: '22px', color: '#000', textAlign: 'center'}}>Preview area</Text>
-                          <div style={{ flexShrink: '0', width: '865', height: 575, border: '1px solid #D9D9D9', marginBottom: 20, backgroundImage: `url('Floorplan.png')`, backgroundSize: 'cover', }} />
+                          <Text style={{fontSize: '16px',  width: "865px", display: 'block',  fontWeight: '400', lineHeight: '22px', color: '#000', textAlign: 'center', backgroundColor: '#D9D9D9'}}>Preview area</Text>
+                          <canvas id="videoCanvas"
+                              ref={canvasRef}
+                              style={{
+                              width: "865px",
+                              height: "575px",
+                              background: "url('Floorplan.png')",
+                              backgroundSize: 'cover'
+                            }}
+                            onMouseDown={(e) => {
+                              // know that we are drawing, for future mouse movements.
+                              setIsDrawing(true);
+                              const context = e.currentTarget.getContext("2d");
+                              if(context) {
+                                const mouseValue = getMousePos(e);
+                                setStart(mouseValue);
+                                let {x, y} = getMousePos( e);
+                                // begin path.
+                                if (context) {
+                                  context.beginPath();
+                                  context.lineWidth = 6;
+                                  context.lineCap = "round";
+                                  context.strokeStyle = "#9747FF69";
+                                  context.fillStyle = "#9747FF14"
+                                  context.moveTo(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
+                                }
+                              }}
+                            }
+                            onMouseMove={(e) => {
+                            }}
+                            onMouseUp={(e) => {
+                              // end drawing.
+                              // only handle mouse moves when the mouse is already down.
+                              if (isDrawing) {
+                                const context = e.currentTarget.getContext("2d");
+                                if (context) {
+                                  let end: MousePosition = getMousePos(e);  
+                                  const values = Object.values(start);
+                                  const startX = values[0];
+                                  const startY = values[1];
+                                  context.rect(Number(startX),Number(startY), end.x - Number(startX), end.y - Number(startY));
+                                  context.fillRect(Number(startX),Number(startY), end.x - Number(startX), end.y - Number(startY));
+                                  context.stroke();
+                                }
+                              }                              
+                              setIsDrawing(false);
+                            }}
+                            ></canvas>
+
                       </Stack.Item>
 
                       {/* Main content area */}
-
                       {/* Footer */}
                       {/* Search and Add buttons */}
                     </Stack>                        
@@ -386,8 +501,8 @@ const CamerasZonesWizard = () => {
           </Stack>
           <div className={styles.footer}>
             <Stack horizontal>
-          <Button appearance="secondary" className={styles.footerpreviousbutton}>Previous</Button>
-          <Button appearance="primary" className={styles.footernextbutton} onClick={() => navigate("/camerazoneswizardfloor")}>Next</Button>
+          <Button appearance="secondary" className={styles.footerpreviousbutton} onClick={() => navigate("/camerazoneswizard")}>Previous</Button>
+          <Button appearance="primary" className={styles.footernextbutton} onClick={() => navigate("/camerazoneswizardassigncameras")}>Next</Button>
           </Stack>
           </div>
           </Stack.Item>
@@ -397,4 +512,4 @@ const CamerasZonesWizard = () => {
     );
   };
   
-  export default CamerasZonesWizard;
+  export default CamerasZonesWizardFloor;

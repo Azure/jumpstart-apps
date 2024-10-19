@@ -10,6 +10,10 @@ import Shopper from "./shopper";
 import Footfall from "./footfall"; 
 import Intrusion from "./intrusion"; 
 import CamerasZonesWizard from "./camerazoneswizard";
+import CamerasZonesWizardAssignCameras from "./camerazoneswizardassigncameras";
+import CamerasZonesWizardSetupCamera from "./cameraszoneswizardsetupcamera";
+import CamerasZonesWizardFloor from "./camerazoneswizardfloor";
+import CamerasZonesWizardReview from "./camerazoneswizardreview";
 import Genie from "./genie";
 import ShopperProducts from "./shopperproducts";
 import ShopperProductDetail from "./shopperproductdetail";
@@ -56,23 +60,43 @@ const pagesData: routerType[] = [
     title: "Cameras and Zones Wizard"
   },
   {
+    path: "camerazoneswizardassigncameras",
+    element: <CamerasZonesWizardAssignCameras />,
+    title: "Cameras and Zones Wizard | Assign Cameras"
+  },
+  {
+    path: "camerazoneswizardfloor",
+    element: <CamerasZonesWizardFloor />,
+    title: "Cameras and Zones Wizard | Floor"
+  },
+  {
+    path: "camerazoneswizardreview",
+    element: <CamerasZonesWizardReview />,
+    title: "Cameras and Zones Wizard | Review"
+  },
+  {
+    path: "camerazoneswizardsetupcamera",
+    element: <CamerasZonesWizardSetupCamera />,
+    title: "Cameras and Zones Wizard | Setup Camera"
+  },
+  {
     path: "shopper",
-    element: <Shopper />,
+    element: <Shopper isOpen={false} onDismiss={() => {}} onSave={() => {}}/>,
     title: "Shopper"
   },
   {
     path: "shopperproducts",
-    element: <ShopperProducts />,
+    element: <ShopperProducts isOpen={false} onDismiss={() => {}} onSave={() => {}}/>,
     title: "Shopper Products Search"
   },
   {
     path: "shopperproductdetail",
-    element: <ShopperProductDetail />,
+    element: <ShopperProductDetail isOpen={false} onDismiss={() => {}} onSave={() => {}} />,
     title: "Shopper Products Detail"
   },
   {
     path: "shopperreviewcart",
-    element: <ShopperReviewCart />,
+    element: <ShopperReviewCart isOpen={false} onDismiss={() => {}} onSave={() => {}}/>,
     title: "Shopper Review Cart"
   },
   {
