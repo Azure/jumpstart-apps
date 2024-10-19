@@ -85,6 +85,7 @@ class VideoProcessor:
         last_time = time.time()
         while self.running:
             frame, success = self.vs.read()
+            original_frame = frame.copy()
             if not success:
                 continue
 
@@ -96,7 +97,7 @@ class VideoProcessor:
                 last_time = current_time
 
             if self.debug:
-                cv2.putText(frame, f"FPS: {self.fps:.2f}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 0), 2, cv2.LINE_AA)
+                cv2.putText(frame, f"FPS: {self.fps:.2f}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 0), 1, cv2.LINE_AA)
 
             if all(point == (0, 0) for point in self.line_points):
                 processed_frame = frame
@@ -112,19 +113,13 @@ class VideoProcessor:
 
                 if self.debug:
                     cv2.putText(processed_frame, f"Inference time: {avg_processing_time:.1f}ms ({inference_fps:.1f} FPS)", 
-                                (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 0), 2, cv2.LINE_AA)
-
-                counts = self.counter.out_counts
-                text = f"Current count: {counts}"
-                text_size, _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_COMPLEX, 0.75, 2)
-                top_right_corner = (processed_frame.shape[1] - text_size[0] - 20, 40)
-
-                if self.debug:
-                    cv2.putText(processed_frame, text, top_right_corner, cv2.FONT_HERSHEY_COMPLEX, 
-                                0.75, (0, 0, 255), 2, cv2.LINE_AA)
+                                (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 0), 1, cv2.LINE_AA)
 
             if not self.processed_frame_queue.full():
-                self.processed_frame_queue.put(processed_frame)
+                if self.debug:
+                    self.processed_frame_queue.put(frame)
+                else:
+                    self.processed_frame_queue.put(original_frame)
 
             # Check for inactivity
             if time.time() - self.last_activity > self.inactivity_threshold:
