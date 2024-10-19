@@ -1,26 +1,26 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: rag-on-edge-simulator
-  namespace: cerebral
+  name: genie-simulator
+  namespace: contoso-hypermarket
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: rag-on-edge-simulator
+      app: genie-simulator
   template:
     metadata:
       labels:
-        app: rag-on-edge-simulator
+        app: genie-simulator
     spec:
       containers:
-      - name: rag-on-edge-simulator
-        image: agoraarmbladev.azurecr.io/rag-on-edge-simulator:1.2
+      - name: genie-simulator
+        image: agacrd2f52.azurecr.io/genie-simulator:latest
         ports:
         - containerPort: 5000
         env:
         - name: INFLUXDB_URL
-          value: "http://influxdb.cerebral.svc.cluster.local:8086"
+          value: "http://influxdb.contoso-hypermarket.svc.cluster.local:8086"
         - name: INFLUXDB_TOKEN
           value: "secret-token"
         - name: INFLUXDB_ORG

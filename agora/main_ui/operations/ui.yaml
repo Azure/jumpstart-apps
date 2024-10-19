@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: main-ui
+  namespace: contoso-hypermarket
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: main-ui
+  template:
+    metadata:
+      labels:
+        app: main-ui
+    spec:
+      containers:
+      - name: main-ui
+        image: agacrd2f52.azurecr.io/main-ui:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: REACT_APP_FOOTFALL_VIDEO_URL
+          value: "http://footfall-ai-api:5000/video_feed?x=50&y=20&w=540&h=320&source=rtsp://rtsp-stream:8554/stream"
+        - name: REACT_APP_INTRUSION_VIDEO_URL
+          value: "http://intrusion-detection-api:5001/video_feed?x=50&y=20&w=540&h=320&source=rtsp://rtsp-stream:8554/stream"
+        - name: REACT_APP_GENIE_API_URL
+          value: "http://genie-api-service.contoso-hypermarket.svc.cluster.local:5003/Genie/api/process_question"
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: main-ui
+  namespace: contoso-hypermarket
+spec:
+  selector:
+    app: main-ui
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+  type: LoadBalancer

@@ -4,7 +4,7 @@ import random
 import time
 from datetime import datetime
 import os
-from dotenv import load_dotenv
+#from dotenv import load_dotenv
 
 import psutil
 #from prometheus_client import start_http_server, Gauge, Counter

@@ -16,14 +16,14 @@ sql_handler = SqlDBHandler()
 
 logger = logging.getLogger(__name__)
 
-api = Api(app, version='1.0', title='Cerebral API',
-          description='Manage industries and roles in the Cerebral application.')
+api = Api(app, version='1.0', title='Genie API',
+          description='Manage industries and roles in the Genie application.')
 
-ns = api.namespace('Cerebral', description='Cerebral Operations')
+ns = api.namespace('Genie', description='Genie Operations')
 
 CORS(app, resources={r"/*": {"origins": "*", "methods": ["GET", "POST", "PUT"]}})
 
-# Dummy data for demonstration purposes
+# Sample data for demonstration purposes
 industries = [
         {
             "manufacturing": ["maintenance engineer", "shift supervisor"],
