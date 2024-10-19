@@ -10,13 +10,14 @@ from ultralytics.solutions import ObjectCounter
 from video_capture import VideoCapture
 
 class VideoProcessor:
-    def __init__(self, url, index, model, debug=False, x1=0, y1=0, w=0, h=0):
+    def __init__(self, url, index, model, name, debug=False, x1=0, y1=0, w=0, h=0):
         self.url = url
         self.index = index
         self.processed_frame_queue = Queue(maxsize=10)
         self.vs = None
         self.fps = 0
         self.counter = None
+        self.name = name
         self.line_points = [
             (int(x1), int(y1)), 
             (int(x1) + int(w), int(y1)), 
@@ -62,6 +63,9 @@ class VideoProcessor:
     
     def get_debug(self):
         return self.debug
+    
+    def get_name(self):
+        return self.name
 
     def start(self):
         if not self.running:

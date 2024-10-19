@@ -46,6 +46,7 @@
     <table id="statusTable">
         <thead>
             <tr>
+                <th>Name</th>
                 <th>Video URL</th>
                 <th>Current Count</th>
                 <th>FPS</th>
@@ -57,6 +58,7 @@
     </table>
 
     <script>
+        let cameraCount = 0;
         function addStream() {
             const rtspUrl = document.getElementById('rtspUrl').value;
             const x = document.getElementById('x').value || 0;
@@ -64,42 +66,17 @@
             const w = document.getElementById('w').value || 0;
             const h = document.getElementById('h').value || 0;
             const debug = document.getElementById('debug').checked;
-
+            const cameraName = `camera_${++cameraCount}`;
             if (rtspUrl) {
                 const container = document.getElementById('videoContainer');
                 const streamDiv = document.createElement('div');
                 streamDiv.className = 'video-stream';
                 streamDiv.innerHTML = `
-                    <h2>Video Stream</h2>
-                    <img src="/video_feed/${encodeURIComponent(rtspUrl)}?data=${encodeURIComponent(JSON.stringify({ x, y, w, h, debug }))}" width="640" height="360">
-                    <div>
-                        <input type="number" class="x" placeholder="X">
-                        <input type="number" class="y" placeholder="Y">
-                        <input type="number" class="w" placeholder="Width">
-                        <input type="number" class="h" placeholder="Height">
-                        <button onclick="updateLine('${rtspUrl}', this.parentNode)">Update Line</button>
-                    </div>
+                    <h2>Video Stream - ${cameraName}</h2>
+                    <img src="/video_feed/${encodeURIComponent(rtspUrl)}?data=${encodeURIComponent(JSON.stringify({ x, y, w, h, debug, cameraName}))}" width="640" height="360">
                 `;
                 container.appendChild(streamDiv);
             }
-        }
-
-        function updateLine(rtspUrl, inputContainer) {
-            const x = inputContainer.querySelector('.x').value;
-            const y = inputContainer.querySelector('.y').value;
-            const w = inputContainer.querySelector('.w').value;
-            const h = inputContainer.querySelector('.h').value;
-            
-            fetch(`/update_line/${encodeURIComponent(rtspUrl)}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ x, y, w, h }),
-            })
-            .then(response => response.text())
-            .then(data => console.log(data))
-            .catch((error) => console.error('Error:', error));
         }
 
         function fetchStatus() {
@@ -115,6 +92,7 @@
             statuses.forEach(status => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
+                    <td>${status.name}</td>
                     <td>${status.video_url}</td>
                     <td>${status.current_count}</td>
                     <td>${status.fps}</td>

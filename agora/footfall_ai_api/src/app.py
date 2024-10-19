@@ -29,7 +29,9 @@ def get_or_create_processor(video_url, data):
         index = len(video_processors)
         x1, y1, w, h = data['x'], data['y'], data['w'], data['h']
         debug = bool(data['debug'])
-        video_processors[video_url] = VideoProcessor(video_url, index, det_model, debug, x1, y1, w, h)
+        name = data['cameraName']
+        print(f"Name: {name}")
+        video_processors[video_url] = VideoProcessor(video_url, index, det_model, name, debug, x1, y1, w, h)
     return video_processors[video_url]
 
 def generate(data, video_url):
@@ -75,6 +77,7 @@ def status():
     all_status = []
     for video_url, processor in video_processors.items():
         status_info = {
+            "name" : processor.get_name(),
             "video_url": video_url,
             "current_count": processor.get_current_count(),
             "line_points": processor.get_line_points(),
