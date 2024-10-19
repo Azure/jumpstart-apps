@@ -43,9 +43,7 @@ CREATE TABLE Sales (
   CustomerID INT,
   RegisterID INT,
   FOREIGN KEY (ProductID) REFERENCES Products(ProductID)
-);
-CREATE TABLE Suppliers (
-  SupplierID INT PRIMARY KEY,
+);CREATE TABLE Suppliers (SupplierID INT PRIMARY KEY,
   SupplierName VARCHAR(100),
   ContactName VARCHAR(100),
   PhoneNumber VARCHAR(15),

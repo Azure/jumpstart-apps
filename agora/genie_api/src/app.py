@@ -23,7 +23,7 @@ ns = api.namespace('Genie', description='Genie Operations')
 
 CORS(app, resources={r"/*": {"origins": "*", "methods": ["GET", "POST", "PUT"]}})
 
-# Dummy data for demonstration purposes
+# Sample data for demonstration purposes
 industries = [
         {
             "manufacturing": ["maintenance engineer", "shift supervisor"],

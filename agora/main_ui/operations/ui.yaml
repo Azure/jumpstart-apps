@@ -24,7 +24,7 @@ spec:
         - name: REACT_APP_INTRUSION_VIDEO_URL
           value: "http://intrusion-detection-api:5001/video_feed?x=50&y=20&w=540&h=320&source=rtsp://rtsp-stream:8554/stream"
         - name: REACT_APP_GENIE_API_URL
-          value: "http://genie-api:5002"
+          value: "http://genie-api-service:5003"
 
 ---
 

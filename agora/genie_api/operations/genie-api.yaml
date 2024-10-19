@@ -15,20 +15,20 @@ spec:
     spec:
       containers:
       - name: genie-api
-        image: agoraarmbladev.azurecr.io/genie-api:0.1
+        image: agacrd2f52.azurecr.io/genie-api:latest
         ports:
         - containerPort: 5003
         env:
         - name: AZURE_OPENAI_API_KEY
-          value: "your_azure_openai_api_key"
+          value: "replaceme"
         - name: CHATGPT_MODEL
           value: "gpt-35-turbo"
         - name: AZURE_OPENAI_ENDPOINT
-          value: "your_azure_openai_endpoint"
+          value: "https://jsextoai.openai.azure.com/t"
         - name: OPENAI_API_VERSION
           value: "2024-03-01-preview"
         - name: INFLUXDB_URL
-          value: "http://influxdb.genie.svc.cluster.local:8086"
+          value: "http://influxdb.contoso-hypermarket.svc.cluster.local:8086"
         - name: INFLUXDB_BUCKET
           value: "genie"
         - name: INFLUXDB_TOKEN
@@ -36,11 +36,11 @@ spec:
         - name: INFLUXDB_ORG
           value: "InfluxData"
         - name: REDIS_URL
-          value: "redis://redis-service.genie.svc.cluster.local:6379"
+          value: "redis://redis-service.contoso-hypermarket.svc.cluster.local:6379"
         - name: SQL_DATABASENAME
-          value: "ReatilDB"
+          value: "RetailDB"
         - name: SQL_SERVER
-          value: "10.0.0.4"
+          value: "mssql-service"
         - name: SQL_USERNAME
           value: "SA"
         - name: SQL_PASSWORD
