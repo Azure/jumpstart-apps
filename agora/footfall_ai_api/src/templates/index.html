@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Streams</title>
+    <style>
+        .video-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .video-stream {
+            margin: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>Video Streams</h1>
+    <div>
+        <input type="text" id="rtspUrl" placeholder="Enter RTSP URL">
+        <button onclick="addStream()">Add Stream</button>
+    </div>
+    <div id="videoContainer" class="video-container">
+    </div>
+    <table id="statusTable">
+        <thead>
+            <tr>
+                <th>Video URL</th>
+                <th>Current Count</th>
+                <th>Line Points</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+    <script>
+        function addStream() {
+            const rtspUrl = document.getElementById('rtspUrl').value;
+            if (rtspUrl) {
+                const container = document.getElementById('videoContainer');
+                const streamDiv = document.createElement('div');
+                streamDiv.className = 'video-stream';
+                streamDiv.innerHTML = `
+                    <h2>Video Stream</h2>
+                    <img src="/video_feed/${encodeURIComponent(rtspUrl)}" width="640" height="360">
+                    <div>
+                        <input type="number" class="x" placeholder="X">
+                        <input type="number" class="y" placeholder="Y">
+                        <input type="number" class="w" placeholder="Width">
+                        <input type="number" class="h" placeholder="Height">
+                        <button onclick="updateLine('${rtspUrl}', this.parentNode)">Update Line</button>
+                    </div>
+                `;
+                container.appendChild(streamDiv);
+            }
+        }
+
+        function updateLine(rtspUrl, inputContainer) {
+            const x = inputContainer.querySelector('.x').value;
+            const y = inputContainer.querySelector('.y').value;
+            const w = inputContainer.querySelector('.w').value;
+            const h = inputContainer.querySelector('.h').value;
+            
+            fetch(`/update_line/${encodeURIComponent(rtspUrl)}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ x, y, w, h }),
+            })
+            .then(response => response.text())
+            .then(data => console.log(data))
+            .catch((error) => console.error('Error:', error));
+        }
+
+        function fetchStatus() {
+            fetch('/status')
+                .then(response => response.json())
+                .then(data => updateStatusTable(data.statuses))
+                .catch((error) => console.error('Error:', error));
+        }
+
+        function updateStatusTable(statuses) {
+            const tbody = document.getElementById('statusTable').querySelector('tbody');
+            tbody.innerHTML = ''; // Clear existing rows
+            statuses.forEach(status => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${status.video_url}</td>
+                    <td>${status.current_count}</td>
+                    <td>${JSON.stringify(status.line_points)}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        setInterval(fetchStatus, 1000); // Call fetchStatus every 1 second
+    </script>
+</body>
+</html>
