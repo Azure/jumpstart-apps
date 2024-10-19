@@ -9,11 +9,10 @@ import queue
 from scipy.spatial.distance import cosine
 import time
 from collections import defaultdict
-# from video_capture import VideoCapture
+from video_capture import VideoCapture
 
 # Constants
-#MODEL_PATH = os.getenv("MODEL_PATH", "./models/")
-MODEL_PATH = os.getenv("MODEL_PATH", "C:\\Users\\fcabrera\\Downloads\\models\\")
+MODEL_PATH = os.getenv("MODEL_PATH", "./models/")
 RTSP_URL = os.getenv("RTSP_URL", "rtsp://rtsp_stream_container:554/stream")
 FRAME_RATE = 25
 CLASSES_TO_COUNT = [0]  # person is class 0 in the COCO dataset
@@ -197,9 +196,9 @@ def index():
 @app.route('/video_feed')
 def video_feed():
     global vs, line_points
-#    video_source = request.args.get('source', default="")
-#    if not video_source:
-#        video_source = RTSP_URL
+    video_source = request.args.get('source', default="")
+    if not video_source:
+       video_source = RTSP_URL
     
     print(f"Starting feed with video_source: {video_source}")
 
@@ -210,25 +209,24 @@ def video_feed():
 
     print(f"Bounding Box coordinates: x1={x1}, y1={y1}, w={w}, h={h}")
 
-  #  vs = cv2.VideoCapture(video_source)
-  #  frame = vs.read()[0]
-  #  if frame is not None:
-  #      height, width = frame.shape[:2]
-  #      scaling_factor_x = width / 640
-  #      scaling_factor_y = height / 360
+    vs = cv2.VideoCapture(video_source)
+    frame = vs.read()[0]
+    if frame is not None:
+       height, width = frame.shape[:2]
+       scaling_factor_x = width / 640
+       scaling_factor_y = height / 360
 
-  #      x1 = int(x1 * scaling_factor_x)
-  #      y1 = int(y1 * scaling_factor_y)
-  #      w = int(w * scaling_factor_x)
-  #      h = int(h * scaling_factor_y)
+       x1 = int(x1 * scaling_factor_x)
+       y1 = int(y1 * scaling_factor_y)
+       w = int(w * scaling_factor_x)
+       h = int(h * scaling_factor_y)
 
-  #      line_points = [
-  #          (x1, y1), (x1 + w, y1), (x1 + w, y1 + h), (x1, y1 + h), (x1, y1)
-  #      ]
+       line_points = [
+           (x1, y1), (x1 + w, y1), (x1 + w, y1 + h), (x1, y1 + h), (x1, y1)
+       ]
 
     return Response(generate_frames(),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
-
 
 
 @app.route('/set_restricted_areas', methods=['POST'])

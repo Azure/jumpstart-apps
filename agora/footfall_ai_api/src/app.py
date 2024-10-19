@@ -4,6 +4,7 @@ import cv2
 from flask import Flask, render_template, Response, request
 from ultralytics import YOLO
 import torch
+import json
 from video_processor import VideoProcessor
 
 # Constants
@@ -23,27 +24,38 @@ print(f"Model loaded on: {next(det_model.model.parameters()).device}")
 
 video_processors = {}
 
-def get_or_create_processor(video_url):
+def get_or_create_processor(video_url, data):
     if video_url not in video_processors:
         index = len(video_processors)
-        video_processors[video_url] = VideoProcessor(video_url, index, det_model)
+        x1, y1, w, h = data['x'], data['y'], data['w'], data['h']
+        debug = bool(data['debug'])
+        video_processors[video_url] = VideoProcessor(video_url, index, det_model, debug, x1, y1, w, h)
     return video_processors[video_url]
+
+def generate(data, video_url):
+    processor = get_or_create_processor(video_url, data)
+    print(f"Starting video feed for {video_url}")
+    while True:
+        frame = processor.get_frame()
+        if frame is not None:
+            ret, buffer = cv2.imencode('.jpg', frame)
+            frame = buffer.tobytes()
+            yield (b'--frame\r\n'
+                    b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+        else:
+            time.sleep(0.01)
 
 @app.route('/video_feed/<path:video_url>')
 def video_feed(video_url):
-    def generate():
-        processor = get_or_create_processor(video_url)
-        while True:
-            frame = processor.get_frame()
-            if frame is not None:
-                ret, buffer = cv2.imencode('.jpg', frame)
-                frame = buffer.tobytes()
-                yield (b'--frame\r\n'
-                       b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-            else:
-                time.sleep(0.01)
-
-    return Response(generate(),
+    json_str = request.args.get('data')
+    print(f"Received data: {json_str}")
+    if json_str is None:
+        return "Missing 'data' parameter in URL", 400
+    try:
+        data = json.loads(json_str)
+    except ValueError:
+        return "Invalid JSON format", 400
+    return Response(generate(data, video_url),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route('/')
@@ -52,10 +64,9 @@ def index():
 
 @app.route('/update_line/<path:video_url>', methods=['POST'])
 def update_line(video_url):
-    processor = get_or_create_processor(video_url)
+    processor = get_or_create_processor(video_url, None)
     data = request.json
-    x1, y1, w, h = data['x'], data['y'], data['w'], data['h']
-    
+    x1, y1, w, h = data['x'], data['y'], data['w'], data['h']   
     result = processor.update_line(x1, y1, w, h)
     return result, 200
 
@@ -66,7 +77,9 @@ def status():
         status_info = {
             "video_url": video_url,
             "current_count": processor.get_current_count(),
-            "line_points": processor.get_line_points()
+            "line_points": processor.get_line_points(),
+            "fps" : processor.get_fps(),
+            "debug": processor.get_debug()
         }
         all_status.append(status_info)
     return {"statuses": all_status}, 200

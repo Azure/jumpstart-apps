@@ -10,31 +10,44 @@ from ultralytics.solutions import ObjectCounter
 from video_capture import VideoCapture
 
 class VideoProcessor:
-    def __init__(self, url, index, model):
+    def __init__(self, url, index, model, debug=False, x1=0, y1=0, w=0, h=0):
         self.url = url
         self.index = index
         self.processed_frame_queue = Queue(maxsize=10)
         self.vs = None
         self.fps = 0
         self.counter = None
-        self.line_points = [(0, 0), (0, 0), (0, 0), (0, 0), (0, 0)]
+        self.line_points = [
+            (int(x1), int(y1)), 
+            (int(x1) + int(w), int(y1)), 
+            (int(x1) + int(w), int(y1) + int(h)), 
+            (int(x1), int(y1) + int(h)), 
+            (int(x1), int(y1))
+        ]
         self.process_thread = None
         self.running = False
         self.model = model
         self.classes_to_count = [0]  # person is class 0 in the COCO dataset
         self.last_activity = time.time()
         self.inactivity_threshold = 30  # 30 seconds
+        self.debug = debug
+
+        if any(point != (0, 0) for point in self.line_points):
+            self.initialize_counter()
 
     def initialize_counter(self):
         self.counter = ObjectCounter(
             view_img=False,
             reg_pts=self.line_points,
             names=self.model.names,
-            draw_tracks=True,
-            line_thickness=2,
-            view_in_counts=False,
-            view_out_counts=False
+            draw_tracks=self.debug,
+            line_thickness=1 if self.debug else 0,
+            view_in_counts=self.debug,
+            view_out_counts=self.debug
         )
+
+    def update_debug(self, debug):
+        self.debug = debug 
 
     def get_current_count(self):
         if self.counter is None:
@@ -43,6 +56,12 @@ class VideoProcessor:
     
     def get_line_points(self):
         return self.line_points
+    
+    def get_fps(self):
+        return int(self.fps)
+    
+    def get_debug(self):
+        return self.debug
 
     def start(self):
         if not self.running:
@@ -76,7 +95,8 @@ class VideoProcessor:
                 frame_count = 0
                 last_time = current_time
 
-            cv2.putText(frame, f"FPS: {self.fps:.2f}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 0), 2, cv2.LINE_AA)
+            if self.debug:
+                cv2.putText(frame, f"FPS: {self.fps:.2f}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 0), 2, cv2.LINE_AA)
 
             if all(point == (0, 0) for point in self.line_points):
                 processed_frame = frame
@@ -90,23 +110,26 @@ class VideoProcessor:
                 avg_processing_time = np.mean(processing_times)
                 inference_fps = 1000 / avg_processing_time
 
-                cv2.putText(processed_frame, f"Inference time: {avg_processing_time:.1f}ms ({inference_fps:.1f} FPS)", 
-                            (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 0), 2, cv2.LINE_AA)
+                if self.debug:
+                    cv2.putText(processed_frame, f"Inference time: {avg_processing_time:.1f}ms ({inference_fps:.1f} FPS)", 
+                                (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 0), 2, cv2.LINE_AA)
 
                 counts = self.counter.out_counts
                 text = f"Current count: {counts}"
                 text_size, _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_COMPLEX, 0.75, 2)
                 top_right_corner = (processed_frame.shape[1] - text_size[0] - 20, 40)
 
-                cv2.putText(processed_frame, text, top_right_corner, cv2.FONT_HERSHEY_COMPLEX, 
-                            0.75, (0, 0, 255), 2, cv2.LINE_AA)
+                if self.debug:
+                    cv2.putText(processed_frame, text, top_right_corner, cv2.FONT_HERSHEY_COMPLEX, 
+                                0.75, (0, 0, 255), 2, cv2.LINE_AA)
 
             if not self.processed_frame_queue.full():
                 self.processed_frame_queue.put(processed_frame)
 
             # Check for inactivity
             if time.time() - self.last_activity > self.inactivity_threshold:
-                print(f"Video {self.index} inactive for {self.inactivity_threshold} seconds. Stopping thread.")
+                if self.debug:
+                    print(f"Video {self.index} inactive for {self.inactivity_threshold} seconds. Stopping thread.")
                 self.stop()
                 break
 

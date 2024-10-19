@@ -31,31 +31,47 @@
     <h1>Video Streams</h1>
     <div>
         <input type="text" id="rtspUrl" placeholder="Enter RTSP URL">
+        <div>
+            <input type="number" id="x" placeholder="X">
+            <input type="number" id="y" placeholder="Y">
+            <input type="number" id="w" placeholder="Width">
+            <input type="number" id="h" placeholder="Height">
+            <label>Debug:</label>
+            <input type="checkbox" id="debug">
+        </div>
         <button onclick="addStream()">Add Stream</button>
     </div>
-    <div id="videoContainer" class="video-container">
-    </div>
+    <div id="videoContainer" class="video-container"></div>
+
     <table id="statusTable">
         <thead>
             <tr>
                 <th>Video URL</th>
                 <th>Current Count</th>
+                <th>FPS</th>
+                <th>Debug</th>
                 <th>Line Points</th>
             </tr>
         </thead>
-        <tbody>
-        </tbody>
+        <tbody></tbody>
     </table>
+
     <script>
         function addStream() {
             const rtspUrl = document.getElementById('rtspUrl').value;
+            const x = document.getElementById('x').value || 0;
+            const y = document.getElementById('y').value || 0;
+            const w = document.getElementById('w').value || 0;
+            const h = document.getElementById('h').value || 0;
+            const debug = document.getElementById('debug').checked;
+
             if (rtspUrl) {
                 const container = document.getElementById('videoContainer');
                 const streamDiv = document.createElement('div');
                 streamDiv.className = 'video-stream';
                 streamDiv.innerHTML = `
                     <h2>Video Stream</h2>
-                    <img src="/video_feed/${encodeURIComponent(rtspUrl)}" width="640" height="360">
+                    <img src="/video_feed/${encodeURIComponent(rtspUrl)}?data=${encodeURIComponent(JSON.stringify({ x, y, w, h, debug }))}" width="640" height="360">
                     <div>
                         <input type="number" class="x" placeholder="X">
                         <input type="number" class="y" placeholder="Y">
@@ -101,6 +117,8 @@
                 row.innerHTML = `
                     <td>${status.video_url}</td>
                     <td>${status.current_count}</td>
+                    <td>${status.fps}</td>
+                    <td>${status.debug}</td>
                     <td>${JSON.stringify(status.line_points)}</td>
                 `;
                 tbody.appendChild(row);
