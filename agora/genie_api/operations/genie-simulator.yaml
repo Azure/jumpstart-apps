@@ -26,6 +26,6 @@ spec:
         - name: INFLUXDB_ORG
           value: "InfluxData"
         - name: INFLUXDB_BUCKET
-          value: "manufacturing"
+          value: "hypermarket"
         - name: VERBOSE
           value: "true"
