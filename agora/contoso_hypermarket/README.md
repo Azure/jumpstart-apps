@@ -18,12 +18,11 @@ kubectl apply -f ../main_ui_backend_api/operations/backend_api.yaml
 
 kubectl apply -f ../footfall_ai_api/operations/footfall.yaml
 
-kubectl apply -f ../genie_api/operations/influxdb-setup.yaml
 kubectl apply -f ../genie_api/operations/influxdb.yaml
+kubectl apply -f ../genie_api/operations/influxdb-setup.yaml
 
 kubectl apply -f ../genie_api/operations/mssql.yaml
 kubectl apply -f ../genie_api/operations/mssql-setup.yaml
-
 
 kubectl apply -f ../genie_api/operations/genie-api.yaml
 kubectl apply -f ../genie_api/operations/genie-simulator.yaml
