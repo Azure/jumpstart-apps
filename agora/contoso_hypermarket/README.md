@@ -12,6 +12,19 @@ docker compose -f docker-compose-vision-ai.yml -f docker-compose-main-ui.yml -f 
 
 kubectl create ns contoso-hypermarket
 kubectl apply -f ../main_ui/operations/rtsp.yaml
+
 kubectl apply -f ../main_ui_backend_api/operations/backend_db.yaml
 kubectl apply -f ../main_ui_backend_api/operations/backend_api.yaml
+
 kubectl apply -f ../footfall_ai_api/operations/footfall.yaml
+
+kubectl apply -f ../genie_api/operations/influxdb-setup.yaml
+kubectl apply -f ../genie_api/operations/influxdb.yaml
+
+kubectl apply -f ../genie_api/operations/mssql-setup.yaml
+kubectl apply -f ../genie_api/operations/mssql.yaml
+
+kubectl apply -f ../genie_api/operations/genie-api.yaml
+kubectl apply -f ../genie_api/operations/genie-simulator.yaml
+
+kubectl apply -f ../main_ui/operations/ui.yaml

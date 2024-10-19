@@ -6,6 +6,7 @@ from openai import AzureOpenAI
 class LLM:
     def __init__(self):
         # Load environment variables from .env file
+        #development
         #load_dotenv()
         self.api_key = os.getenv('OPENAI_API_KEY')
         self.AZURE_OPENAI_API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
@@ -54,7 +55,7 @@ class LLM:
                 model="gpt-35-turbo",
                 prompt=prompt_text,
                 temperature=0,
-                max_tokens=1,
+                max_tokens=10,
                 top_p=1,
                 frequency_penalty=0,
                 presence_penalty=0,

@@ -1,7 +1,7 @@
 services:
   footfall_ai_api:
     build:
-      context: ./footfall_ai_api/src  # This should point to the folder containing the Dockerfile and requirements.txt
+      context: ../footfall_ai_api/src  # This should point to the folder containing the Dockerfile and requirements.txt
       dockerfile: Dockerfile
     container_name: footfall_ai_api_container
     volumes:
@@ -14,7 +14,7 @@ services:
 
   intrusion_detection_api:
     build:
-      context: ./intrusion_detection_api/src  # This should point to the folder containing the Dockerfile and requirements.txt
+      context: ../intrusion_detection_api/src  # This should point to the folder containing the Dockerfile and requirements.txt
       dockerfile: Dockerfile
     container_name: intrusion_detection_api_container
     volumes:

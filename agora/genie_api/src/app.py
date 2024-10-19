@@ -16,14 +16,14 @@ sql_handler = SqlDBHandler()
 
 logger = logging.getLogger(__name__)
 
-api = Api(app, version='1.0', title='Cerebral API',
-          description='Manage industries and roles in the Cerebral application.')
+api = Api(app, version='1.0', title='Genie API',
+          description='Manage industries and roles in the Genie application.')
 
-ns = api.namespace('Cerebral', description='Cerebral Operations')
+ns = api.namespace('Genie', description='Genie Operations')
 
-CORS(app, resources={r"/*": {"origins": "*"}})
+CORS(app, resources={r"/*": {"origins": "*", "methods": ["GET", "POST", "PUT"]}})
 
-# Dummy data for demonstration purposes
+# Sample data for demonstration purposes
 industries = [
         {
             "manufacturing": ["maintenance engineer", "shift supervisor"],
@@ -267,23 +267,19 @@ class ExecuteQuery(Resource):
     @api.expect(query_model)
     def post(self):
         """Execute an InfluxDB query and return the data"""
-        try:
-            if request.content_type != 'application/json':
-                raise BadRequest('Content-Type must be application/json')
-            
-            data = request.get_json(force=True)
-            query = data.get('query')
-            if not query:
-                return jsonify({'error': 'Query parameter is required'}), 400
-            
-            result = influx_handler.execute_query_and_return_data(query)
+        if request.content_type != 'application/json':
+            raise BadRequest('Content-Type must be application/json')
+        
+        data = request.get_json(force=True)
+        query = data.get('query')
+        if not query:
+            return jsonify({'error': 'Query parameter is required'}), 400
+        
+        result = influx_handler.execute_query_and_return_data(query)
 
-            print(result)
+        print(result)
 
-            return jsonify({'query': query, 'result': result})
-        except Exception as e:
-            print(f"Error executing query: {e}")
-            return jsonify({'error': 'Error executing query'}), 500
+        return jsonify({'query': query, 'result': result})
     
 @ns.route('/api/execute_sql_query')
 class ExecuteQuery(Resource):
@@ -396,7 +392,7 @@ class ProcessQuestion(Resource):
                 return jsonify({
                     'question': question,
                     'category': category,
-                    'influx_query': influx_query,
+                    'query': influx_query,
                     'query_result': query_result,
                     'recommendations': recommendations
                 })
@@ -411,7 +407,7 @@ class ProcessQuestion(Resource):
                 return jsonify({
                     'question': question,
                     'category': category,
-                    'sql_query': sql_query,
+                    'query': sql_query,
                     'query_result': query_result,
                     'recommendations': recommendations
                 })
@@ -423,7 +419,7 @@ class ProcessQuestion(Resource):
                 return jsonify({
                     'question': question,
                     'category': category,
-                    'response': response
+                    'recommendations': response
                 })
             
             else:

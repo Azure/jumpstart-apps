@@ -4,7 +4,6 @@ from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 from fastapi.responses import Response
 import time
 import logging
-import uvicorn
 
 app = FastAPI()
 
@@ -63,4 +62,5 @@ async def trigger_error():
         return {"error": str(e)}
 
 if __name__ == "__main__":
+    import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)

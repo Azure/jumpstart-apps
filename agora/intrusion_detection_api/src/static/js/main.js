@@ -1,11 +1,15 @@
-let canvas;
-let ctx;
-let restrictedArea = null;
-let isDragging = false;
-let isResizing = false;
-let startX, startY;
-let resizeHandle = '';
 let videoFeed;
+let detectionAreas = [];
+let nextAreaId = 0;
+
+const colors = [
+    'rgba(255, 0, 0, 0.3)',   // Red
+    'rgba(0, 255, 0, 0.3)',   // Green
+    'rgba(0, 0, 255, 0.3)',   // Blue
+    'rgba(255, 255, 0, 0.3)', // Yellow
+    'rgba(255, 0, 255, 0.3)', // Magenta
+    'rgba(0, 255, 255, 0.3)'  // Cyan
+];
 
 function log(message) {
     const consoleWindow = document.getElementById('console-window');
@@ -15,219 +19,267 @@ function log(message) {
 
 document.addEventListener('DOMContentLoaded', (event) => {
     log("Application initialized");
-    initializeCanvas();
+    videoFeed = document.getElementById('video-feed');
     setInterval(fetchDetectionData, 1000);
 });
 
-function initializeCanvas() {
-    log("Initializing canvas");
-    videoFeed = document.getElementById('video-feed');
-    canvas = document.getElementById('overlay-canvas');
+function addDetectionArea() {
+    const areaId = nextAreaId++;
+    const canvas = document.createElement('canvas');
+    canvas.id = `overlay-canvas-${areaId}`;
+    canvas.className = 'overlay-canvas';
+    document.getElementById('video-container').appendChild(canvas);
 
-    if (!videoFeed || !canvas) {
-        log("Error: Video feed or overlay canvas not found");
-        return;
+    const colorIndex = areaId % colors.length;
+    const color = colors[colorIndex];
+
+    const area = {
+        id: areaId,
+        canvas: canvas,
+        ctx: null,
+        restrictedArea: null,
+        color: color,
+        isDragging: false,
+        isResizing: false,
+        startX: 0,
+        startY: 0,
+        resizeHandle: ''
+    };
+
+    detectionAreas.push(area);
+
+    const areaElement = document.createElement('div');
+    areaElement.className = 'detection-area';
+    areaElement.innerHTML = `
+        <span>Detection Area ${areaId}</span>
+        <button onclick="removeDetectionArea(${areaId})">Remove</button>
+        <button onclick="changeColor(${areaId})">Change Color</button>
+    `;
+    document.getElementById('detection-areas').appendChild(areaElement);
+
+    initializeCanvas(area);
+    log(`Added detection area ${areaId}`);
+}
+
+function removeDetectionArea(areaId) {
+    const index = detectionAreas.findIndex(area => area.id === areaId);
+    if (index !== -1) {
+        const area = detectionAreas[index];
+        area.canvas.remove();
+        detectionAreas.splice(index, 1);
+        document.querySelector(`.detection-area:nth-child(${index + 1})`).remove();
+        log(`Removed detection area ${areaId}`);
+        sendRestrictedAreas();
     }
+}
 
-    ctx = canvas.getContext('2d');
+function changeColor(areaId) {
+    const area = detectionAreas.find(a => a.id === areaId);
+    if (area) {
+        const currentIndex = colors.indexOf(area.color);
+        const newIndex = (currentIndex + 1) % colors.length;
+        area.color = colors[newIndex];
+        drawRestrictedArea(area);
+        log(`Changed color of detection area ${areaId}`);
+    }
+}
 
+function initializeCanvas(area) {
     function resizeCanvas() {
-        canvas.width = videoFeed.offsetWidth;
-        canvas.height = videoFeed.offsetHeight;
-        log(`Canvas resized to: ${canvas.width}x${canvas.height}`);
-        if (restrictedArea) {
-            drawRestrictedArea();
+        const rect = videoFeed.getBoundingClientRect();
+        area.canvas.width = rect.width;
+        area.canvas.height = rect.height;
+        area.ctx = area.canvas.getContext('2d');
+        
+        if (!area.restrictedArea) {
+            area.restrictedArea = {
+                x: area.canvas.width * 0.25,
+                y: area.canvas.height * 0.25,
+                width: area.canvas.width * 0.5,
+                height: area.canvas.height * 0.5
+            };
+            requestAnimationFrame(() => drawRestrictedArea(area));
         }
+        
+        log(`Canvas ${area.id} resized to: ${area.canvas.width}x${area.canvas.height}`);
     }
 
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
 
-    canvas.addEventListener('mousedown', startInteraction);
-    canvas.addEventListener('mousemove', handleInteraction);
-    canvas.addEventListener('mouseup', stopInteraction);
+    area.canvas.addEventListener('mousedown', (e) => startInteraction(e, area));
+    area.canvas.addEventListener('mousemove', (e) => handleInteraction(e, area));
+    area.canvas.addEventListener('mouseup', () => stopInteraction(area));
 
-    videoFeed.addEventListener('load', () => {
-        log("Video feed loaded");
-        resizeCanvas();
-    });
+    videoFeed.addEventListener('load', resizeCanvas);
 }
 
-function toggleDrawing() {
-    log("Toggle drawing clicked");
-    if (restrictedArea) {
-        restrictedArea = null;
-        clearCanvas();
-        document.getElementById('draw-button').textContent = 'Start Drawing';
-        log("Restricted area cleared");
-    } else {
-        restrictedArea = {
-            x: canvas.width * 0.25,
-            y: canvas.height * 0.25,
-            width: canvas.width * 0.5,
-            height: canvas.height * 0.5
-        };
-        drawRestrictedArea();
-        document.getElementById('draw-button').textContent = 'Clear Area';
-        log("Default restricted area created");
-    }
-}
+function startInteraction(e, area) {
+    if (!area.restrictedArea) return;
 
-function startInteraction(e) {
-    if (!restrictedArea) return;
+    const rect = area.canvas.getBoundingClientRect();
+    area.startX = e.clientX - rect.left;
+    area.startY = e.clientY - rect.top;
 
-    const rect = canvas.getBoundingClientRect();
-    startX = e.clientX - rect.left;
-    startY = e.clientY - rect.top;
-
-    const handle = getResizeHandle(startX, startY);
+    const handle = getResizeHandle(area.startX, area.startY, area);
     if (handle) {
-        isResizing = true;
-        resizeHandle = handle;
-        log(`Started resizing from ${handle}`);
-    } else if (isInsideRectangle(startX, startY)) {
-        isDragging = true;
-        log("Started dragging");
+        area.isResizing = true;
+        area.resizeHandle = handle;
+        log(`Started resizing area ${area.id} from ${handle}`);
+    } else if (isInsideRectangle(area.startX, area.startY, area)) {
+        area.isDragging = true;
+        log(`Started dragging area ${area.id}`);
     }
 }
 
-function handleInteraction(e) {
-    if (!restrictedArea) return;
+function handleInteraction(e, area) {
+    if (!area.restrictedArea) return;
 
-    const rect = canvas.getBoundingClientRect();
+    const rect = area.canvas.getBoundingClientRect();
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
 
-    if (isResizing) {
-        resizeRestrictedArea(mouseX, mouseY);
-    } else if (isDragging) {
-        dragRestrictedArea(mouseX, mouseY);
+    if (area.isResizing) {
+        resizeRestrictedArea(mouseX, mouseY, area);
+    } else if (area.isDragging) {
+        dragRestrictedArea(mouseX, mouseY, area);
     } else {
-        updateCursor(mouseX, mouseY);
+        updateCursor(mouseX, mouseY, area);
     }
 }
 
-function stopInteraction() {
-    if (isDragging || isResizing) {
-        log(isDragging ? "Stopped dragging" : "Stopped resizing");
-        setRestrictedArea();
+function stopInteraction(area) {
+    if (area.isDragging || area.isResizing) {
+        log(area.isDragging ? `Stopped dragging area ${area.id}` : `Stopped resizing area ${area.id}`);
+        sendRestrictedAreas();
     }
-    isDragging = false;
-    isResizing = false;
-    resizeHandle = '';
-    canvas.style.cursor = 'default';
+    area.isDragging = false;
+    area.isResizing = false;
+    area.resizeHandle = '';
+    area.canvas.style.cursor = 'default';
 }
 
-function resizeRestrictedArea(mouseX, mouseY) {
-    const dx = mouseX - startX;
-    const dy = mouseY - startY;
+function resizeRestrictedArea(mouseX, mouseY, area) {
+    const dx = mouseX - area.startX;
+    const dy = mouseY - area.startY;
 
-    if (resizeHandle.includes('w')) {
-        restrictedArea.x += dx;
-        restrictedArea.width -= dx;
+    if (area.resizeHandle.includes('w')) {
+        area.restrictedArea.x += dx;
+        area.restrictedArea.width -= dx;
     }
-    if (resizeHandle.includes('n')) {
-        restrictedArea.y += dy;
-        restrictedArea.height -= dy;
+    if (area.resizeHandle.includes('n')) {
+        area.restrictedArea.y += dy;
+        area.restrictedArea.height -= dy;
     }
-    if (resizeHandle.includes('e')) {
-        restrictedArea.width += dx;
+    if (area.resizeHandle.includes('e')) {
+        area.restrictedArea.width += dx;
     }
-    if (resizeHandle.includes('s')) {
-        restrictedArea.height += dy;
+    if (area.resizeHandle.includes('s')) {
+        area.restrictedArea.height += dy;
     }
 
-    startX = mouseX;
-    startY = mouseY;
-    drawRestrictedArea();
+    area.startX = mouseX;
+    area.startY = mouseY;
+    
+    requestAnimationFrame(() => drawRestrictedArea(area));
 }
 
-function dragRestrictedArea(mouseX, mouseY) {
-    const dx = mouseX - startX;
-    const dy = mouseY - startY;
+function dragRestrictedArea(mouseX, mouseY, area) {
+    const dx = mouseX - area.startX;
+    const dy = mouseY - area.startY;
 
-    restrictedArea.x += dx;
-    restrictedArea.y += dy;
+    area.restrictedArea.x += dx;
+    area.restrictedArea.y += dy;
 
-    startX = mouseX;
-    startY = mouseY;
-    drawRestrictedArea();
+    area.startX = mouseX;
+    area.startY = mouseY;
+    
+    requestAnimationFrame(() => drawRestrictedArea(area));
 }
 
-function getResizeHandle(x, y) {
+function getResizeHandle(x, y, area) {
     const handleSize = 10;
     let handle = '';
 
-    if (Math.abs(x - restrictedArea.x) < handleSize) handle += 'w';
-    if (Math.abs(y - restrictedArea.y) < handleSize) handle += 'n';
-    if (Math.abs(x - (restrictedArea.x + restrictedArea.width)) < handleSize) handle += 'e';
-    if (Math.abs(y - (restrictedArea.y + restrictedArea.height)) < handleSize) handle += 's';
+    if (Math.abs(x - area.restrictedArea.x) < handleSize) handle += 'w';
+    if (Math.abs(y - area.restrictedArea.y) < handleSize) handle += 'n';
+    if (Math.abs(x - (area.restrictedArea.x + area.restrictedArea.width)) < handleSize) handle += 'e';
+    if (Math.abs(y - (area.restrictedArea.y + area.restrictedArea.height)) < handleSize) handle += 's';
 
     return handle;
 }
 
-function updateCursor(x, y) {
-    const handle = getResizeHandle(x, y);
+function updateCursor(x, y, area) {
+    const handle = getResizeHandle(x, y, area);
     if (handle) {
-        canvas.style.cursor = handle + '-resize';
-    } else if (isInsideRectangle(x, y)) {
-        canvas.style.cursor = 'move';
+        area.canvas.style.cursor = handle + '-resize';
+    } else if (isInsideRectangle(x, y, area)) {
+        area.canvas.style.cursor = 'move';
     } else {
-        canvas.style.cursor = 'default';
+        area.canvas.style.cursor = 'default';
     }
 }
 
-function isInsideRectangle(x, y) {
-    return x > restrictedArea.x && x < restrictedArea.x + restrictedArea.width &&
-           y > restrictedArea.y && y < restrictedArea.y + restrictedArea.height;
+function isInsideRectangle(x, y, area) {
+    return x > area.restrictedArea.x && x < area.restrictedArea.x + area.restrictedArea.width &&
+           y > area.restrictedArea.y && y < area.restrictedArea.y + area.restrictedArea.height;
 }
 
-function clearCanvas() {
-    if (ctx) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+function clearCanvas(area) {
+    if (area.ctx) {
+        area.ctx.clearRect(0, 0, area.canvas.width, area.canvas.height);
     }
 }
 
-function setRestrictedArea() {
-    log("Setting restricted area");
-    if (restrictedArea) {
-        fetch('/set_restricted_area', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ area: [
-                {x: restrictedArea.x / canvas.width, y: restrictedArea.y / canvas.height},
-                {x: (restrictedArea.x + restrictedArea.width) / canvas.width, y: restrictedArea.y / canvas.height},
-                {x: (restrictedArea.x + restrictedArea.width) / canvas.width, y: (restrictedArea.y + restrictedArea.height) / canvas.height},
-                {x: restrictedArea.x / canvas.width, y: (restrictedArea.y + restrictedArea.height) / canvas.height}
-            ]}),
-        })
-        .then(response => response.json())
-        .then(data => {
-            log('Restricted area set successfully');
-        })
-        .catch((error) => {
-            log('Error setting restricted area: ' + error);
-        });
-    }
+function drawRestrictedArea(area) {
+    if (!area.ctx || !area.restrictedArea) return;
+    
+    clearCanvas(area);
+    
+    area.ctx.fillStyle = area.color;
+    area.ctx.fillRect(area.restrictedArea.x, area.restrictedArea.y, area.restrictedArea.width, area.restrictedArea.height);
+    area.ctx.strokeStyle = area.color.replace('0.3', '1');
+    area.ctx.lineWidth = 2;
+    area.ctx.strokeRect(area.restrictedArea.x, area.restrictedArea.y, area.restrictedArea.width, area.restrictedArea.height);
 }
 
-function drawRestrictedArea() {
-    if (ctx && restrictedArea) {
-        clearCanvas();
-        ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
-        ctx.fillRect(restrictedArea.x, restrictedArea.y, restrictedArea.width, restrictedArea.height);
-        ctx.strokeStyle = 'red';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(restrictedArea.x, restrictedArea.y, restrictedArea.width, restrictedArea.height);
-    }
+function sendRestrictedAreas() {
+    const areas = detectionAreas.map(area => {
+        if (area.restrictedArea) {
+            return {
+                id: area.id,
+                area: [
+                    {x: area.restrictedArea.x / area.canvas.width, y: area.restrictedArea.y / area.canvas.height},
+                    {x: (area.restrictedArea.x + area.restrictedArea.width) / area.canvas.width, y: area.restrictedArea.y / area.canvas.height},
+                    {x: (area.restrictedArea.x + area.restrictedArea.width) / area.canvas.width, y: (area.restrictedArea.y + area.restrictedArea.height) / area.canvas.height},
+                    {x: area.restrictedArea.x / area.canvas.width, y: (area.restrictedArea.y + area.restrictedArea.height) / area.canvas.height}
+                ],
+                color: area.color
+            };
+        }
+        return null;
+    }).filter(area => area !== null);
+
+    fetch('/set_restricted_areas', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ areas: areas }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        log('Restricted areas set successfully');
+    })
+    .catch((error) => {
+        log('Error setting restricted areas: ' + error);
+    });
 }
 
-function setRtspUrl() {
-    log("Setting RTSP URL");
-    const url = document.getElementById('rtsp-url').value;
-    fetch('/set_rtsp_url', {
+function setVideoSource() {
+    log("Setting video source");
+    const url = document.getElementById('video-url').value;
+    fetch('/set_video_source', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -236,11 +288,11 @@ function setRtspUrl() {
     })
     .then(response => response.json())
     .then(data => {
-        log('RTSP URL set successfully');
+        log('Video source set successfully');
         updateVideoFeed(url);
     })
     .catch((error) => {
-        log('Error setting RTSP URL: ' + error);
+        log('Error setting video source: ' + error);
     });
 }
 
@@ -262,11 +314,33 @@ function fetchDetectionData() {
 
 function updateDetectionDisplay(data) {
     const detectionInfo = document.getElementById('detection-info');
-    detectionInfo.innerHTML = `
+    let html = `
         <p><strong>Detected Persons:</strong> ${data.detected_persons}</p>
         <p><strong>Total Intruders:</strong> ${data.total_intruders}</p>
         <p><strong>Current Intruders:</strong> ${data.current_intruders}</p>
         <p><strong>Last Intruder Hash:</strong> ${data.last_intruder_hash || 'None'}</p>
+        <h4>Area Statistics:</h4>
     `;
+
+    for (const [areaId, stats] of Object.entries(data.area_stats)) {
+        html += `
+            <p><strong>Area ${areaId}:</strong> Current: ${stats.current_count}, Total: ${stats.total_count}</p>
+        `;
+    }
+
+    html += `<h4>People Near Areas:</h4>`;
+    for (const [personHash, areas] of Object.entries(data.people_near_areas)) {
+        html += `<p><strong>Person ${personHash}:</strong></p>`;
+        for (const [areaId, times] of Object.entries(areas)) {
+            const duration = ((times.end_time - times.start_time) / 60).toFixed(2);
+            html += `
+                <p>Area ${areaId}: Start: ${new Date(times.start_time * 1000).toLocaleTimeString()}, 
+                               End: ${new Date(times.end_time * 1000).toLocaleTimeString()},
+                               Duration: ${duration} minutes</p>
+            `;
+        }
+    }
+
+    detectionInfo.innerHTML = html;
     log(`Updated detection data: ${data.detected_persons} persons, ${data.current_intruders} current intruders, ${data.total_intruders} total intruders`);
 }

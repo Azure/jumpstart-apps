@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   FluentProvider,
   webLightTheme,
@@ -18,6 +18,7 @@ import TopNav from '../../components/ShopperTopNav';
 import ShopperProdcutsInteraction from '../../components/ShopperProdcutsInteraction';
 import Footer from '../../components/ShopperFooter';
 import { CopilotProvider } from "@fluentui-copilot/react-copilot";
+import { Panel, PanelType, DefaultButton } from '@fluentui/react';
 import { IDropdownOption, IImageProps, IStackProps, IStackTokens, Stack,   PrimaryButton, Image, Text} from "@fluentui/react";
 import {
   Card,
@@ -324,7 +325,33 @@ const useStyles = makeStyles({
       height: '1px',
       flexshrink: '0',
       background: 'var(--Light-theme-Rest-Border-Default-Border-2, #E0E0E0)'
-    }
+    },
+    cartimagecontainer: {
+      display: 'flex',
+      width: '100%',
+      height: '396px',
+      flexDirection: 'column',
+      justifyContent: 'center',
+      alignItems: 'center',
+      flexShrink: '0',
+      background: '#EBF3FC',
+    },
+    cartimage: {
+      display: 'flex',
+      paddingTop: '4px',
+      flexDirection: 'column',
+      justifyContent: 'center',
+      color: '#115EA3',
+      textAlign: 'center',
+      leadingTrim: 'both',
+      textEdge: 'cap',
+      fontFamily: 'Segoe UI',
+      fontSize: '10px',
+      fontStyle: 'normal',
+      fontWeight: '700',
+      lineHeight: '14px',
+      letterSpacing: '0.3px',
+      },
     });
     const childStackStyles = {
       root: {
@@ -391,8 +418,29 @@ const useStyles = makeStyles({
         width: 300,
         height: 300,
       };
+      interface CartPanelProps {
+        isOpen: boolean;
+        onDismiss: () => void;
+        onSave: () => void;
+      }      
+   
+    const ShopperProductDetail: React.FC<CartPanelProps> = ({ isOpen, onDismiss, onSave },props: Partial<DropdownProps>) => {
+        const styles = useStyles();
+        const [isDrawerOpen, setIsDrawerOpen] = useState(false);        
+        const toggleDrawer = () => {
+            setIsDrawerOpen(!isDrawerOpen);
+          };
 
-    const ShopperProductDetail = (props: Partial<DropdownProps>) => {
+        const onRenderFooterContent = React.useCallback(
+        () => (
+            <Stack horizontal tokens={{ childrenGap: 10 }}>
+            <PrimaryButton onClick={onSave}>Save</PrimaryButton>
+            <DefaultButton onClick={onDismiss}>Cancel</DefaultButton>
+            </Stack>
+        ),
+        [onSave, onDismiss]
+        );  
+
       const dropdownId = useId("dropdown-default");
       const options = [
         "1/2 lb",
@@ -400,12 +448,36 @@ const useStyles = makeStyles({
         "1.5 lb",
         "2 lb"
       ];      
-        const styles = useStyles();
+
           return (
               <FluentProvider theme={webLightTheme}>
                 <CopilotProvider mode='sidecar'>
                     <Stack>
-                        <Header />
+                        <Panel
+                        isOpen={isDrawerOpen}
+                        onDismiss={toggleDrawer}
+                        type={PanelType.custom}
+                        customWidth="25%"
+                        headerText="Add camera"
+                        onRenderFooterContent={onRenderFooterContent}
+                        isFooterAtBottom={true}
+                    >
+                        <Stack>
+                            <Stack.Item>
+                            </Stack.Item>
+                            <Stack.Item>
+                            </Stack.Item>
+                            <Stack.Item>
+                            </Stack.Item>
+                            <Stack.Item>
+                            </Stack.Item>
+                            <Stack.Item>
+                            </Stack.Item>
+                            <Stack.Item>
+                            </Stack.Item>
+                        </Stack>
+                        </Panel>                        
+                        <Header callParentFunction={toggleDrawer}/>
                         <TopNav />
                         <Stack id='body' style={{marginLeft: '90px'}}>
                             <Breadcrumb className={styles.breadcrumb}>
