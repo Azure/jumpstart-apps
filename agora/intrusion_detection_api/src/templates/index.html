@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Intrusion Detection</title>
+    <title>Intrusion Detection - Multiple Areas</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -36,7 +36,7 @@
             height: 100%;
             object-fit: contain;
         }
-        #overlay-canvas {
+        .overlay-canvas {
             position: absolute;
             top: 0;
             left: 0;
@@ -75,33 +75,54 @@
             height: 200px;
             overflow-y: auto;
         }
+        #detection-areas {
+            margin-top: 20px;
+        }
+        .detection-area {
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+        }
+        .detection-area button {
+            margin-top: 5px;
+            margin-right: 5px;
+        }
     </style>
 </head>
 <body>
     <div class="left-panel">
         <h1>Intrusion Detection</h1>
+        
         <div class="input-group">
             <label for="rtsp-url">RTSP URL:</label>
             <input type="text" id="rtsp-url" placeholder="Enter RTSP URL">
         </div>
+        
         <div class="input-group">
             <button onclick="setRtspUrl()">Set URL</button>
         </div>
+        
         <div class="input-group">
-            <button id="draw-button" onclick="toggleDrawing()">Start Drawing</button>
+            <button onclick="addDetectionArea()">Add Detection Area</button>
         </div>
+        
+        <div id="detection-areas"></div>
+        
         <div id="data-display">
             <h3>Detection Data:</h3>
             <div id="detection-info"></div>
         </div>
+        
         <div id="console-window"></div>
     </div>
+    
     <div class="right-panel">
         <div id="video-container">
             <img id="video-feed" src="{{ url_for('video_feed') }}" alt="Video Feed">
-            <canvas id="overlay-canvas"></canvas>
         </div>
     </div>
+    
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>
