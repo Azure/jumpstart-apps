@@ -1,7 +1,6 @@
 Flask
 Flask-Session
 python-dotenv
-
 flask-cors
 prometheus_client 
 fastapi 
