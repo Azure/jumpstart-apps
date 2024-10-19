@@ -27,7 +27,8 @@ CORS(app, resources={r"/*": {"origins": "*", "methods": ["GET", "POST", "PUT"]}}
 industries = [
         {
             "manufacturing": ["maintenance engineer", "shift supervisor"],
-            "retail": ["store manager", "buyer"]
+            "retail": ["store manager", "buyer"],
+            "hypermarket": ["store manager", "shopper", "maintenance worker"]
         }
     ]
 

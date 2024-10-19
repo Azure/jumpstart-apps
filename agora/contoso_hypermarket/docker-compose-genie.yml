@@ -59,7 +59,7 @@ services:
       INFLUXDB_URL: "http://influxdb:8086"  # Environment variables
       INFLUXDB_TOKEN: "secret-token"
       INFLUXDB_ORG: "InfluxData"
-      INFLUXDB_BUCKET: "manufacturing"
+      INFLUXDB_BUCKET: "hypermarket"
       VERBOSE: "true"
     restart: always  # Optional: Restart policy
 
@@ -77,7 +77,7 @@ services:
       AZURE_OPENAI_ENDPOINT: ""
       OPENAI_API_VERSION: "2024-03-01-preview"
       INFLUXDB_URL: "http://influxdb:8086"
-      INFLUXDB_BUCKET: "manufacturing"
+      INFLUXDB_BUCKET: "hypermarket"
       INFLUXDB_TOKEN: "secret-token"
       INFLUXDB_ORG: "InfluxData"
       SQL_DATABASE: "RetailDB" 

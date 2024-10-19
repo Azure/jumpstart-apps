@@ -24,13 +24,13 @@ spec:
         - name: CHATGPT_MODEL
           value: "gpt-35-turbo"
         - name: AZURE_OPENAI_ENDPOINT
-          value: "https://jsextoai.openai.azure.com/t"
+          value: "https://jsextoai.openai.azure.com"
         - name: OPENAI_API_VERSION
           value: "2024-03-01-preview"
         - name: INFLUXDB_URL
           value: "http://influxdb.contoso-hypermarket.svc.cluster.local:8086"
         - name: INFLUXDB_BUCKET
-          value: "genie"
+          value: "hypermarket"
         - name: INFLUXDB_TOKEN
           value: "secret-token"
         - name: INFLUXDB_ORG

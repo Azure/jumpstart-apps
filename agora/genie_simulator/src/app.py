@@ -153,7 +153,7 @@ if __name__ == "__main__":
     #print("Prometheus metrics available on port 8011")
 
     from threading import Thread
-    Thread(target=lambda: app.run(port=PORT, use_reloader=False)).start()
+    Thread(target=lambda: app.run(host="0.0.0.0", port=PORT, use_reloader=False)).start()
     logger.info("Metrics available at http://localhost:{0}}/metrics",PORT)
 
     while True:
