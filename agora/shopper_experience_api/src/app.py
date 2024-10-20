@@ -19,10 +19,17 @@ ie = Core()
 def get_or_create_processor(video_url, data):
     if video_url not in video_processors:
         index = len(video_processors)
-        debug = bool(data['debug'])
+        debug = bool(data.get('debug', 'False'))
         name = data['cameraName']
-        print(f"Name: {name}")
+        if 'cameraName' not in data:
+            name = f"camera_{index}"
+        else:
+            name = data['cameraName']
         video_processors[video_url] = VideoProcessor(video_url, index, name, debug)
+
+        if(data.get('areas', None)):
+            video_processors[video_url].set_restricted_area(data['areas'])
+
     return video_processors[video_url]
 
 def generate(data, video_url):
