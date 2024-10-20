@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Streams</title>
+    <style>
+        .video-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .video-stream {
+            margin: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>Video Streams</h1>
+    <div>
+        <input type="text" id="rtspUrl" placeholder="Enter RTSP URL">
+        <div>
+            <input type="number" id="x" placeholder="X">
+            <input type="number" id="y" placeholder="Y">
+            <input type="number" id="w" placeholder="Width">
+            <input type="number" id="h" placeholder="Height">
+            <label>Debug:</label>
+            <input type="checkbox" id="debug">
+        </div>
+        <button onclick="addStream()">Add Stream</button>
+    </div>
+    <div id="videoContainer" class="video-container"></div>
+
+    <table id="statusTable">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Video URL</th>
+                <th>Current Count</th>
+                <th>FPS</th>
+                <th>Debug</th>
+                <th>Line Points</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <script>
+        let cameraCount = 0;
+        function addStream() {
+            const rtspUrl = document.getElementById('rtspUrl').value;
+            const x = document.getElementById('x').value || 0;
+            const y = document.getElementById('y').value || 0;
+            const w = document.getElementById('w').value || 0;
+            const h = document.getElementById('h').value || 0;
+            const debug = document.getElementById('debug').checked;
+            const cameraName = `camera_${++cameraCount}`;
+            if (rtspUrl) {
+                const container = document.getElementById('videoContainer');
+                const streamDiv = document.createElement('div');
+                streamDiv.className = 'video-stream';
+                streamDiv.innerHTML = `
+                    <h2>Video Stream - ${cameraName}</h2>
+                    <img src="/video_feed/${encodeURIComponent(rtspUrl)}?data=${encodeURIComponent(JSON.stringify({ x, y, w, h, debug, cameraName}))}" width="640" height="360">
+                `;
+                container.appendChild(streamDiv);
+            }
+        }
+
+        function fetchStatus() {
+            fetch('/status')
+                .then(response => response.json())
+                .then(data => updateStatusTable(data.statuses))
+                .catch((error) => console.error('Error:', error));
+        }
+
+        function updateStatusTable(statuses) {
+            const tbody = document.getElementById('statusTable').querySelector('tbody');
+            tbody.innerHTML = ''; // Clear existing rows
+            statuses.forEach(status => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${status.name}</td>
+                    <td>${status.video_url}</td>
+                    <td>${status.current_count}</td>
+                    <td>${status.fps}</td>
+                    <td>${status.debug}</td>
+                    <td>${JSON.stringify(status.line_points)}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        setInterval(fetchStatus, 1000); // Call fetchStatus every 1 second
+    </script>
+</body>
+</html>
