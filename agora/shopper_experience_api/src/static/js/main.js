@@ -346,11 +346,11 @@ function updateDetectionDisplay(data) {
     for (const [personHash, areas] of Object.entries(data.people_near_areas)) {
         html += `<p><strong>Person ${personHash}:</strong></p>`;
         for (const [areaId, times] of Object.entries(areas)) {
-            const duration = ((times.end_time - times.start_time) / 60).toFixed(2);
+            const duration = (times.end_time - times.start_time).toFixed(2);
             html += `
                 <p>Area ${areaId}: Start: ${new Date(times.start_time * 1000).toLocaleTimeString()}, 
                                End: ${new Date(times.end_time * 1000).toLocaleTimeString()},
-                               Duration: ${duration} minutes</p>
+                               Duration: ${duration} seconds</p>
             `;
         }
     }
