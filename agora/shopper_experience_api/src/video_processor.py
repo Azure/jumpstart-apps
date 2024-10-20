@@ -213,18 +213,21 @@ class VideoProcessor:
                 self.stop()
                 break
 
-    def update_restricted_area(self, area_id, area):
-        x_coords = [point['x'] for point in area]
-        y_coords = [point['y'] for point in area]
-        
-        x1, y1 = min(x_coords), min(y_coords)
-        x2, y2 = max(x_coords), max(y_coords)
-
-        if 0 <= area_id < len(self.restricted_areas) and self.restricted_areas[area_id] is not None:
-            self.restricted_areas[area_id] = [float(x1), float(y1), float(x2), float(y2)]
-        else:
-            self.restricted_areas.append([float(x1), float(y1), float(x2), float(y2)])
-            return f"Restricted area {area_id} updated successfully"
+    def set_restricted_area(self, areas):
+        self.restricted_areas = []
+        if areas:
+            for area in areas:
+                if 'id' in area and 'area' in area:
+                    aux_area = area['area'] 
+                    x_coords = [point['x'] for point in aux_area]
+                    y_coords = [point['y'] for point in aux_area]
+                    
+                    x1, y1 = min(x_coords), min(y_coords)
+                    x2, y2 = max(x_coords), max(y_coords)
+                    self.restricted_areas.append([float(x1), float(y1), float(x2), float(y2)])
+                else:
+                    return "Error: Invalid area format. Each area must have an 'id' and 'area' key"
+        return "Restricted areas set successfully"
 
     def remove_restricted_area(self, area_id):
         if 0 <= area_id < len(self.restricted_areas):

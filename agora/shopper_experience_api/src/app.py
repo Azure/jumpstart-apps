@@ -67,12 +67,10 @@ def set_restricted_areas():
     if processor:
         # Assume the first area is the one we want to set
         if areas:
-            for area in areas:
-                if 'id' in area and 'area' in area:
-                    processor.update_restricted_area(area['id'], area['area'])
-                else:
-                    return jsonify({"error": "Invalid area format"}), 400
-        return jsonify({"message": "Restricted areas set successfully"}), 200
+            processor.set_restricted_area(areas)
+            return jsonify({"message": "Restricted areas set successfully"}), 200
+        else:
+            return jsonify({"error": "Invalid area format"}), 400
     else:
         return jsonify({"error": "Video processor not found"}), 404
 
