@@ -1,17 +1,17 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: intrusion-detection-api
+  name: shopper-experience-api
   namespace: contoso-hypermarket
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: intrusion-detection-api
+      app: shopper-experience-api
   template:
     metadata:
       labels:
-        app: intrusion-detection-api
+        app: shopper-experience-api
     spec:
       initContainers:
       - name: init-download-model
@@ -21,8 +21,8 @@ spec:
         - name: models-volume
           mountPath: /tmp/models
       containers:
-      - name: intrusion-detection-api
-        image: agacr6b99f.azurecr.io/intrusion-detection-api:latest
+      - name: shopper-experience-api
+        image: agacr6b99f.azurecr.io/shopper-experience-api:latest
         ports:
         - containerPort: 5001
         env:
@@ -45,11 +45,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: intrusion-detection-api
+  name: shopper-experience-api
   namespace: contoso-hypermarket
 spec:
   selector:
-    app: intrusion-detection-api
+    app: shopper-experience-api
   ports:
     - protocol: TCP
       port: 5001
