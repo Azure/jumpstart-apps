@@ -22,7 +22,7 @@ spec:
           mountPath: /tmp/models
       containers:
       - name: shopper-experience-api
-        image: agacr6b99f.azurecr.io/shopper-experience-api:latest
+        image: agacrd2f52.azurecr.io/shopper-experience-api:latest
         ports:
         - containerPort: 5001
         env:
