@@ -1,6 +1,7 @@
 let videoFeed;
 let detectionAreas = [];
 let nextAreaId = 0;
+let cameraInitialized = false;
 
 const colors = [
     'rgba(255, 0, 0, 0.3)',   // Red
@@ -244,10 +245,11 @@ function drawRestrictedArea(area) {
 }
 
 function sendRestrictedAreas() {
+    const videoUrl = document.getElementById('video-url').value;
     const areas = detectionAreas.map(area => {
         if (area.restrictedArea) {
             return {
-                id: area.id,
+                id: area.id + 1,
                 area: [
                     {x: area.restrictedArea.x / area.canvas.width, y: area.restrictedArea.y / area.canvas.height},
                     {x: (area.restrictedArea.x + area.restrictedArea.width) / area.canvas.width, y: area.restrictedArea.y / area.canvas.height},
@@ -265,7 +267,7 @@ function sendRestrictedAreas() {
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ areas: areas }),
+        body: JSON.stringify({ areas: areas, video_url: !cameraInitialized || videoUrl == ""  ? "" : videoUrl}),
     })
     .then(response => response.json())
     .then(data => {
@@ -279,12 +281,13 @@ function sendRestrictedAreas() {
 function setVideoSource() {
     log("Setting video source");
     const url = document.getElementById('video-url').value;
+    const cameraName = `camera_${Math.floor(Math.random() * 1000)}`;
     fetch('/set_video_source', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ url: url }),
+        body: JSON.stringify({ url: url, x: 0, y: 0, w: 0, h: 1, debug: false, cameraName }),
     })
     .then(response => response.json())
     .then(data => {
@@ -298,14 +301,25 @@ function setVideoSource() {
 
 function updateVideoFeed(url) {
     log("Updating video feed");
-    videoFeed.src = `/video_feed?t=${new Date().getTime()}`;
+    const data = {
+    };
+    const jsonData = encodeURIComponent(JSON.stringify(data));
+    videoFeed.src = `/video_feed/${encodeURIComponent(url)}?data=${jsonData}`;
+    cameraInitialized = true;
 }
 
 function fetchDetectionData() {
-    fetch('/get_detection_data')
+    const videoUrl = document.getElementById('video-url').value;
+    const url = !cameraInitialized || videoUrl == ""  ? "/status" : `/status?video_url=${encodeURIComponent(videoUrl)}`;
+    fetch(url)
     .then(response => response.json())
     .then(data => {
-        updateDetectionDisplay(data);
+        if(data.message && data.message.includes('not')){
+            log(data.message)
+        }
+        else{
+            updateDetectionDisplay(data);
+        }
     })
     .catch((error) => {
         log('Error fetching detection data: ' + error);
@@ -316,9 +330,9 @@ function updateDetectionDisplay(data) {
     const detectionInfo = document.getElementById('detection-info');
     let html = `
         <p><strong>Detected Persons:</strong> ${data.detected_persons}</p>
-        <p><strong>Total Intruders:</strong> ${data.total_intruders}</p>
-        <p><strong>Current Intruders:</strong> ${data.current_intruders}</p>
-        <p><strong>Last Intruder Hash:</strong> ${data.last_intruder_hash || 'None'}</p>
+        <p><strong>Total Shoppers:</strong> ${data.total_shoppers}</p>
+        <p><strong>Current Shopper:</strong> ${data.current_shopper}</p>
+        <p><strong>Last Shopper Hash:</strong> ${data.last_shopper_hash || 'None'}</p>
         <h4>Area Statistics:</h4>
     `;
 
@@ -332,15 +346,15 @@ function updateDetectionDisplay(data) {
     for (const [personHash, areas] of Object.entries(data.people_near_areas)) {
         html += `<p><strong>Person ${personHash}:</strong></p>`;
         for (const [areaId, times] of Object.entries(areas)) {
-            const duration = ((times.end_time - times.start_time) / 60).toFixed(2);
+            const duration = (times.end_time - times.start_time).toFixed(2);
             html += `
                 <p>Area ${areaId}: Start: ${new Date(times.start_time * 1000).toLocaleTimeString()}, 
                                End: ${new Date(times.end_time * 1000).toLocaleTimeString()},
-                               Duration: ${duration} minutes</p>
+                               Duration: ${duration} seconds</p>
             `;
         }
     }
 
     detectionInfo.innerHTML = html;
-    log(`Updated detection data: ${data.detected_persons} persons, ${data.current_intruders} current intruders, ${data.total_intruders} total intruders`);
+    log(`Updated detection data: ${data.detected_persons} persons, ${data.current_shopper} current shoppers, ${data.total_shoppers} total shoppers`);
 }

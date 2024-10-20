@@ -12,11 +12,11 @@ services:
       - MODEL_PATH=/tmp/models/yolov8n.pt
       - RTSP_URL=rtsp://rtsp_stream_container:8554/stream
 
-  intrusion_detection_api:
+  shopper_experience_api:
     build:
-      context: ../intrusion_detection_api/src  # This should point to the folder containing the Dockerfile and requirements.txt
+      context: ../shopper_experience_api/src  # This should point to the folder containing the Dockerfile and requirements.txt
       dockerfile: Dockerfile
-    container_name: intrusion_detection_api_container
+    container_name: shopper_experience_api_container
     volumes:
       - ../models:/tmp/models
     ports:
