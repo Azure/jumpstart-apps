@@ -483,7 +483,6 @@ const CamerasZonesWizardFloor: React.FC = () => {
                               setIsDrawing(false);
                             }}
                             ></canvas>
-
                       </Stack.Item>
 
                       {/* Main content area */}
