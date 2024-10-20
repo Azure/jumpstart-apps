@@ -1,0 +1,3 @@
+influxdb-client
+prometheus_client
+psutil
