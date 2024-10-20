@@ -28,7 +28,6 @@ import {
   DrawerRegular,
 } from "@fluentui/react-icons";
 import type { ToolbarProps } from "@fluentui/react-components";
-import BBoxAnnotator, { EntryType } from 'react-bbox-annotator';
 import { useNavigate } from "react-router-dom";
 import Header from '../../components/SuiteHeader';
 import SideMenu from "../../components/MaintenanceMenu";
