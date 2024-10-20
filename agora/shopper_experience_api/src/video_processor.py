@@ -53,9 +53,9 @@ class VideoProcessor:
 
         # Counting variables
         self.detected_persons = 0
-        self.intruders = 0
-        self.last_intruder_hash = None
-        self.current_intruders = 0
+        self.shoppers = 0
+        self.last_shopper_hash = None
+        self.current_shoppers = 0
 
         # Area tracking
         self.people_near_areas = defaultdict(lambda: defaultdict(dict))
@@ -144,7 +144,7 @@ class VideoProcessor:
                     current_frame_detections.append((bbox, features))
 
             new_person_tracker = {}
-            for person_id, (last_bbox, last_features, frames_tracked, is_intruder, person_hash) in self.person_tracker.items():
+            for person_id, (last_bbox, last_features, frames_tracked, is_shopper, person_hash) in self.person_tracker.items():
                 best_match = min(
                     ((i, cosine(last_features, features)) for i, (_, features) in enumerate(current_frame_detections)),
                     key=lambda x: x[1],
@@ -153,10 +153,10 @@ class VideoProcessor:
                 
                 if best_match[0] is not None and best_match[1] < self.max_distance_threshold:
                     bbox, features = current_frame_detections.pop(best_match[0])
-                    new_person_tracker[person_id] = (bbox, features, frames_tracked + 1, is_intruder, person_hash)
+                    new_person_tracker[person_id] = (bbox, features, frames_tracked + 1, is_shopper, person_hash)
                     self.update_area_presence(person_hash, bbox, frame.shape, current_time)
                 elif frames_tracked < self.max_frames_to_track:
-                    new_person_tracker[person_id] = (last_bbox, last_features, frames_tracked + 1, is_intruder, person_hash)
+                    new_person_tracker[person_id] = (last_bbox, last_features, frames_tracked + 1, is_shopper, person_hash)
                 else:
                     self.update_area_exit(person_hash, current_time)
 
@@ -166,24 +166,24 @@ class VideoProcessor:
                 self.update_area_presence(person_hash, bbox, frame.shape, current_time, is_new=True)
                 self.next_person_id += 1
 
-            frame_intruders = set()
-            for person_id, (bbox, features, frames_tracked, is_intruder, person_hash) in new_person_tracker.items():
+            frame_shoppers = set()
+            for person_id, (bbox, features, frames_tracked, is_shopper, person_hash) in new_person_tracker.items():
                 center = ((bbox[0] + bbox[2]) // 2 / frame.shape[1], (bbox[1] + bbox[3]) // 2 / frame.shape[0])
                 
                 for area in self.restricted_areas:
                     if self.point_in_rectangle(center, area):
-                        if not is_intruder:
-                            self.intruders += 1
+                        if not is_shopper:
+                            self.shoppers += 1
                             new_person_tracker[person_id] = (bbox, features, frames_tracked, True, person_hash)
-                            self.last_intruder_hash = person_hash
-                        frame_intruders.add(person_id)
+                            self.last_shopper_hash = person_hash
+                        frame_shoppers.add(person_id)
                         break
 
-            self.current_intruders = len(frame_intruders)
+            self.current_shoppers = len(frame_shoppers)
             self.person_tracker = new_person_tracker
 
-            for person_id, (bbox, _, _, is_intruder, person_hash) in self.person_tracker.items():
-                color = (0, 0, 255) if is_intruder else (0, 255, 0)
+            for person_id, (bbox, _, _, is_shopper, person_hash) in self.person_tracker.items():
+                color = (0, 0, 255) if is_shopper else (0, 255, 0)
                 cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), color, 2)
                 cv2.putText(frame, f"ID: {person_hash}", (bbox[0], bbox[1] - 10),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.9, color, 2)
@@ -245,10 +245,11 @@ class VideoProcessor:
     def get_detection_data(self):
         return {
             "detected_persons": self.detected_persons,
-            "total_intruders": self.intruders,
-            "current_intruders": self.current_intruders,
-            "last_intruder_hash": self.last_intruder_hash,
+            "total_shoppers": self.shoppers,
+            "current_shopper": self.current_shoppers,
+            "last_shopper_hash": self.last_shopper_hash,
             "area_stats": dict(self.area_stats),
+            "fps" : self.fps,
             "people_near_areas": {k: {int(area_id): v for area_id, v in areas.items()} 
                                 for k, areas in self.people_near_areas.items()}
         }

@@ -330,9 +330,9 @@ function updateDetectionDisplay(data) {
     const detectionInfo = document.getElementById('detection-info');
     let html = `
         <p><strong>Detected Persons:</strong> ${data.detected_persons}</p>
-        <p><strong>Total Intruders:</strong> ${data.total_intruders}</p>
-        <p><strong>Current Intruders:</strong> ${data.current_intruders}</p>
-        <p><strong>Last Intruder Hash:</strong> ${data.last_intruder_hash || 'None'}</p>
+        <p><strong>Total Shoppers:</strong> ${data.total_shoppers}</p>
+        <p><strong>Current Shopper:</strong> ${data.current_shopper}</p>
+        <p><strong>Last Shopper Hash:</strong> ${data.last_shopper_hash || 'None'}</p>
         <h4>Area Statistics:</h4>
     `;
 
@@ -356,5 +356,5 @@ function updateDetectionDisplay(data) {
     }
 
     detectionInfo.innerHTML = html;
-    log(`Updated detection data: ${data.detected_persons} persons, ${data.current_intruders} current intruders, ${data.total_intruders} total intruders`);
+    log(`Updated detection data: ${data.detected_persons} persons, ${data.current_shopper} current shoppers, ${data.total_shoppers} total shoppers`);
 }

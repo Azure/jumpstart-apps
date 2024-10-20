@@ -101,6 +101,13 @@ def status():
     else:
         return jsonify({"message": "Video processor not started or not found"}), 200
 
+@app.route('/metrics')
+def metrics():
+    results = {}
+    for video_url, processor in video_processors.items():
+        results[video_url] = processor.get_detection_data()
+    return jsonify(results)
+
 if __name__ == '__main__':
     print(f"OpenVINO version: {ov_get_version()}")
     print(f"Available devices: {ie.available_devices}")
