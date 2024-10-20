@@ -4,7 +4,9 @@ import random
 import time
 from datetime import datetime
 import os
-#from dotenv import load_dotenv
+
+#dev mode
+from dotenv import load_dotenv
 
 import psutil
 #from prometheus_client import start_http_server, Gauge, Counter
@@ -15,8 +17,8 @@ from prometheus_client.exposition import generate_latest
 from prometheus_client.core import CollectorRegistry
 from flask import Flask, Response
 
-#development
-#load_dotenv()
+#dev mode
+load_dotenv()
 
 # InfluxDB Settings
 INFLUXDB_URL = os.getenv("INFLUXDB_URL")
@@ -26,6 +28,9 @@ INFLUXDB_BUCKET = os.getenv("INFLUXDB_BUCKET")
 INFLUXDB_BUCKET = os.getenv("INFLUXDB_BUCKET")
 VERBOSE = bool(os.getenv("VERBOSE", "False"))
 PORT = int(os.getenv("PORT", "8000"))
+
+MAX_CONSECUTIVE_ERRORS = 30
+consecutive_errors = 0
 
 REGISTRY = CollectorRegistry()
 CPU_USAGE = Gauge('cpu_usage_percent', 'CPU usage in percent', registry=REGISTRY)
@@ -37,6 +42,36 @@ LOG_MESSAGES = Counter('log_messages', 'Number of log messages', ['level'], regi
 FRIDGE_TEMP = Gauge('refrigerator_temperature_celsius', 'Refrigerator temperature in Celsius', registry=REGISTRY)
 FRIDGE_DOOR_OPEN = Gauge('refrigerator_door_open', 'Refrigerator door open status (1 for open, 0 for closed)', registry=REGISTRY)
 FRIDGE_POWER_USAGE = Gauge('refrigerator_power_usage_kwh', 'Refrigerator power usage in kWh', registry=REGISTRY)
+
+# Scale metrics
+SCALE_WEIGHT = Gauge('scale_weight_kg', 'Scale weight in kg', registry=REGISTRY)
+SCALE_TARE_WEIGHT = Gauge('scale_tare_weight_kg', 'Scale tare weight in kg', registry=REGISTRY)
+
+# POS metrics
+POS_ITEMS_SOLD = Counter('pos_items_sold', 'Number of items sold', registry=REGISTRY)
+POS_TOTAL_AMOUNT = Counter('pos_total_amount_usd', 'Total amount of sales in USD', registry=REGISTRY)
+POS_PAYMENT_METHOD = Counter('pos_payment_method', 'Payment method used', ['method'], registry=REGISTRY)
+
+# SmartShelf metrics
+SMART_SHELF_STOCK_LEVEL = Gauge('smart_shelf_stock_level', 'Smart shelf current stock level', ['product_id'], registry=REGISTRY)
+SMART_SHELF_THRESHOLD = Gauge('smart_shelf_threshold', 'Smart shelf threshold stock level', ['product_id'], registry=REGISTRY)
+
+# HVAC metrics
+HVAC_TEMP = Gauge('hvac_temperature_celsius', 'HVAC temperature in Celsius', registry=REGISTRY)
+HVAC_HUMIDITY = Gauge('hvac_humidity_percent', 'HVAC humidity percentage', registry=REGISTRY)
+HVAC_POWER_USAGE = Gauge('hvac_power_usage_kwh', 'HVAC power usage in kWh', registry=REGISTRY)
+HVAC_MODE = Gauge('hvac_mode', 'HVAC operating mode (0 for cooling, 1 for heating)', registry=REGISTRY)
+
+# LightingSystem metrics
+LIGHTING_BRIGHTNESS = Gauge('lighting_brightness_level', 'Lighting system brightness level', registry=REGISTRY)
+LIGHTING_POWER_USAGE = Gauge('lighting_power_usage_kwh', 'Lighting system power usage in kWh', registry=REGISTRY)
+LIGHTING_STATUS = Gauge('lighting_status', 'Lighting system status (0 for off, 1 for on)', registry=REGISTRY)
+
+# AutomatedCheckout metrics
+AUTO_CHECKOUT_ITEMS_SCANNED = Counter('auto_checkout_items_scanned', 'Number of items scanned at automated checkout', registry=REGISTRY)
+AUTO_CHECKOUT_TOTAL_AMOUNT = Counter('auto_checkout_total_amount_usd', 'Total amount of sales in USD at automated checkout', registry=REGISTRY)
+AUTO_CHECKOUT_PAYMENT_METHOD = Counter('auto_checkout_payment_method', 'Payment method used at automated checkout', ['method'], registry=REGISTRY)
+AUTO_CHECKOUT_ERRORS = Counter('auto_checkout_errors', 'Number of errors at automated checkout', registry=REGISTRY)
 
 
 # Initialize Prometheus metrics for each equipment type
@@ -84,6 +119,9 @@ def generate_equipment_data(equipment_type):
             "weight_kg": random.uniform(0.5, 20),
             "tare_weight_kg": random.uniform(0.05, 0.5),
         }
+        SCALE_WEIGHT.set(data["weight_kg"])
+        SCALE_TARE_WEIGHT.set(data["tare_weight_kg"])
+
     elif equipment_type == "POS":
         data = {
             "transaction_id": f"txn_{random.randint(1000, 9999)}",
@@ -91,6 +129,10 @@ def generate_equipment_data(equipment_type):
             "total_amount_usd": random.uniform(10, 500),
             "payment_method": random.choice(["credit_card", "cash", "mobile_payment"]),
         }
+        POS_ITEMS_SOLD.inc(data["items_sold"])
+        POS_TOTAL_AMOUNT.inc(data["total_amount_usd"])
+        POS_PAYMENT_METHOD.labels(method=data["payment_method"]).inc()
+
     elif equipment_type == "SmartShelf":
         data = {
             "product_id": f"prod_{random.randint(1000, 9999)}",
@@ -98,6 +140,9 @@ def generate_equipment_data(equipment_type):
             "threshold_stock_level": random.randint(10, 20),
             "last_restocked": datetime.utcnow().isoformat(),
         }
+        SMART_SHELF_STOCK_LEVEL.labels(product_id=data["product_id"]).set(data["stock_level"])
+        SMART_SHELF_THRESHOLD.labels(product_id=data["product_id"]).set(data["threshold_stock_level"])
+
     elif equipment_type == "HVAC":
         data = {
             "temperature_celsius": random.uniform(18, 24),
@@ -105,12 +150,21 @@ def generate_equipment_data(equipment_type):
             "power_usage_kwh": random.uniform(2, 4),
             "operating_mode": random.choice(["heating", "cooling"]),
         }
+        HVAC_TEMP.set(data["temperature_celsius"])
+        HVAC_HUMIDITY.set(data["humidity_percent"])
+        HVAC_POWER_USAGE.set(data["power_usage_kwh"])
+        HVAC_MODE.set(1 if data["operating_mode"] == "heating" else 0)
+
     elif equipment_type == "LightingSystem":
         data = {
             "brightness_level": random.uniform(0, 100),
             "power_usage_kwh": random.uniform(.05, 1.5),
             "payment_method": random.choice(["on", "off"]),
         }
+        LIGHTING_BRIGHTNESS.set(data["brightness_level"])
+        LIGHTING_POWER_USAGE.set(data["power_usage_kwh"])
+        LIGHTING_STATUS.set(1 if data["status"] == "on" else 0)
+
     elif equipment_type == "AutomatedCheckout":
         data = {
             "transaction_id": f"txn_{random.randint(1000, 9999)}",
@@ -119,6 +173,11 @@ def generate_equipment_data(equipment_type):
             "payment_method": random.choice(["credit_card", "cash", "mobile_payment"]),
             "errors": random.uniform(0, 5),
         }
+        AUTO_CHECKOUT_ITEMS_SCANNED.inc(data["items_scanned"])
+        AUTO_CHECKOUT_TOTAL_AMOUNT.inc(data["total_amount_usd"])
+        AUTO_CHECKOUT_PAYMENT_METHOD.labels(method=data["payment_method"]).inc()
+        AUTO_CHECKOUT_ERRORS.inc(data["errors"])
+
     else:
         # General data for other equipment types (could be extended as needed)
         data = {
@@ -158,6 +217,7 @@ if __name__ == "__main__":
 
     while True:
         try:
+            
             timestamp = datetime.utcnow().isoformat()
             # Write data for different types of equipment
             write_data_to_influxdb("Refrigerator", "refrigerator_data", timestamp)
@@ -170,8 +230,16 @@ if __name__ == "__main__":
 
             #Update system metrics
             update_system_metrics()
+
+            consecutive_errors = 0  # Reset error count on successful iteration
+            time.sleep(10)
             
-            time.sleep(5)
         except Exception as e:
             logger.error(f"An error occurred: {str(e)}")
-        
+            consecutive_errors += 1
+            if consecutive_errors >= MAX_CONSECUTIVE_ERRORS:
+                logger.critical(f"Too many consecutive errors ({MAX_CONSECUTIVE_ERRORS}). Stopping the program.")
+                break
+            time.sleep(10)
+
+    logger.info("Program terminated.")
