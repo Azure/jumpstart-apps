@@ -209,7 +209,7 @@ const useStyles = makeStyles({
       "display": "flex",
       "align-items": "flex-start",
     },
-    instance21CerebralBy: {
+    instance21GenieBy: {
       "width": "20px",
       "height": "20px",
     },
@@ -220,7 +220,7 @@ const useStyles = makeStyles({
       "flex-shrink": "0",
       "fill": "#FFF",
     },
-    rectangle20CerebralBe: {
+    rectangle20GenieBe: {
       "width": "25.333px",
       "height": "25.333px",
       "flex-shrink": "0",

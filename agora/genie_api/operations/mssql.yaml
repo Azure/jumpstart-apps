@@ -2,7 +2,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: mssql-data
-  namespace: cerebral
+  namespace: contoso-hypermarket
 spec:
   accessModes:
     - ReadWriteOnce
@@ -14,7 +14,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: mssql-deployment
-  namespace: cerebral
+  namespace: contoso-hypermarket
 spec:
   replicas: 1
   selector:
@@ -37,7 +37,7 @@ spec:
           value: "ArcPassword123!!"
         volumeMounts:
         - name: mssql-data
-          mountPath: /var/opt/mssql
+          mountPath: /mssql/data
       volumes:
       - name: mssql-data
         persistentVolumeClaim:
@@ -47,7 +47,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: mssql-service
-  namespace: cerebral
+  namespace: contoso-hypermarket
 spec:
   selector:
     app: mssql

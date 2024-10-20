@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-api
+  namespace: contoso-hypermarket
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend-api
+  template:
+    metadata:
+      labels:
+        app: backend-api
+    spec:
+      containers:
+      - name: main-ui-backend-api
+        image: agacrd2f52.azurecr.io/main-ui-backend-api:latest
+        ports:
+        - containerPort: 5002
+        env:
+        - name: DATABASE_HOST
+          value: "backend-db"
+        - name: DATABASE_NAME
+          value: "contoso"
+        - name: DATABASE_USER
+          value: "postgres"
+        - name: DATABASE_PASSWORD
+          value: "password"
+        - name: FLASK_APP
+          value: "app.py"
+        - name: FLASK_ENV
+          value: "development"
+        - name: FLASK_RUN_HOST
+          value: ""
+      imagePullSecrets:
+      - name: acr-secret
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-api
+  namespace: contoso-hypermarket
+spec:
+  selector:
+    app: backend-api
+  ports:
+    - protocol: TCP
+      port: 5002
+      targetPort: 5002
+  type: LoadBalancer
