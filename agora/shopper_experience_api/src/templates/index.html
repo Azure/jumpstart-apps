@@ -96,11 +96,11 @@
         
         <div class="input-group">
             <label for="rtsp-url">RTSP URL:</label>
-            <input type="text" id="rtsp-url" placeholder="Enter RTSP URL">
+            <input type="text" id="video-url" placeholder="Enter RTSP URL">
         </div>
         
         <div class="input-group">
-            <button onclick="setRtspUrl()">Set URL</button>
+            <button onclick="setVideoSource()">Set URL</button>
         </div>
         
         <div class="input-group">
@@ -119,7 +119,7 @@
     
     <div class="right-panel">
         <div id="video-container">
-            <img id="video-feed" src="{{ url_for('video_feed') }}" alt="Video Feed">
+            <img id="video-feed" src="" alt="Video Feed">
         </div>
     </div>
     

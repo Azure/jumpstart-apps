@@ -1,6 +1,7 @@
 let videoFeed;
 let detectionAreas = [];
 let nextAreaId = 0;
+let cameraInitialized = false;
 
 const colors = [
     'rgba(255, 0, 0, 0.3)',   // Red
@@ -244,6 +245,7 @@ function drawRestrictedArea(area) {
 }
 
 function sendRestrictedAreas() {
+    const videoUrl = document.getElementById('video-url').value;
     const areas = detectionAreas.map(area => {
         if (area.restrictedArea) {
             return {
@@ -265,7 +267,7 @@ function sendRestrictedAreas() {
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ areas: areas }),
+        body: JSON.stringify({ areas: areas, video_url: !cameraInitialized || videoUrl == ""  ? "" : videoUrl}),
     })
     .then(response => response.json())
     .then(data => {
@@ -279,12 +281,13 @@ function sendRestrictedAreas() {
 function setVideoSource() {
     log("Setting video source");
     const url = document.getElementById('video-url').value;
+    const cameraName = `camera_${Math.floor(Math.random() * 1000)}`;
     fetch('/set_video_source', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ url: url }),
+        body: JSON.stringify({ url: url, x: 0, y: 0, w: 0, h: 1, debug: false, cameraName }),
     })
     .then(response => response.json())
     .then(data => {
@@ -298,14 +301,25 @@ function setVideoSource() {
 
 function updateVideoFeed(url) {
     log("Updating video feed");
-    videoFeed.src = `/video_feed?t=${new Date().getTime()}`;
+    const data = {
+    };
+    const jsonData = encodeURIComponent(JSON.stringify(data));
+    videoFeed.src = `/video_feed/${encodeURIComponent(url)}?data=${jsonData}`;
+    cameraInitialized = true;
 }
 
 function fetchDetectionData() {
-    fetch('/get_detection_data')
+    const videoUrl = document.getElementById('video-url').value;
+    const url = !cameraInitialized || videoUrl == ""  ? "/status" : `/status?video_url=${encodeURIComponent(videoUrl)}`;
+    fetch(url)
     .then(response => response.json())
     .then(data => {
-        updateDetectionDisplay(data);
+        if(data.message && data.message.includes('not')){
+            log(data.message)
+        }
+        else{
+            updateDetectionDisplay(data);
+        }
     })
     .catch((error) => {
         log('Error fetching detection data: ' + error);
