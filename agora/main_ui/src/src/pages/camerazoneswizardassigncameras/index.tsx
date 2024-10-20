@@ -1,4 +1,4 @@
-import React, { useState }  from 'react';
+import React, { useState, useEffect, useRef}  from 'react';
 import {
   FluentProvider,
   webLightTheme,
@@ -306,6 +306,98 @@ const CamerasZonesWizardAssignCameras = () => {
       const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
       const navigate = useNavigate();
       const stackTokens: IStackTokens = { childrenGap: 10 };
+
+      /// TOP
+      class MousePosition {
+        public x: number = 0 ;
+        public y: number = 0 ;
+      }
+
+      const [isDrawing, setIsDrawing] = useState(false);
+      const canvasRef = useRef<HTMLCanvasElement>(null);
+      useEffect(
+        () => {
+          // define the resize function, which uses the re
+          const resize = () => {
+            const canvas = canvasRef.current;
+            if (canvas) {
+              canvas.width = window.innerWidth;
+              canvas.height = window.innerHeight;
+            }
+          };
+    
+          // call resize() once.
+          resize();
+
+          // // Add event listener for clicks
+          // const handleClick = (event) => {
+          //   const canvas = canvasRef.current;
+          //   const rect = canvas.getBoundingClientRect();
+          //   const x = event.clientX - rect.left;
+          //   const y = event.clientY - rect.top;
+
+          //   // Check if the click is inside the rectangle
+          //   if (x > 50 && x < 150 && y > 50 && y < 150) {
+          //     alert('Rectangle clicked!');
+          //   }
+          // };
+
+          // canvas.addEventListener('click', handleClick);
+
+          const drawRect = (x1: number, y1: number, x2: number, y2: number) => {
+            console.log('In draw rect');
+            const canvas = canvasRef.current;
+            if(canvas) {
+              const context = canvas.getContext("2d");
+              if (context) {
+                context.lineWidth = 6;
+                context.lineCap = "round";
+                context.strokeStyle = "#9747FF69";
+                context.fillStyle = "#9747FF14"
+                context.rect(Number(x1),Number(y1), x2 - Number(x1), y2 - Number(y1));
+                context.fillRect(Number(x1),Number(y1), x2 - Number(x1), y2 - Number(y1));
+                context.stroke();
+            }
+
+            }
+          }
+
+          const drawCaptionRect = (x1: number, y1: number, x2: number, y2: number, caption: string) => {
+            console.log('In draw rect');
+            const canvas = canvasRef.current;
+            if(canvas) {
+              const context = canvas.getContext("2d");
+              if (context) {
+                context.lineWidth = 6;
+                context.lineCap = "round";
+                context.strokeStyle = "#9747FF69";
+                context.fillStyle = "#black"
+                context.rect(Number(x1),Number(y1), x2 - Number(x1), y2 - Number(y1));
+                context.fillRect(Number(x1),Number(y1), x2 - Number(x1), y2 - Number(y1));
+                context.font = "30px Arial";
+                context.fillText(caption, 10, 50);
+                context.stroke();
+            }
+
+            }
+          }
+          
+          // call resize() once.
+          drawRect(150, 150, 600, 600);
+          drawCaptionRect(200, 200, 320, 230, "Test");
+
+          drawRect(650, 650, 900, 900);
+
+          // attach event listeners.
+          window.addEventListener("resize", resize);
+    
+          // remove listeners on unmount.
+          return () => {
+            window.removeEventListener("resize", resize);
+          };    
+        },
+        [] // no dependencies means that it will be called once on mount.
+      );
     return (
         <FluentProvider theme={webLightTheme}>
         <CopilotProvider mode='sidecar'>
@@ -350,17 +442,59 @@ const CamerasZonesWizardAssignCameras = () => {
                     <Stack style={{border: '1px solid #ccc'}} tokens={stackTokens}>
                       {/* Preview area */}
                       <Stack.Item>
-                          <Text style={{fontSize: '16px', fontWeight: '400', lineHeight: '22px', color: '#000', textAlign: 'center'}}>Preview area</Text>
-                          <div style={{ flexShrink: '0', width: '865', height: 575, border: '1px solid #D9D9D9', marginBottom: 20 }} />
+                          <Text style={{fontSize: '16px',  width: "865px", display: 'block',  fontWeight: '400', lineHeight: '22px', color: '#000', textAlign: 'center', backgroundColor: '#D9D9D9'}}>Preview area</Text>
+                          <canvas id="videoCanvas"
+                              ref={canvasRef}
+                              style={{
+                              width: "865px",
+                              height: "575px",
+                              background: "url('Floorplan.png')",
+                              backgroundSize: 'cover'
+                            }}
+                            onMouseDown={(e) => {
+                              // know that we are drawing, for future mouse movements.
+                              setIsDrawing(true);
+                              const context = e.currentTarget.getContext("2d");
+                              if(context) {
+                                if (context) {
+                                  context.beginPath();
+                                  context.lineWidth = 6;
+                                  context.lineCap = "round";
+                                  context.strokeStyle = "#9747FF69";
+                                  context.fillStyle = "#9747FF14"
+                                  context.moveTo(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
+                                }
+                              }}
+                            }
+                            onMouseMove={(e) => {
+                            }}
+                            onMouseUp={(e) => {
+                              // end drawing.
+                              // only handle mouse moves when the mouse is already down.
+                              if (isDrawing) {
+                                const context = e.currentTarget.getContext("2d");
+                                if (context) {
+                                  //let end: MousePosition = getMousePos(e);  
+                                  let end: MousePosition = {
+                                    
+                                    x: 200,
+                                    y: 200
+                                  } 
+                                  //const values = Object.values(start);
+                                  const startX = 150; //values[0];
+                                  const startY =  150; //values[1];
+                                  context.rect(Number(startX),Number(startY), end.x - Number(startX), end.y - Number(startY));
+                                  context.fillRect(Number(startX),Number(startY), end.x - Number(startX), end.y - Number(startY));
+                                  context.stroke();
+                                }
+                              }                              
+                              setIsDrawing(false);
+                            }}
+                            ></canvas>
                       </Stack.Item>
-
                       {/* Main content area */}
 
                       {/* Footer */}
-                      <Stack.Item>
-                          <div style={{ height: 50, border: '1px solid #ccc', marginTop: 20 }} />
-                      </Stack.Item>
-
                       {/* Search and Add buttons */}
                     </Stack>                        
                     </Stack.Item>
