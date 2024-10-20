@@ -249,7 +249,7 @@ function sendRestrictedAreas() {
     const areas = detectionAreas.map(area => {
         if (area.restrictedArea) {
             return {
-                id: area.id,
+                id: area.id + 1,
                 area: [
                     {x: area.restrictedArea.x / area.canvas.width, y: area.restrictedArea.y / area.canvas.height},
                     {x: (area.restrictedArea.x + area.restrictedArea.width) / area.canvas.width, y: area.restrictedArea.y / area.canvas.height},

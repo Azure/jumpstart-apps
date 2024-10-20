@@ -12,20 +12,14 @@ from video_capture import VideoCapture
 import os
 
 class VideoProcessor:
-    def __init__(self, url, index, name, debug=False, x1=0, y1=0, w=0, h=0):
+    def __init__(self, url, index, name, debug=False):
         self.url = url
         self.index = index
         self.processed_frame_queue = Queue(maxsize=10)
         self.vs = None
         self.fps = 0
         self.name = name
-        self.line_points = [
-            (int(x1), int(y1)), 
-            (int(x1) + int(w), int(y1)), 
-            (int(x1) + int(w), int(y1) + int(h)), 
-            (int(x1), int(y1) + int(h)), 
-            (int(x1), int(y1))
-        ]
+        self.restricted_areas = []
         self.process_thread = None
         self.running = False
         self.last_activity = time.time()
@@ -93,8 +87,8 @@ class VideoProcessor:
     def update_area_presence(self, person_hash, bbox, frame_shape, current_time, is_new=False):
         center = ((bbox[0] + bbox[2]) // 2 / frame_shape[1], (bbox[1] + bbox[3]) // 2 / frame_shape[0])
         
-        for i, area in enumerate([self.line_points]):  # Assuming line_points defines the restricted area
-            if self.point_in_polygon(center, area):
+        for i, area in enumerate(self.restricted_areas):
+            if self.point_in_rectangle(center, area):
                 if is_new or i not in self.people_near_areas[person_hash]:
                     self.people_near_areas[person_hash][i] = {"start_time": current_time, "end_time": current_time}
                     self.area_stats[i]["current_count"] += 1
@@ -108,18 +102,10 @@ class VideoProcessor:
             self.area_stats[area_id]["current_count"] -= 1
         del self.people_near_areas[person_hash]
 
-    def point_in_polygon(self, point, polygon):
+    def point_in_rectangle(self, point, rectangle):
         x, y = point
-        odd_nodes = False
-        j = len(polygon) - 1
-        for i in range(len(polygon)):
-            xi, yi = polygon[i][0], polygon[i][1]
-            xj, yj = polygon[j][0], polygon[j][1]
-            if yi < y and yj >= y or yj < y and yi >= y:
-                if xi + (y - yi) / (yj - yi) * (xj - xi) < x:
-                    odd_nodes = not odd_nodes
-            j = i
-        return odd_nodes
+        x1, y1, x2, y2 = rectangle
+        return x1 <= x <= x2 and y1 <= y <= y2
 
     def process_frames(self):
         processing_times = collections.deque(maxlen=200)
@@ -184,12 +170,14 @@ class VideoProcessor:
             for person_id, (bbox, features, frames_tracked, is_intruder, person_hash) in new_person_tracker.items():
                 center = ((bbox[0] + bbox[2]) // 2 / frame.shape[1], (bbox[1] + bbox[3]) // 2 / frame.shape[0])
                 
-                if self.point_in_polygon(center, self.line_points):
-                    if not is_intruder:
-                        self.intruders += 1
-                        new_person_tracker[person_id] = (bbox, features, frames_tracked, True, person_hash)
-                        self.last_intruder_hash = person_hash
-                    frame_intruders.add(person_id)
+                for area in self.restricted_areas:
+                    if self.point_in_rectangle(center, area):
+                        if not is_intruder:
+                            self.intruders += 1
+                            new_person_tracker[person_id] = (bbox, features, frames_tracked, True, person_hash)
+                            self.last_intruder_hash = person_hash
+                        frame_intruders.add(person_id)
+                        break
 
             self.current_intruders = len(frame_intruders)
             self.person_tracker = new_person_tracker
@@ -200,10 +188,12 @@ class VideoProcessor:
                 cv2.putText(frame, f"ID: {person_hash}", (bbox[0], bbox[1] - 10),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.9, color, 2)
 
-            cv2.polylines(frame, [np.array(self.line_points, np.int32).reshape((-1, 1, 2))], True, (255, 0, 0), 2)
-            cv2.putText(frame, f"Area: {self.area_stats[0]['current_count']}", 
-                        (self.line_points[0][0], self.line_points[0][1] - 10),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 0, 0), 2)
+            for i, area in enumerate(self.restricted_areas):
+                cv2.rectangle(frame, (int(area[0] * frame.shape[1]), int(area[1] * frame.shape[0])), 
+                              (int(area[2] * frame.shape[1]), int(area[3] * frame.shape[0])), (255, 0, 0), 2)
+                cv2.putText(frame, f"Area {i}: {self.area_stats[i]['current_count']}", 
+                            (int(area[0] * frame.shape[1]), int(area[1] * frame.shape[0]) - 10),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 0, 0), 2)
 
             processing_time = (time.time() - start_time) * 1000
             processing_times.append(processing_time)
@@ -223,22 +213,25 @@ class VideoProcessor:
                 self.stop()
                 break
 
-    def update_line(self, x1, y1, w, h):
-        frame, _ = self.vs.read()
-        if frame is not None:
-            height, width = frame.shape[:2]
-            scaling_factor_x = width / 640
-            scaling_factor_y = height / 360
+    def update_restricted_area(self, area_id, area):
+        x_coords = [point['x'] for point in area]
+        y_coords = [point['y'] for point in area]
+        
+        x1, y1 = min(x_coords), min(y_coords)
+        x2, y2 = max(x_coords), max(y_coords)
 
-            x1 = int(float(x1) * scaling_factor_x)
-            y1 = int(float(y1) * scaling_factor_y)
-            w = int(float(w) * scaling_factor_x)
-            h = int(float(h) * scaling_factor_y)
+        if 0 <= area_id < len(self.restricted_areas) and self.restricted_areas[area_id] is not None:
+            self.restricted_areas[area_id] = [float(x1), float(y1), float(x2), float(y2)]
+        else:
+            self.restricted_areas.append([float(x1), float(y1), float(x2), float(y2)])
+            return f"Restricted area {area_id} updated successfully"
 
-            self.line_points = [
-                (x1, y1), (x1 + w, y1), (x1 + w, y1 + h), (x1, y1 + h), (x1, y1)
-            ]
-        return "Line updated successfully"
+    def remove_restricted_area(self, area_id):
+        if 0 <= area_id < len(self.restricted_areas):
+            del self.restricted_areas[area_id]
+            return f"Restricted area {area_id} removed successfully"
+        else:
+            return f"Invalid area ID: {area_id}"
 
     def get_frame(self):
         self.last_activity = time.time()

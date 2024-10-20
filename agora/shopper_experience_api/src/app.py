@@ -19,11 +19,10 @@ ie = Core()
 def get_or_create_processor(video_url, data):
     if video_url not in video_processors:
         index = len(video_processors)
-        x1, y1, w, h = data['x'], data['y'], data['w'], data['h']
         debug = bool(data['debug'])
         name = data['cameraName']
         print(f"Name: {name}")
-        video_processors[video_url] = VideoProcessor(video_url, index, name, debug, x1, y1, w, h)
+        video_processors[video_url] = VideoProcessor(video_url, index, name, debug)
     return video_processors[video_url]
 
 def generate(data, video_url):
@@ -68,11 +67,11 @@ def set_restricted_areas():
     if processor:
         # Assume the first area is the one we want to set
         if areas:
-            area = areas[0]
-            x1, y1 = area['area'][0]['x'], area['area'][0]['y']
-            x2, y2 = area['area'][2]['x'], area['area'][2]['y']
-            w, h = x2 - x1, y2 - y1
-            processor.update_line(x1, y1, w, h)
+            for area in areas:
+                if 'id' in area and 'area' in area:
+                    processor.update_restricted_area(area['id'], area['area'])
+                else:
+                    return jsonify({"error": "Invalid area format"}), 400
         return jsonify({"message": "Restricted areas set successfully"}), 200
     else:
         return jsonify({"error": "Video processor not found"}), 404
