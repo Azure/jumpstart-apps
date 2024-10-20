@@ -37,7 +37,7 @@ const SimplifiedCopilotChat = (props: CopilotChatProps) => {
 
   const handleGenieApiCall = async (inputMessage: string): Promise<void> => {
     try {
-      const apiUrl = process.env.REACT_APP_GENIE_API_URL || 'http://localhost:5004/Cerebral/api/process_question';
+      const apiUrl = process.env.REACT_APP_GENIE_API_URL || 'http://localhost:5004/Genie/api/process_question';
       const industry = process.env.REACT_APP_GENIE_INDUSTRY || 'default';
       const role = process.env.REACT_APP_GENIE_ROLE || 'default';
 

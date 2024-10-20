@@ -79,7 +79,7 @@ const MaintenanceWorkerDashboard = () => {
                       <Button appearance="transparent" icon={<DismissRegular />} />
                     }
                   >
-                    <Button>Ask Cerebral</Button>
+                    <Button>Ask Genie</Button>
                   </MessageBarActions>
                 </MessageBar>
                 </Stack>

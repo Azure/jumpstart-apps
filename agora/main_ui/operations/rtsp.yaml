@@ -1,0 +1,71 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: video-storage
+  namespace: contoso-hypermarket
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rtsp-stream
+  namespace: contoso-hypermarket
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rtsp-stream
+  template:
+    metadata:
+      labels:
+        app: rtsp-stream
+    spec:
+      initContainers:
+        - name: init-samples
+          image: alpine
+          command:
+          - wget
+          - "-O"
+          - "/samples/sample.mp4"
+          - https://download.microsoft.com/download/caaf80b6-2394-4fbc-8430-8b41a3206c64/people-are-pushing-carts-along.mp4
+          volumeMounts:
+          - name: video-storage
+            mountPath: /samples
+      containers:
+      - name: rtsp-stream
+        image: kerberos/virtual-rtsp:latest
+        ports:
+        - containerPort: 8554
+        env:
+        - name: SOURCE_URL
+          value: "file:///samples/sample.mp4"
+        volumeMounts:
+        - mountPath: /samples
+          name: video-storage
+      volumes:
+      - name: video-storage
+        persistentVolumeClaim:
+          claimName: video-storage
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: rtsp-stream
+  namespace: contoso-hypermarket
+spec:
+  selector:
+    app: rtsp-stream
+  ports:
+    - protocol: TCP
+      port: 8554
+      targetPort: 8554  
+  type: LoadBalancer

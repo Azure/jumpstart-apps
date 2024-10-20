@@ -14,7 +14,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 ENV INFLUXDB_URL="http://10.0.0.4:8086"
 ENV INFLUXDB_TOKEN="secret-token"
 ENV INFLUXDB_ORG="InfluxData"
-ENV INFLUXDB_BUCKET="cerebral"
+ENV INFLUXDB_BUCKET="genie"
 ENV VERBOSE=True
 ENV PORT=8001
 
