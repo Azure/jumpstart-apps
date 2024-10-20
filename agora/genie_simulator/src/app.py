@@ -159,7 +159,7 @@ def generate_equipment_data(equipment_type):
         data = {
             "brightness_level": random.uniform(0, 100),
             "power_usage_kwh": random.uniform(.05, 1.5),
-            "payment_method": random.choice(["on", "off"]),
+            "status": random.choice(["on", "off"]),
         }
         LIGHTING_BRIGHTNESS.set(data["brightness_level"])
         LIGHTING_POWER_USAGE.set(data["power_usage_kwh"])
@@ -190,18 +190,25 @@ def generate_equipment_data(equipment_type):
 
 def write_data_to_influxdb(equipment_type, measurement_name, timestamp):
     data = generate_equipment_data(equipment_type)
+
+    if data is None:
+            logger.error(f"Failed to generate data for {equipment_type}. Skipping write to InfluxDB.")
+            return
+
     point = Point(measurement_name).time(timestamp, WritePrecision.NS)
     
     for key, value in data.items():
         point.field(key, value)
 
-    write_api.write(bucket=INFLUXDB_BUCKET, record=point)
-    if VERBOSE:
-        print(f"Written {equipment_type} data to InfluxDB: {data}")
-        logger.info(f"Written {equipment_type} data to InfluxDB: {data}")
-
-    # Increment Prometheus counter for data points generated
-    DATA_POINTS_GENERATED.labels(equipment_type=equipment_type).inc()
+    try:
+        write_api.write(bucket=INFLUXDB_BUCKET, record=point)
+        if VERBOSE:
+            logger.info(f"Written {equipment_type} data to InfluxDB: {data}")
+    
+        # Increment Prometheus counter for data points generated
+        DATA_POINTS_GENERATED.labels(equipment_type=equipment_type).inc()
+    except Exception as e:
+        logger.error(f"Error writing {equipment_type} data to InfluxDB: {str(e)}")
 
 def update_system_metrics():
     CPU_USAGE.set(psutil.cpu_percent())
@@ -220,19 +227,16 @@ if __name__ == "__main__":
             
             timestamp = datetime.utcnow().isoformat()
             # Write data for different types of equipment
-            write_data_to_influxdb("Refrigerator", "refrigerator_data", timestamp)
-            write_data_to_influxdb("Scale", "scale_data", timestamp)
-            write_data_to_influxdb("POS", "pos_data", timestamp)
-            write_data_to_influxdb("SmartShelf", "smart_shelf_data", timestamp)
-            write_data_to_influxdb("HVAC", "hvac_data", timestamp)
-            write_data_to_influxdb("LightingSystem", "lighting_system_data", timestamp)
-            write_data_to_influxdb("AutomatedCheckout", "automated_checkout_data", timestamp)
+            for equipment in ["Refrigerator", "Scale", "POS", "SmartShelf", "HVAC", "LightingSystem", "AutomatedCheckout"]:
+                write_data_to_influxdb(equipment, f"{equipment.lower()}_data", timestamp)
 
             #Update system metrics
             update_system_metrics()
 
+            logger.info("Data written and metrics updated successfully")
+
             consecutive_errors = 0  # Reset error count on successful iteration
-            time.sleep(10)
+            
             
         except Exception as e:
             logger.error(f"An error occurred: {str(e)}")
@@ -240,6 +244,9 @@ if __name__ == "__main__":
             if consecutive_errors >= MAX_CONSECUTIVE_ERRORS:
                 logger.critical(f"Too many consecutive errors ({MAX_CONSECUTIVE_ERRORS}). Stopping the program.")
                 break
+            
+        finally:
+            # Sleep at the end of each iteration, regardless of success or failure
             time.sleep(10)
 
     logger.info("Program terminated.")
