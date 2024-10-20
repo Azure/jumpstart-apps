@@ -6,7 +6,7 @@ from datetime import datetime
 import os
 
 #dev mode
-from dotenv import load_dotenv
+#from dotenv import load_dotenv
 
 import psutil
 #from prometheus_client import start_http_server, Gauge, Counter
@@ -18,7 +18,7 @@ from prometheus_client.core import CollectorRegistry
 from flask import Flask, Response
 
 #dev mode
-load_dotenv()
+#load_dotenv()
 
 # InfluxDB Settings
 INFLUXDB_URL = os.getenv("INFLUXDB_URL")
