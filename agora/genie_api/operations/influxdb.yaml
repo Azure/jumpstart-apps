@@ -58,7 +58,7 @@ metadata:
   labels:
     type: local
 spec:
-  storageClassName: manual
+  storageClassName: longhorn
   capacity:
     storage: 5Gi
   accessModes:
@@ -72,7 +72,7 @@ metadata:
   name: influxdb-pvc
   namespace: contoso-hypermarket
 spec:
-  storageClassName: manual
+  storageClassName: longhorn
   accessModes:
     - ReadWriteOnce
   resources:

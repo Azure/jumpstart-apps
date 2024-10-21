@@ -49,7 +49,7 @@ spec:
         - name: MODEL_PATH
           value: "/tmp/models/yolov8n.pt"
         - name: RTSP_URL
-          value: "rtsp://rtsp-stream:8554/stream"
+          value: "rtsp://rtsp-stream-aisle:8555/stream"
         volumeMounts:
         - mountPath: /tmp/models
           name: models-volume
