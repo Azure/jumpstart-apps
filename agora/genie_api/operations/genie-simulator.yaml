@@ -1,3 +1,26 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: genie-simulator-config
+  namespace: contoso-hypermarket
+data:
+  INFLUXDB_URL: "http://influxdb.contoso-hypermarket.svc.cluster.local:8086"
+  INFLUXDB_TOKEN: "secret-token"
+  INFLUXDB_ORG: "InfluxData"
+  INFLUXDB_BUCKET: "hypermarket"
+  MQTT_BROKER: "localhost"
+  MQTT_PORT: "1883"
+  MQTT_TOPIC: "iot/devices"
+  REFRIGERATOR_COUNT: "3"
+  SCALE_COUNT: "2"
+  POS_COUNT: "5"
+  SMARTSHELF_COUNT: "3"
+  HVAC_COUNT: "3"
+  LIGHTINGSYSTEM_COUNT: "3"
+  AUTOMATEDCHECKOUT_COUNT: "3"
+
+---
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -16,19 +39,9 @@ spec:
       containers:
       - name: genie-simulator
         image: agacrd2f52.azurecr.io/genie-simulator:latest
-        env:
-        - name: INFLUXDB_URL
-          value: "http://influxdb.contoso-hypermarket.svc.cluster.local:8086"
-        - name: INFLUXDB_TOKEN
-          value: "secret-token"
-        - name: INFLUXDB_ORG
-          value: "InfluxData"
-        - name: INFLUXDB_BUCKET
-          value: "hypermarket"
-        - name: VERBOSE
-          value: "true"
-        - name: PORT
-          value: "8001"
+        envFrom: 
+        - configMapRef:
+            name: genie-simulator-config
 
 ---
 

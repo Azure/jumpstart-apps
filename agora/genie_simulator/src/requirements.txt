@@ -3,3 +3,4 @@ prometheus_client
 psutil
 Flask
 Flask-Session
+paho-mqtt
