@@ -8,7 +8,7 @@ import cv2, queue, threading, time
 class VideoCapture:
     def __init__(self, name):
         self.cap = cv2.VideoCapture(name)
-        self.q = queue.Queue(maxsize=150)
+        self.q = queue.Queue(maxsize=200)
         self.lock = threading.Lock()
         self.running = True  # Flag to indicate if the thread should keep running
         self.t = threading.Thread(target=self._reader)
