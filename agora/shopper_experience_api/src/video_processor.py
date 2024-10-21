@@ -125,6 +125,18 @@ class VideoProcessor:
             self.area_stats[area_id]["current_count"] -= 1
         del self.people_near_areas[person_hash]
 
+    def update_age_gender_stats(self, person_hash, age, gender):
+        age_group = int(age // 10) * 10
+        if person_hash not in self.age_gender_stats[gender.lower()]:
+            self.age_gender_stats[gender.lower()][age_group] += 1
+            self.age_gender_stats[gender.lower()][person_hash] = age_group
+        else:
+            previous_age_group = self.age_gender_stats[gender.lower()][person_hash]
+            if previous_age_group != age_group:
+                self.age_gender_stats[gender.lower()][previous_age_group] -= 1
+                self.age_gender_stats[gender.lower()][age_group] += 1
+                self.age_gender_stats[gender.lower()][person_hash] = age_group
+
     def point_in_rectangle(self, point, rectangle):
         x, y = point
         x1, y1, x2, y2 = rectangle
@@ -179,6 +191,7 @@ class VideoProcessor:
                     bbox, features, age, gender = current_frame_detections.pop(best_match[0])
                     new_person_tracker[person_id] = (bbox, features, frames_tracked + 1, is_shopper, person_hash, age, gender)
                     self.update_area_presence(person_hash, bbox, frame.shape, current_time)
+                    self.update_age_gender_stats(person_hash, age, gender)
                 elif frames_tracked < self.max_frames_to_track:
                     new_person_tracker[person_id] = (last_bbox, last_features, frames_tracked + 1, is_shopper, person_hash, last_age, last_gender)
                 else:
@@ -275,5 +288,9 @@ class VideoProcessor:
             "area_stats": dict(self.area_stats),
             "fps" : self.fps,
             "people_near_areas": {k: {int(area_id): v for area_id, v in areas.items()} 
-                                for k, areas in self.people_near_areas.items()}
+                                for k, areas in self.people_near_areas.items()},
+            "age_gender_stats": {
+                "male": {age: count for age, count in self.age_gender_stats["male"].items() if isinstance(age, int)},
+                "female": {age: count for age, count in self.age_gender_stats["female"].items() if isinstance(age, int)}
+            }
         }
