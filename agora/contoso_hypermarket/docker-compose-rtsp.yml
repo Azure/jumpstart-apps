@@ -1,0 +1,11 @@
+services:
+  rtsp_stream:
+    image: kerberos/virtual-rtsp:1.0.6
+    container_name: rtsp_stream_container
+    ports:
+      - "554:8554"
+    volumes:
+      - .\samples:/samples
+    environment:
+      - SOURCE_URL=file:///samples/sample.mp4
+    restart: always
