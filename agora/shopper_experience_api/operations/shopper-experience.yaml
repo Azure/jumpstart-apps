@@ -38,7 +38,7 @@ spec:
         - name: MODEL_PATH
           value: "/tmp/models/"
         - name: RTSP_URL
-          value: "rtsp://rtsp-stream-aisle:8555/stream"
+          value: "rtsp://rtsp-stream-aisle:8554/stream"
         - name: FLASK_PORT
           value: "5001"
         volumeMounts:
