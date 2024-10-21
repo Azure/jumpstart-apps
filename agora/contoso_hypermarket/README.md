@@ -17,6 +17,7 @@ kubectl apply -f ../main_ui_backend_api/operations/backend_db.yaml
 kubectl apply -f ../main_ui_backend_api/operations/backend_api.yaml
 
 kubectl apply -f ../footfall_ai_api/operations/footfall.yaml
+kubectl apply -f ..\shopper_experience_api\operations\shopper-experience.yaml
 
 kubectl apply -f ../genie_api/operations/influxdb.yaml
 kubectl apply -f ../genie_api/operations/influxdb-setup.yaml
