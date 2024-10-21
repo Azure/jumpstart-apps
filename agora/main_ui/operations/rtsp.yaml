@@ -29,12 +29,14 @@ spec:
     spec:
       initContainers:
         - name: init-samples
-          image: mcr.microsoft.com/cbl-mariner/busybox:1.35
+          image: mcr.microsoft.com/cbl-mariner/base/core:2.0
           command: 
           - sh
           - -c
           - |
-            wget -O /tmp/models/person-detection-retail-0013.xml https://download.microsoft.com/download/d68ed0fa-655f-4e7a-b2fc-a44224a80d8b/supermarket-aisle.mp4
+            tdnf update -y
+            tdnf install wget -y
+            wget -O /samples/sample.mp4 https://download.microsoft.com/download/d68ed0fa-655f-4e7a-b2fc-a44224a80d8b/supermarket-aisle.mp4 --no-check-certificate 
           volumeMounts:
           - name: video-storage
             mountPath: /samples
@@ -89,12 +91,14 @@ spec:
     spec:
       initContainers:
         - name: init-samples
-          image: mcr.microsoft.com/cbl-mariner/busybox:1.35
+          image: mcr.microsoft.com/cbl-mariner/base/core:2.0
           command: 
           - sh
           - -c
           - |
-            wget -O /tmp/models/person-detection-retail-0013.xml https://download.microsoft.com/download/d68ed0fa-655f-4e7a-b2fc-a44224a80d8b/supermarket-zoom.mp4
+            tdnf update -y
+            tdnf install wget -y
+            wget -O /samples/sample.mp4 https://download.microsoft.com/download/d68ed0fa-655f-4e7a-b2fc-a44224a80d8b/supermarket-zoom.mp4 --no-check-certificate
           volumeMounts:
           - name: video-storage
             mountPath: /samples

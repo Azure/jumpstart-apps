@@ -15,11 +15,13 @@ spec:
     spec:
       initContainers:
       - name: init-download-model
-        image: mcr.microsoft.com/cbl-mariner/busybox:1.35
+        image: mcr.microsoft.com/cbl-mariner/base/core:2.0
         command: 
           - sh
           - -c
           - |
+            tdnf update -y
+            tdnf install wget -y
             wget -O /tmp/models/person-detection-retail-0013.xml https://download.microsoft.com/download/d68ed0fa-655f-4e7a-b2fc-a44224a80d8b/person-detection-retail-0013.bin
             wget -O /tmp/models/person-detection-retail-0013.xml https://download.microsoft.com/download/d68ed0fa-655f-4e7a-b2fc-a44224a80d8b/person-detection-retail-0013.xml
             wget -O /tmp/models/person-detection-retail-0013.xml https://download.microsoft.com/download/d68ed0fa-655f-4e7a-b2fc-a44224a80d8b/person-reidentification-retail-0287.bin
