@@ -15,31 +15,31 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: rtsp-stream
+  name: rtsp-stream-aisle
   namespace: contoso-hypermarket
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: rtsp-stream
+      app: rtsp-stream-aisle
   template:
     metadata:
       labels:
-        app: rtsp-stream
+        app: rtsp-stream-aisle
     spec:
       initContainers:
         - name: init-samples
-          image: alpine
-          command:
-          - wget
-          - "-O"
-          - "/samples/sample.mp4"
-          - https://download.microsoft.com/download/caaf80b6-2394-4fbc-8430-8b41a3206c64/people-are-pushing-carts-along.mp4
+          image: mcr.microsoft.com/cbl-mariner/busybox:1.35
+          command: 
+          - sh
+          - -c
+          - |
+            wget -O /tmp/models/person-detection-retail-0013.xml https://download.microsoft.com/download/d68ed0fa-655f-4e7a-b2fc-a44224a80d8b/supermarket-aisle.mp4
           volumeMounts:
           - name: video-storage
             mountPath: /samples
       containers:
-      - name: rtsp-stream
+      - name: rtsp-stream-aisle
         image: kerberos/virtual-rtsp:latest
         ports:
         - containerPort: 8554
@@ -59,13 +59,73 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: rtsp-stream
+  name: rtsp-stream-zoom
   namespace: contoso-hypermarket
 spec:
   selector:
-    app: rtsp-stream
+    app: rtsp-stream-zoom
   ports:
     - protocol: TCP
       port: 8554
+      targetPort: 8554  
+  type: LoadBalancer
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rtsp-stream-zoom
+  namespace: contoso-hypermarket
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rtsp-stream-zoom
+  template:
+    metadata:
+      labels:
+        app: rtsp-stream-zoom
+    spec:
+      initContainers:
+        - name: init-samples
+          image: mcr.microsoft.com/cbl-mariner/busybox:1.35
+          command: 
+          - sh
+          - -c
+          - |
+            wget -O /tmp/models/person-detection-retail-0013.xml https://download.microsoft.com/download/d68ed0fa-655f-4e7a-b2fc-a44224a80d8b/supermarket-zoom.mp4
+          volumeMounts:
+          - name: video-storage
+            mountPath: /samples
+      containers:
+      - name: rtsp-stream-zoom
+        image: kerberos/virtual-rtsp:latest
+        ports:
+        - containerPort: 8554
+        env:
+        - name: SOURCE_URL
+          value: "file:///samples/sample.mp4"
+        volumeMounts:
+        - mountPath: /samples
+          name: video-storage
+      volumes:
+      - name: video-storage
+        persistentVolumeClaim:
+          claimName: video-storage
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: rtsp-stream-aisle
+  namespace: contoso-hypermarket
+spec:
+  selector:
+    app: rtsp-stream-aisle
+  ports:
+    - protocol: TCP
+      port: 8555
       targetPort: 8554  
   type: LoadBalancer

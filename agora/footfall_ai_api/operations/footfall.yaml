@@ -30,7 +30,7 @@ spec:
       initContainers:
       - name: init-download-model
         image: mcr.microsoft.com/cbl-mariner/busybox:1.35   
-        command: ['sh', '-c', 'wget -O /tmp/models/yolov8n.pt https://huggingface.co/Ultralytics/YOLOv8/resolve/main/yolov8n.pt']
+        command: ['sh', '-c', 'wget -O /tmp/models/yolov8n.pt download.microsoft.com/download/d68ed0fa-655f-4e7a-b2fc-a44224a80d8b/yolov8n.pt']
         volumeMounts:
         - name: models-volume
           mountPath: /tmp/models

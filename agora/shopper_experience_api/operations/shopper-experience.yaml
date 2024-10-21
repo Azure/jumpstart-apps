@@ -15,8 +15,15 @@ spec:
     spec:
       initContainers:
       - name: init-download-model
-        image: mcr.microsoft.com/onebranch/cbl-mariner/build:2.0
-        command: ['sh', '-c', 'wget -O /tmp/models/person-detection-retail-0013.xml https://raw.githubusercontent.com/vyzboy92/people_detection_tracking-CPU/refs/heads/master/utils/person-detection-retail-0013.xml']
+        image: mcr.microsoft.com/cbl-mariner/busybox:1.35
+        command: 
+          - sh
+          - -c
+          - |
+            wget -O /tmp/models/person-detection-retail-0013.xml https://download.microsoft.com/download/d68ed0fa-655f-4e7a-b2fc-a44224a80d8b/person-detection-retail-0013.bin
+            wget -O /tmp/models/person-detection-retail-0013.xml https://download.microsoft.com/download/d68ed0fa-655f-4e7a-b2fc-a44224a80d8b/person-detection-retail-0013.xml
+            wget -O /tmp/models/person-detection-retail-0013.xml https://download.microsoft.com/download/d68ed0fa-655f-4e7a-b2fc-a44224a80d8b/person-reidentification-retail-0287.bin
+            wget -O /tmp/models/person-detection-retail-0013.xml https://download.microsoft.com/download/d68ed0fa-655f-4e7a-b2fc-a44224a80d8b/person-reidentification-retail-0287.xml
         volumeMounts:
         - name: models-volume
           mountPath: /tmp/models
