@@ -61,11 +61,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: rtsp-stream-zoom
+  name: rtsp-stream-aisle
   namespace: contoso-hypermarket
 spec:
   selector:
-    app: rtsp-stream-zoom
+    app: rtsp-stream-aisle
   ports:
     - protocol: TCP
       port: 8554
@@ -123,11 +123,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: rtsp-stream-aisle
+  name: rtsp-stream-zoom
   namespace: contoso-hypermarket
 spec:
   selector:
-    app: rtsp-stream-aisle
+    app: rtsp-stream-zoom
   ports:
     - protocol: TCP
       port: 8555
