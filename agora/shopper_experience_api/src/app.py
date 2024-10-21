@@ -89,6 +89,7 @@ def set_video_source():
     print(f"Video source set to {video_source}")
     return jsonify({"message": "Video source set successfully"}), 200
 
+
 @app.route('/status')
 def status():
     video_url = request.args.get('video_url', default="")
@@ -97,7 +98,8 @@ def status():
     
     processor = get_or_create_processor(video_url, None)
     if processor:
-        return jsonify(processor.get_detection_data())
+        data = processor.get_detection_data()
+        return jsonify(data)
     else:
         return jsonify({"message": "Video processor not started or not found"}), 200
 
@@ -107,6 +109,7 @@ def metrics():
     for video_url, processor in video_processors.items():
         results[video_url] = processor.get_detection_data()
     return jsonify(results)
+
 
 if __name__ == '__main__':
     print(f"OpenVINO version: {ov_get_version()}")
