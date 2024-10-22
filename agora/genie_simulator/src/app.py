@@ -19,6 +19,8 @@ from prometheus_client.exposition import generate_latest
 from prometheus_client.core import CollectorRegistry
 from flask import Flask, Response
 
+from store_simulator import run_store_simulator
+
 #dev mode
 #from dotenv import load_dotenv
 #load_dotenv()
@@ -322,6 +324,11 @@ if __name__ == "__main__":
     # Start system metrics update in a separate thread
     Thread(target=update_system_metrics, daemon=True).start()
     logger.info("System metrics update thread started")
+
+    # Start store simulator in a separate thread
+    store_simulator_thread = Thread(target=run_store_simulator, daemon=True)
+    store_simulator_thread.start()
+    logger.info("Store simulator started")
 
     try:
         mqtt_client.connect(MQTT_BROKER, MQTT_PORT)
