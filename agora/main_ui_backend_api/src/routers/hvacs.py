@@ -35,17 +35,16 @@ def upsert_hvac(hvac: HvacCreate, hvac_id: Optional[int] = None):
     cursor = conn.cursor(cursor_factory=RealDictCursor)
     if hvac_id:
         cursor.execute(
-            'INSERT INTO hvacs (id, name, description, pressure, temperature, humidity, power, mode, status) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) '
+            'INSERT INTO hvacs (id, device_id, temperature_celsius, humidity_percent, power_usage_kwh, operating_mode) VALUES (%s, %s, %s, %s, %s, %s) '
             'ON CONFLICT (id) DO UPDATE SET '
-            'name = EXCLUDED.name, description = EXCLUDED.description, pressure = EXCLUDED.pressure, '
-            'temperature = EXCLUDED.temperature, humidity = EXCLUDED.humidity, power = EXCLUDED.power, '
-            'mode = EXCLUDED.mode, status = EXCLUDED.status RETURNING *',
-            (hvac_id, hvac.name, hvac.description, hvac.pressure, hvac.temperature, hvac.humidity, hvac.power, hvac.mode, hvac.status)
+            'device_id = EXCLUDED.device_id, temperature_celsius = EXCLUDED.temperature_celsius, humidity_percent = EXCLUDED.humidity_percent, '
+            'power_usage_kwh = EXCLUDED.power_usage_kwh, operating_mode = EXCLUDED.operating_mode RETURNING *',
+            (hvac_id, hvac.device_id, hvac.temperature_celsius, hvac.humidity_percent, hvac.power_usage_kwh, hvac.operating_mode)
         )
     else:
         cursor.execute(
-            'INSERT INTO hvacs (name, description, pressure, temperature, humidity, power, mode, status) VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING *',
-            (hvac.name, hvac.description, hvac.pressure, hvac.temperature, hvac.humidity, hvac.power, hvac.mode, hvac.status)
+            'INSERT INTO hvacs (device_id, temperature_celsius, humidity_percent, power_usage_kwh, operating_mode) VALUES (%s, %s, %s, %s, %s) RETURNING *',
+            (hvac.device_id, hvac.temperature_celsius, hvac.humidity_percent, hvac.power_usage_kwh, hvac.operating_mode)
         )
     new_hvac = cursor.fetchone()
     conn.commit()
