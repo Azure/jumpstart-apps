@@ -5,6 +5,8 @@ from openvino.runtime import Core, get_version as ov_get_version
 from video_processor import VideoProcessor
 import time
 import json
+from prometheus_metrics import PrometheusMetrics
+from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 
 # Constants
 FLASK_PORT = int(os.getenv("FLASK_PORT", 5001))
@@ -89,7 +91,6 @@ def set_video_source():
     print(f"Video source set to {video_source}")
     return jsonify({"message": "Video source set successfully"}), 200
 
-
 @app.route('/status')
 def status():
     video_url = request.args.get('video_url', default="")
@@ -103,16 +104,29 @@ def status():
     else:
         return jsonify({"message": "Video processor not started or not found"}), 200
 
-@app.route('/metrics')
-def metrics():
+def get_all_cameras_data_func():
     results = {}
     for video_url, processor in video_processors.items():
         results[video_url] = processor.get_detection_data()
-    return jsonify(results)
+    return results
+
+@app.route('/metrics')
+def metrics():
+    # Get current detection data for all cameras
+    all_camera_data = get_all_cameras_data_func()
+    
+    # Update all metrics
+    prometheus_metrics.update_metrics(all_camera_data)
+    
+    # Generate and return the metrics in Prometheus format
+    return Response(generate_latest(), mimetype=CONTENT_TYPE_LATEST)
 
 
 if __name__ == '__main__':
     print(f"OpenVINO version: {ov_get_version()}")
-    print(f"Available devices: {ie.available_devices}")
+    print(f"Available devices: {ie.available_devices}")  
+    
+    # Initialize the metrics
+    prometheus_metrics = PrometheusMetrics()
     
     app.run(host='0.0.0.0', port=FLASK_PORT, debug=FLASK_DEBUG, threaded=True)
