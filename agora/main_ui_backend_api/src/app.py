@@ -1,14 +1,12 @@
 from fastapi import FastAPI
-from routers import cameras, zones, regions, ovens, fridges
+from routers import cameras, zones, regions, hvacs
 
 app = FastAPI()
 
 app.include_router(cameras.router)
 app.include_router(zones.router)
 app.include_router(regions.router)
-app.include_router(ovens.router)
-app.include_router(fridges.router)
-
+app.include_router(hvacs.router)
 
 if __name__ == "__main__":
     import uvicorn

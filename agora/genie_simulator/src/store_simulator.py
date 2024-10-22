@@ -4,7 +4,7 @@ from datetime import timedelta, time, datetime
 import time
 import os
 from azure.eventhub import EventHubProducerClient, EventHubConsumerClient, EventData
-from dotenv import load_dotenv
+#from dotenv import load_dotenv
 from threading import Thread
 import logging
 
