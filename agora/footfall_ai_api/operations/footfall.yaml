@@ -36,7 +36,7 @@ spec:
           - |
             tdnf update -y
             tdnf install wget -y
-            wget -O /tmp/models/yolov8n.pt download.microsoft.com/download/d68ed0fa-655f-4e7a-b2fc-a44224a80d8b/yolov8n.pt
+            wget -O /tmp/models/yolov8n.pt download.microsoft.com/download/ad457769-60e2-4e4b-8756-8d9fada0b60a/yolov8n.pt
         volumeMounts:
         - name: models-volume
           mountPath: /tmp/models
