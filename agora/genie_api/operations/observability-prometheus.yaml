@@ -1,0 +1,15 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: genie-service-monitor
+  namespace: contoso-hypermarket
+  labels:
+    release: prometheus  
+spec:
+  endpoints:
+  - port: genie-metrics # Make sure this matches the port name of your service
+    interval: 30s
+    path: /metrics
+  selector:
+    matchLabels:
+      app: genie-simulator-service # Make sure this matches the label of your service
