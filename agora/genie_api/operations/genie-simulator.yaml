@@ -24,7 +24,7 @@ data:
   HISTORICAL_DATA_DAYS: "1"
   ORDER_FREQUENCY: "10"
   PRODUCTS_FILE: "products.json"
-  UI_API_URL: "https://backend-api.contoso-hypermarket.svc.cluster.local:5002"
+  UI_API_URL: "http://backend-api.contoso-hypermarket.svc.cluster.local:5002"
 ---
 
 apiVersion: apps/v1
