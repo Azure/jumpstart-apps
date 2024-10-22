@@ -14,3 +14,6 @@ fastapi
 uvicorn
 flask_restx
 pyodbc
+whisper
+azure-cognitiveservices-speech
+jsonify

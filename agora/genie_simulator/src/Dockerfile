@@ -1,14 +1,13 @@
 # Use a base Python image
-FROM python:3.12-slim
+FROM mcr.microsoft.com/cbl-mariner/base/python:3
 
 # Copy application files to the container
-COPY . /app
+WORKDIR /usr/src/app
 
-# Set the working directory
-WORKDIR /app
-
-# Install dependencies
+COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
 
 # Define environment variables
 ENV INFLUXDB_URL="http://10.0.0.4:8086"
@@ -34,8 +33,7 @@ ENV HISTORICAL_DATA_DAYS=1
 ENV ORDER_FREQUENCY=10
 ENV PRODUCTS_FILE=products.json
 
-
 EXPOSE 8001
 
-# Command to run the application
-CMD ["python", "app.py"]
+# Run main.py when the container launches
+CMD ["/usr/bin/python3", "app.py"]
