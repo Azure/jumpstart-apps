@@ -1,17 +1,17 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: shopper-experience-api
+  name: shopper-insights-api
   namespace: contoso-hypermarket
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: shopper-experience-api
+      app: shopper-insights-api
   template:
     metadata:
       labels:
-        app: shopper-experience-api
+        app: shopper-insights-api
     spec:
       initContainers:
       - name: init-download-model
@@ -21,8 +21,8 @@ spec:
         - name: models-volume
           mountPath: /tmp/models
       containers:
-      - name: shopper-experience-api
-        image: agacrd2f52.azurecr.io/shopper-experience-api:latest
+      - name: shopper-insights-api
+        image: agacrd2f52.azurecr.io/shopper-insights-api:latest
         ports:
         - containerPort: 5001
         env:
@@ -45,11 +45,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: shopper-experience-api
+  name: shopper-insights-api
   namespace: contoso-hypermarket
 spec:
   selector:
-    app: shopper-experience-api
+    app: shopper-insights-api
   ports:
     - protocol: TCP
       port: 5001
