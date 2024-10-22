@@ -33,8 +33,8 @@ def create_region(region: RegionCreate):
     conn = get_db_connection()
     cursor = conn.cursor(cursor_factory=RealDictCursor)
     cursor.execute(
-        'INSERT INTO regions (name, description, camera_id, x1, y1, x2, y2) VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING *',
-        (region.name, region.description, region.camera_id, region.x1, region.y1, region.x2, region.y2)
+        'INSERT INTO regions (name, description, camera_id, x1, y1, x2, y2, threshold) VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING *',
+        (region.name, region.description, region.camera_id, region.x1, region.y1, region.x2, region.y2, region.threshold)
     )
     new_region = cursor.fetchone()
     conn.commit()
@@ -47,8 +47,8 @@ def update_region(region_id: int, region: RegionCreate):
     conn = get_db_connection()
     cursor = conn.cursor(cursor_factory=RealDictCursor)
     cursor.execute(
-        'UPDATE regions SET name = %s, description = %s, camera_id = %s, x1 = %s, y1 = %s, x2 = %s, y2 = %s WHERE id = %s RETURNING *',
-        (region.name, region.description, region.camera_id, region.x1, region.y1, region.x2, region.y2, region_id)
+        'UPDATE regions SET name = %s, description = %s, camera_id = %s, x1 = %s, y1 = %s, x2 = %s, y2 = %s, threshold = %s WHERE id = %s RETURNING *',
+        (region.name, region.description, region.camera_id, region.x1, region.y1, region.x2, region.y2, region.threshold, region_id)
     )
     updated_region = cursor.fetchone()
     conn.commit()

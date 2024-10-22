@@ -18,7 +18,13 @@ data:
   HVAC_COUNT: "3"
   LIGHTINGSYSTEM_COUNT: "3"
   AUTOMATEDCHECKOUT_COUNT: "3"
-
+  EVENTHUB_CONNECTION_STRING: "https://aiohubns021ef.servicebus.windows.net:443/"
+  ORDERS_EVENTHUB_NAME: ORDERS
+  INVENTORY_EVENTHUB_NAME: INVENTORY
+  HISTORICAL_DATA_DAYS: "1"
+  ORDER_FREQUENCY: "10"
+  PRODUCTS_FILE: "products.json"
+  UI_API_URL: "http://backend-api.contoso-hypermarket.svc.cluster.local:5002"
 ---
 
 apiVersion: apps/v1
