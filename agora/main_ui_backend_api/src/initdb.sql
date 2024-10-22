@@ -30,14 +30,11 @@ CREATE TABLE IF NOT EXISTS regions (
 
 CREATE TABLE IF NOT EXISTS hvacs (
     id SERIAL PRIMARY KEY,
-    name text,
-    description text,
-    pressure int,
-    temperature int,
-    humidity int,
-    power int,
-    mode text,
-    status text
+    device_id text,
+    temperature_celsius float,
+    humidity_percent float,
+    power_usage_kwh float,
+    operating_mode text
 );
 
 -- Seeding cameras
@@ -82,16 +79,3 @@ BEGIN
     END IF;
 END $$;
 
--- Seeding hvacs
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM hvacs) THEN
-        INSERT INTO hvacs (name, description, pressure, temperature, humidity, power, mode, status)
-        VALUES
-            ('HVAC 1', 'Main AC', 1, 200, 30, 1, 'Heating', 'Active'),
-            ('HVAC 2', 'Warehouse AC', 1, 250, 20, 1, 'Heating', 'Active'),
-            ('HVAC 3', 'Oven', 1, 180, 40, 1, 'Heating', 'Active'),
-            ('HVAC 4', 'Refrigerator', 1, 220, 35, 1, 'Cooling', 'Active'),
-            ('HVAC 5', 'Roasting Oven', 1, 300, 25, 1, 'Heating', 'Error');
-    END IF;
-END $$;

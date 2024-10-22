@@ -3,6 +3,7 @@ from influxdb_client.client.write_api import SYNCHRONOUS
 import time
 import random
 from datetime import datetime, timedelta
+import requests
 
 import os
 import paho.mqtt.client as mqtt
@@ -31,9 +32,9 @@ INFLUXDB_URL = os.getenv("INFLUXDB_URL")
 INFLUXDB_TOKEN = os.getenv("INFLUXDB_TOKEN")
 INFLUXDB_ORG = os.getenv("INFLUXDB_ORG")
 INFLUXDB_BUCKET = os.getenv("INFLUXDB_BUCKET")
-INFLUXDB_BUCKET = os.getenv("INFLUXDB_BUCKET")
 VERBOSE = bool(os.getenv("VERBOSE", "False"))
 PORT = int(os.getenv("PORT", "8000"))
+UI_API_URL = os.getenv("UI_API_URL", "http://0.0.0.0:5002")
 
 # MQTT Settings
 MQTT_BROKER = os.getenv("MQTT_BROKER", "localhost")
@@ -132,8 +133,8 @@ def metrics():
 client = InfluxDBClient(url=INFLUXDB_URL, token=INFLUXDB_TOKEN, org=INFLUXDB_ORG)
 write_api = client.write_api(write_options=SYNCHRONOUS)
 
-def generate_equipment_data(equipment_type, device_id):
-    data = {"device_id": device_id}
+def generate_equipment_data(equipment_type, device_id, pk):
+    data = {"id": pk, "device_id": device_id}
     
     if equipment_type == "Refrigerator":
         data.update({
@@ -289,12 +290,25 @@ def update_prometheus_metrics(equipment_type, device_id, data):
         logger.error(f"Error updating Prometheus metrics for {device_id}: {str(e)}")
         LOG_MESSAGES.labels(level="error").inc()
 
+def update_backend_api(equipment_type, pk, data):
+    url = UI_API_URL
+    if equipment_type == "HVAC":
+        url += f"/hvacs/{pk}"
+        try:
+            payload = {
+                **data
+            }
+            response = requests.put(url, json=payload)
+            response.raise_for_status()
+            logger.info(f"Successfully updated backend API for {pk}")
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Failed to update backend API for {pk}: {str(e)}")
 
-def simulate_device(equipment_type, device_id):
+def simulate_device(pk, equipment_type, device_id):
     while True:
         try:
             timestamp = datetime.utcnow().isoformat()
-            data = generate_equipment_data(equipment_type, device_id)
+            data = generate_equipment_data(equipment_type, device_id, pk)
 
             measurement_name = f"{device_id}_{equipment_type.lower()}_data"
             
@@ -306,6 +320,9 @@ def simulate_device(equipment_type, device_id):
 
             # Update Prometheus metrics
             update_prometheus_metrics(equipment_type, device_id, data)
+
+            # Update backend API
+            update_backend_api(equipment_type, pk, data)
 
             # Increment the data points counter
             increment_data_points(equipment_type, device_id)
@@ -339,18 +356,20 @@ if __name__ == "__main__":
 
     # Create a list of all devices to simulate
     devices_to_simulate = []
+    pk = 1
     for equipment_type, count in DEVICE_COUNTS.items():
         for i in range(count):
             device_id = f"{equipment_type}{i+1:02d}"
-            devices_to_simulate.append((equipment_type, device_id))
+            devices_to_simulate.append((pk, equipment_type, device_id))
+            pk=pk+1
     
     logger.info(f"Preparing to simulate {len(devices_to_simulate)} devices")
 
     # Use a ThreadPoolExecutor to run device simulations in parallel
     with concurrent.futures.ThreadPoolExecutor(max_workers=len(devices_to_simulate)) as executor:
         # Submit a task for each device
-        futures = [executor.submit(simulate_device, equipment_type, device_id) 
-                   for equipment_type, device_id in devices_to_simulate]
+        futures = [executor.submit(simulate_device, pk, equipment_type, device_id) 
+                   for pk, equipment_type, device_id in devices_to_simulate]
         
         logger.info("All device simulation threads started")
         

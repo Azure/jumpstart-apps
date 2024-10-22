@@ -2,21 +2,15 @@ from pydantic import BaseModel
 
 class Hvac(BaseModel):
     id: int
-    name: str
-    description: str
-    pressure: int
-    temperature: int
-    humidity: int
-    power: int
-    mode: str
-    status: str
+    device_id: str
+    temperature_celsius: float
+    humidity_percent: float
+    power_usage_kwh: float
+    operating_mode: str
 
 class HvacCreate(BaseModel):
-    name: str
-    description: str
-    pressure: int
-    temperature: int
-    humidity: int
-    power: int
-    mode: str
-    status: str
+    device_id: str
+    temperature_celsius: float
+    humidity_percent: float
+    power_usage_kwh: float
+    operating_mode: str
