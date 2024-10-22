@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-class Oven(BaseModel):
+class Hvac(BaseModel):
     id: int
     name: str
     description: str
@@ -11,7 +11,7 @@ class Oven(BaseModel):
     mode: str
     status: str
 
-class OvenCreate(BaseModel):
+class HvacCreate(BaseModel):
     name: str
     description: str
     pressure: int

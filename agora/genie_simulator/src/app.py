@@ -319,7 +319,7 @@ if __name__ == "__main__":
     
     from threading import Thread
     Thread(target=lambda: app.run(host="0.0.0.0", port=PORT, use_reloader=False)).start()
-    logger.info("Metrics available at http://localhost:{0}}/metrics",PORT)
+    #logger.info("Metrics available at http://localhost:{0}}/metrics",PORT)
 
     # Start system metrics update in a separate thread
     Thread(target=update_system_metrics, daemon=True).start()

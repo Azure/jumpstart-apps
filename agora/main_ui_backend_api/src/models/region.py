@@ -9,6 +9,7 @@ class Region(BaseModel):
     y1: int
     x2: int
     y2: int
+    threshold: int
 
 class RegionCreate(BaseModel):
     name: str
@@ -18,3 +19,4 @@ class RegionCreate(BaseModel):
     y1: int
     x2: int
     y2: int
+    threshold: int
