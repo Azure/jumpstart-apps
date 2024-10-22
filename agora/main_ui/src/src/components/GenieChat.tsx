@@ -15,25 +15,138 @@ import {
   CopyRegular,
   EditRegular,
   ShareRegular,
+  MicRegular,
+  RecordStopRegular,
 } from "@fluentui/react-icons";
 import { useCopilotMode } from "@fluentui-copilot/react-provider";
+
+// Declare RecordRTC types
+declare const RecordRTC: any;
 
 interface ChatMessage {
   content: string;
   isUser: boolean;
   timestamp: string;
+  isAudio?: boolean;
 }
 
-const SimplifiedCopilotChat = (props: CopilotChatProps) => {
+const GenieChatWithAudio = (props: CopilotChatProps) => {
   const copilotMode = useCopilotMode();
   const [inputMessage, setInputMessage] = React.useState("");
+  const [isRecording, setIsRecording] = React.useState(false);
+  const [isProcessing, setIsProcessing] = React.useState(false);
+  const recorderRef = React.useRef<any>(null);
+  
   const [messages, setMessages] = React.useState<ChatMessage[]>([
     {
-      content: "Hi, I'm here to help! You can ask me questions, and I'll do my best to provide helpful answers.",
+      content: "Hi, I'm here to help! You can ask me questions using text or voice, and I'll do my best to provide helpful answers.",
       isUser: false,
       timestamp: "Now",
     },
   ]);
+
+  React.useEffect(() => {
+    // Load RecordRTC script
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/RecordRTC/5.6.2/RecordRTC.min.js';
+    script.async = true;
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      
+      recorderRef.current = new RecordRTC(stream, {
+        type: 'audio',
+        mimeType: 'audio/wav',
+        recorderType: RecordRTC.StereoAudioRecorder,
+        numberOfAudioChannels: 1, // mono audio
+        desiredSampRate: 16000, // 16khz sampling rate
+        timeSlice: 1000, // Get blob every second (optional)
+      });
+      
+      recorderRef.current.startRecording();
+      setIsRecording(true);
+    } catch (error) {
+      console.error('Error accessing microphone:', error);
+    }
+  };
+
+  const stopRecording = () => {
+    if (recorderRef.current && isRecording) {
+      recorderRef.current.stopRecording(async () => {
+        const blob = await recorderRef.current.getBlob();
+        const audioUrl = URL.createObjectURL(blob);
+        
+        // Add audio message to chat
+        const audioMessage: ChatMessage = {
+          content: audioUrl,
+          isUser: true,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          isAudio: true,
+        };
+        setMessages(prev => [...prev, audioMessage]);
+
+        // Process the audio with STT
+        await processAudioWithSTT(blob);
+
+        // Stop all tracks
+        const stream = recorderRef.current.stream;
+        if (stream) {
+          stream.getTracks().forEach((track: MediaStreamTrack) => track.stop());
+        }
+
+        recorderRef.current = null;
+        setIsRecording(false);
+      });
+    }
+  };
+
+  const processAudioWithSTT = async (audioBlob: Blob) => {
+    setIsProcessing(true);
+    try {
+      const formData = new FormData();
+      formData.append('audio', audioBlob, 'recording.wav');
+
+      const response = await fetch('/api/stt', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('STT processing failed');
+      }
+
+      const data = await response.json();
+      const transcription = data.text || "Could not transcribe audio";
+
+      // Add transcription message
+      const transcriptionMessage: ChatMessage = {
+        content: `Transcription: ${transcription}`,
+        isUser: true,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      };
+      setMessages(prev => [...prev, transcriptionMessage]);
+
+      // Process transcription with Genie
+      await handleGenieApiCall(transcription);
+    } catch (error) {
+      console.error('Error processing audio:', error);
+      const errorMessage: ChatMessage = {
+        content: "I apologize, but there was an error processing your audio message.",
+        isUser: false,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   const handleGenieApiCall = async (inputMessage: string): Promise<void> => {
     try {
@@ -54,31 +167,25 @@ const SimplifiedCopilotChat = (props: CopilotChatProps) => {
         }),
       });
 
-      
       const data = await response.json();
       let formattedResponse = "";
       if (!data) {
-        formattedResponse =  "I apologize, but I couldn't process that request.";
-      }
-      else{
+        formattedResponse = "I apologize, but I couldn't process that request.";
+      } else {
         formattedResponse = `Category: ${data.category}\n` + 
         `Query: ${data.query || data.sql_query}\n` + 
         `Query Result: ${data.query_result}\n` + 
         `Recommendations: ${data.recommendations}`;
       }
  
-      // Add bot response to chat
       const botMessage: ChatMessage = {
         content: formattedResponse,
         isUser: false,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
       setMessages(prev => [...prev, botMessage]);
-    }
-    catch (error) {
+    } catch (error) {
       console.error('Error sending message:', error);
-
-      // Add error message to chat
       const errorMessage: ChatMessage = {
         content: "I apologize, but there was an error processing your request.",
         isUser: false,
@@ -87,28 +194,22 @@ const SimplifiedCopilotChat = (props: CopilotChatProps) => {
       setMessages(prev => [...prev, errorMessage]);
     }
   };
- 
+
   const handleSend = async () => {
     if (!inputMessage.trim()) return;
 
-    // Add user message to chat
     const userMessage: ChatMessage = {
       content: inputMessage,
       isUser: true,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
     setMessages(prev => [...prev, userMessage]);
-
-    // Clear input
     setInputMessage("");
 
     try {
       await handleGenieApiCall(inputMessage);
-    } 
-    catch (error) {
+    } catch (error) {
       console.error('Error sending message:', error);
-
-      // Add error message to chat
       const errorMessage: ChatMessage = {
         content: "I apologize, but there was an error processing your request.",
         isUser: false,
@@ -118,63 +219,73 @@ const SimplifiedCopilotChat = (props: CopilotChatProps) => {
     }
   };
 
+  const renderMessage = (msg: ChatMessage, index: number) => {
+    if (msg.isUser) {
+      return (
+        <UserMessage
+          key={index}
+          timestamp={msg.timestamp}
+          actionBar={
+            <>
+              <ToolbarButton
+                aria-label="Edit"
+                icon={<EditRegular />}
+                appearance="transparent"
+              />
+              <ToolbarButton
+                aria-label="Bookmark"
+                icon={<BookmarkRegular />}
+                appearance="transparent"
+              />
+              <ToolbarButton
+                aria-label="Share"
+                icon={<ShareRegular />}
+                appearance="transparent"
+              />
+            </>
+          }
+        >
+          {msg.isAudio ? (
+            <audio controls src={msg.content} className="max-w-full" />
+          ) : (
+            msg.content
+          )}
+        </UserMessage>
+      );
+    } else {
+      return (
+        <CopilotMessage
+          key={index}
+          avatar={
+            <Avatar
+              size={24}
+              image={{
+                src: "https://res-2-sdf.cdn.office.net/files/fabric-cdn-prod_20240411.001/assets/brand-icons/product/svg/copilot_24x1.svg",
+              }}
+            />
+          }
+          name="Genie"
+          defaultFocused={index === messages.length - 1}
+          actions={
+            <Button
+              appearance={copilotMode === "canvas" ? "secondary" : "transparent"}
+              icon={<CopyRegular />}
+            >
+              {copilotMode === "canvas" ? "Copy" : ""}
+            </Button>
+          }
+        >
+          {msg.content}
+        </CopilotMessage>
+      );
+    }
+  };
+
   return (
     <CopilotChat {...props} style={{ margin: '30px' }}>
-      {messages.map((msg, index) =>
-        msg.isUser ? (
-          <UserMessage
-            key={index}
-            timestamp={msg.timestamp}
-            actionBar={
-              <>
-                <ToolbarButton
-                  aria-label="Edit"
-                  icon={<EditRegular />}
-                  appearance="transparent"
-                />
-                <ToolbarButton
-                  aria-label="Bookmark"
-                  icon={<BookmarkRegular />}
-                  appearance="transparent"
-                />
-                <ToolbarButton
-                  aria-label="Share"
-                  icon={<ShareRegular />}
-                  appearance="transparent"
-                />
-              </>
-            }
-          >
-            {msg.content}
-          </UserMessage>
-        ) : (
-          <CopilotMessage
-            key={index}
-            avatar={
-              <Avatar
-                size={24}
-                image={{
-                  src: "https://res-2-sdf.cdn.office.net/files/fabric-cdn-prod_20240411.001/assets/brand-icons/product/svg/copilot_24x1.svg",
-                }}
-              />
-            }
-            name="Genie"
-            defaultFocused={index === messages.length - 1}
-            actions={
-              <Button
-                appearance={copilotMode === "canvas" ? "secondary" : "transparent"}
-                icon={<CopyRegular />}
-              >
-                {copilotMode === "canvas" ? "Copy" : ""}
-              </Button>
-            }
-          >
-            {msg.content}
-          </CopilotMessage>
-        )
-      )}
+      {messages.map((msg, index) => renderMessage(msg, index))}
 
-      <div style={{ marginTop: '20px', display: 'flex', gap: '10px' }}>
+      <div style={{ marginTop: '20px', display: 'flex', gap: '10px', alignItems: 'center' }}>
         <input
           style={{
             flexGrow: 1,
@@ -190,11 +301,25 @@ const SimplifiedCopilotChat = (props: CopilotChatProps) => {
               handleSend();
             }
           }}
+          disabled={isRecording || isProcessing}
         />
-        <Button onClick={handleSend}>Send</Button>
+        <Button 
+          onClick={handleSend}
+          disabled={isRecording || isProcessing}
+        >
+          Send
+        </Button>
+        <Button 
+          icon={isRecording ? <RecordStopRegular /> : <MicRegular />}
+          onClick={isRecording ? stopRecording : startRecording}
+          appearance={isRecording ? "primary" : "secondary"}
+          disabled={isProcessing}
+        >
+          {isRecording ? "Stop" : isProcessing ? "Processing..." : "Record"}
+        </Button>
       </div>
     </CopilotChat>
   );
 };
 
-export default SimplifiedCopilotChat;
+export default GenieChatWithAudio;
