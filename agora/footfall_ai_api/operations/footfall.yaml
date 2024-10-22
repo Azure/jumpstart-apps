@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: model-pvc
+  name: footfall-model-pvc
   namespace: contoso-hypermarket
 spec:
   accessModes:
@@ -29,8 +29,14 @@ spec:
     spec:
       initContainers:
       - name: init-download-model
-        image: mcr.microsoft.com/cbl-mariner/busybox:1.35   
-        command: ['sh', '-c', 'wget -O /tmp/models/yolov8n.pt https://huggingface.co/Ultralytics/YOLOv8/resolve/main/yolov8n.pt']
+        image: mcr.microsoft.com/cbl-mariner/base/core:2.0   
+        command:
+          - sh
+          - -c
+          - |
+            tdnf update -y
+            tdnf install wget -y
+            wget -O /tmp/models/yolov8n.pt download.microsoft.com/download/ad457769-60e2-4e4b-8756-8d9fada0b60a/yolov8n.pt
         volumeMounts:
         - name: models-volume
           mountPath: /tmp/models
@@ -43,14 +49,14 @@ spec:
         - name: MODEL_PATH
           value: "/tmp/models/yolov8n.pt"
         - name: RTSP_URL
-          value: "rtsp://rtsp-stream:8554/stream"
+          value: "rtsp://rtsp-stream-aisle:8554/stream"
         volumeMounts:
         - mountPath: /tmp/models
           name: models-volume
       volumes:
       - name: models-volume
         persistentVolumeClaim:
-          claimName: model-pvc
+          claimName: footfall-model-pvc
 
 ---
 

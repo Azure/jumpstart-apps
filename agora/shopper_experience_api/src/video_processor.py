@@ -27,22 +27,28 @@ class VideoProcessor:
         self.debug = debug
 
         # OpenVINO setup
-        MODEL_PATH = os.getenv("MODEL_PATH", "C:\\Users\\fcabrera\\Downloads\\jumpstart-apps\\models")
+        MODEL_PATH = os.getenv("MODEL_PATH", "C:\\Users\\fcabrera\\Downloads\\jumpstart-apps\\agora\\contoso_hypermarket\\models")
         self.ie = Core()
         self.det_model = self.ie.read_model(os.path.join(MODEL_PATH, "person-detection-retail-0013.xml"))
         self.det_compiled_model = self.ie.compile_model(model=self.det_model, device_name="CPU")
         self.reid_model = self.ie.read_model(os.path.join(MODEL_PATH, "person-reidentification-retail-0287.xml"))
         self.reid_compiled_model = self.ie.compile_model(model=self.reid_model, device_name="GPU" if "GPU" in self.ie.available_devices else "CPU")
+        self.age_gender_compiled_model = self.ie.read_model(os.path.join(MODEL_PATH, "age-gender-recognition-retail-0013.xml"))
+        self.age_gender_compiled_model = self.ie.compile_model(model=self.age_gender_compiled_model, device_name="GPU" if "GPU" in self.ie.available_devices else "CPU")
 
-        # Get input and output layers
+       # Get input and output layers
         self.det_input_layer = self.det_compiled_model.input(0)
         self.det_output_layer = self.det_compiled_model.output(0)
         self.reid_input_layer = self.reid_compiled_model.input(0)
         self.reid_output_layer = self.reid_compiled_model.output(0)
+        self.age_gender_input_layer = self.age_gender_compiled_model.input(0)
+        self.gender_age_output_layer = self.age_gender_compiled_model.output(0)
+        self.age_output_layer = self.age_gender_compiled_model.output(1)
 
         # Get input sizes
         self.det_height, self.det_width = list(self.det_input_layer.shape)[2:]
         self.reid_height, self.reid_width = list(self.reid_input_layer.shape)[2:]
+        self.age_gender_height, self.age_gender_width = list(self.age_gender_input_layer.shape)[2:]
 
         # Person tracking variables
         self.person_tracker = {}
@@ -60,6 +66,12 @@ class VideoProcessor:
         # Area tracking
         self.people_near_areas = defaultdict(lambda: defaultdict(dict))
         self.area_stats = defaultdict(lambda: {"current_count": 0, "total_count": 0})
+
+        # Age and gender tracking
+        self.age_gender_stats = {
+            "male": defaultdict(int),
+            "female": defaultdict(int)
+        }
 
     def start(self):
         if not self.running:
@@ -84,6 +96,17 @@ class VideoProcessor:
         person_image = np.expand_dims(person_image.transpose(2, 0, 1), 0)
         return self.reid_compiled_model([person_image])[self.reid_output_layer].flatten()
 
+    def extract_age_gender(self, frame, bbox):
+        x1, y1, x2, y2 = bbox
+        person_image = frame[y1:y2, x1:x2]
+        person_image = cv2.resize(person_image, (self.age_gender_width, self.age_gender_height))
+        person_image = np.expand_dims(person_image.transpose(2, 0, 1), 0)
+        outputs = self.age_gender_compiled_model([person_image])
+        gender = outputs[self.gender_age_output_layer][0].argmax()
+        gender_label = "Male" if gender == 1 else "Female"
+        age = int(outputs[self.age_output_layer][0] * 100)
+        return age, gender_label
+
     def update_area_presence(self, person_hash, bbox, frame_shape, current_time, is_new=False):
         center = ((bbox[0] + bbox[2]) // 2 / frame_shape[1], (bbox[1] + bbox[3]) // 2 / frame_shape[0])
         
@@ -101,6 +124,18 @@ class VideoProcessor:
             self.people_near_areas[person_hash][area_id]["end_time"] = current_time
             self.area_stats[area_id]["current_count"] -= 1
         del self.people_near_areas[person_hash]
+
+    def update_age_gender_stats(self, person_hash, age, gender):
+        age_group = int(age // 10) * 10
+        if person_hash not in self.age_gender_stats[gender.lower()]:
+            self.age_gender_stats[gender.lower()][age_group] += 1
+            self.age_gender_stats[gender.lower()][person_hash] = age_group
+        else:
+            previous_age_group = self.age_gender_stats[gender.lower()][person_hash]
+            if previous_age_group != age_group:
+                self.age_gender_stats[gender.lower()][previous_age_group] -= 1
+                self.age_gender_stats[gender.lower()][age_group] += 1
+                self.age_gender_stats[gender.lower()][person_hash] = age_group
 
     def point_in_rectangle(self, point, rectangle):
         x, y = point
@@ -141,33 +176,35 @@ class VideoProcessor:
                     self.detected_persons += 1
                     bbox = [int(detection[i] * dim) for i, dim in zip([3, 4, 5, 6], [frame.shape[1], frame.shape[0]] * 2)]
                     features = self.extract_features(frame, bbox)
-                    current_frame_detections.append((bbox, features))
+                    age, gender = self.extract_age_gender(frame, bbox)
+                    current_frame_detections.append((bbox, features, age, gender))
 
             new_person_tracker = {}
-            for person_id, (last_bbox, last_features, frames_tracked, is_shopper, person_hash) in self.person_tracker.items():
+            for person_id, (last_bbox, last_features, frames_tracked, is_shopper, person_hash, last_age, last_gender) in self.person_tracker.items():
                 best_match = min(
-                    ((i, cosine(last_features, features)) for i, (_, features) in enumerate(current_frame_detections)),
+                    ((i, cosine(last_features, features)) for i, (_, features, _, _) in enumerate(current_frame_detections)),
                     key=lambda x: x[1],
                     default=(None, float('inf'))
                 )
                 
                 if best_match[0] is not None and best_match[1] < self.max_distance_threshold:
-                    bbox, features = current_frame_detections.pop(best_match[0])
-                    new_person_tracker[person_id] = (bbox, features, frames_tracked + 1, is_shopper, person_hash)
+                    bbox, features, age, gender = current_frame_detections.pop(best_match[0])
+                    new_person_tracker[person_id] = (bbox, features, frames_tracked + 1, is_shopper, person_hash, age, gender)
                     self.update_area_presence(person_hash, bbox, frame.shape, current_time)
+                    self.update_age_gender_stats(person_hash, age, gender)
                 elif frames_tracked < self.max_frames_to_track:
-                    new_person_tracker[person_id] = (last_bbox, last_features, frames_tracked + 1, is_shopper, person_hash)
+                    new_person_tracker[person_id] = (last_bbox, last_features, frames_tracked + 1, is_shopper, person_hash, last_age, last_gender)
                 else:
                     self.update_area_exit(person_hash, current_time)
 
-            for bbox, features in current_frame_detections:
+            for bbox, features, age, gender in current_frame_detections:
                 person_hash = hashlib.md5(features.tobytes()).hexdigest()[:8]
-                new_person_tracker[self.next_person_id] = (bbox, features, 1, False, person_hash)
+                new_person_tracker[self.next_person_id] = (bbox, features, 1, False, person_hash, age, gender)
                 self.update_area_presence(person_hash, bbox, frame.shape, current_time, is_new=True)
                 self.next_person_id += 1
 
             frame_shoppers = set()
-            for person_id, (bbox, features, frames_tracked, is_shopper, person_hash) in new_person_tracker.items():
+            for person_id, (bbox, features, frames_tracked, is_shopper, person_hash, age, gender) in new_person_tracker.items():
                 center = ((bbox[0] + bbox[2]) // 2 / frame.shape[1], (bbox[1] + bbox[3]) // 2 / frame.shape[0])
                 
                 for area in self.restricted_areas:
@@ -182,11 +219,11 @@ class VideoProcessor:
             self.current_shoppers = len(frame_shoppers)
             self.person_tracker = new_person_tracker
 
-            for person_id, (bbox, _, _, is_shopper, person_hash) in self.person_tracker.items():
+            for person_id, (bbox, _, _, is_shopper, person_hash, age, gender) in self.person_tracker.items():
                 color = (0, 0, 255) if is_shopper else (0, 255, 0)
                 cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), color, 2)
-                cv2.putText(frame, f"ID: {person_hash}", (bbox[0], bbox[1] - 10),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.9, color, 2)
+                cv2.putText(frame, f"ID: {person_hash} - A: {age} - G: {gender}", (bbox[0], bbox[1] - 10),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
             for i, area in enumerate(self.restricted_areas):
                 cv2.rectangle(frame, (int(area[0] * frame.shape[1]), int(area[1] * frame.shape[0])), 
@@ -251,5 +288,9 @@ class VideoProcessor:
             "area_stats": dict(self.area_stats),
             "fps" : self.fps,
             "people_near_areas": {k: {int(area_id): v for area_id, v in areas.items()} 
-                                for k, areas in self.people_near_areas.items()}
+                                for k, areas in self.people_near_areas.items()},
+            "age_gender_stats": {
+                "male": {age: count for age, count in self.age_gender_stats["male"].items() if isinstance(age, int)},
+                "female": {age: count for age, count in self.age_gender_stats["female"].items() if isinstance(age, int)}
+            }
         }
