@@ -5,20 +5,20 @@ services:
       dockerfile: Dockerfile
     container_name: footfall_ai_api_container
     volumes:
-      - ../models:/tmp/models
+      - ./models:/tmp/models
     ports:
       - "5003:5003"  # Adjusting to expose port 5000 as mapped in the Dockerfile
     environment:
       - MODEL_PATH=/tmp/models/yolov8n.pt
       - RTSP_URL=rtsp://rtsp_stream_container:8554/stream
 
-  shopper_experience_api:
+  shopper_insights_api:
     build:
-      context: ../shopper_experience_api/src  # This should point to the folder containing the Dockerfile and requirements.txt
+      context: ../shopper_insights_api/src  # This should point to the folder containing the Dockerfile and requirements.txt
       dockerfile: Dockerfile
-    container_name: shopper_experience_api_container
+    container_name: shopper_insights_api_container
     volumes:
-      - ../models:/tmp/models
+      - ./models:/tmp/models
     ports:
       - "5001:5001"  # Adjusting to expose port 5001 as mapped in the Dockerfile
     environment:
@@ -32,7 +32,7 @@ services:
     ports:
       - "554:8554"
     volumes:
-      - ../samples:/samples
+      - ./samples:/samples
     environment:
       - SOURCE_URL=file:///samples/sample.mp4
     restart: always
