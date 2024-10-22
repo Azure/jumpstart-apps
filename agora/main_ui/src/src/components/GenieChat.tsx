@@ -110,10 +110,13 @@ const GenieChatWithAudio = (props: CopilotChatProps) => {
   const processAudioWithSTT = async (audioBlob: Blob) => {
     setIsProcessing(true);
     try {
+      const model = process.env.REACT_APP_GENIE_STT_MODEL || 'azure';
       const formData = new FormData();
-      formData.append('audio', audioBlob, 'recording.wav');
+      formData.append('audio_data', audioBlob, 'recording.wav');
+      formData.append('model', model);
 
-      const response = await fetch('/api/stt', {
+      const apiSttUrl = process.env.REACT_APP_GENIE_STT_API_URL || 'http://localhost:5004/Genie/api/stt';
+      const response = await fetch(apiSttUrl, {       
         method: 'POST',
         body: formData,
       });
