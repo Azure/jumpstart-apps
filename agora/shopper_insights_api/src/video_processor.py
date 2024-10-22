@@ -205,7 +205,7 @@ class VideoProcessor:
                     if self.point_in_rectangle(center, area):
                         if not is_shopper:
                             self.shoppers += 1
-                            new_person_tracker[person_id] = (bbox, features, frames_tracked, True, person_hash)
+                            new_person_tracker[person_id] = (bbox, features, frames_tracked, True, person_hash, age)
                             self.last_shopper_hash = person_hash
                         frame_shoppers.add(person_id)
                         break
