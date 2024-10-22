@@ -50,11 +50,14 @@ kind: Service
 metadata:
   name: genie-simulator-service
   namespace: contoso-hypermarket
+  labels:
+    app: genie-simulator-service
 spec:
   type: LoadBalancer
   selector:
     app: genie-simulator
   ports:
-    - protocol: TCP
+    - name: genie-metrics
+      protocol: TCP
       port: 8001
       targetPort: 8001
