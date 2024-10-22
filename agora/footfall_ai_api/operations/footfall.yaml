@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: model-pvc
+  name: footfall-model-pvc
   namespace: contoso-hypermarket
 spec:
   accessModes:
@@ -56,7 +56,7 @@ spec:
       volumes:
       - name: models-volume
         persistentVolumeClaim:
-          claimName: model-pvc
+          claimName: footfall-model-pvc
 
 ---
 
