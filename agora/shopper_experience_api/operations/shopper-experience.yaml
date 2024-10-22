@@ -1,3 +1,17 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: shopper-model-pvc
+  namespace: contoso-hypermarket
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -47,7 +61,7 @@ spec:
       volumes:
       - name: models-volume
         persistentVolumeClaim:
-          claimName: model-pvc
+          claimName: shopper-model-pvc
 
 ---
 
