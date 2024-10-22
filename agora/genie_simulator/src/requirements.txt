@@ -4,3 +4,4 @@ psutil
 Flask
 Flask-Session
 paho-mqtt
+azure-eventhub
