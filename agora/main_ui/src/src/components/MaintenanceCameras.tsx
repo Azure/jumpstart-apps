@@ -1,3 +1,4 @@
+import React, { useEffect, useState }  from 'react';
 import { Dropdown, SearchBox, Stack } from "@fluentui/react";
 import cameraimage1 from '../assets/cameraimage1.png'; 
 import cameraimage2 from '../assets/cameraimage2.png'; 
@@ -88,7 +89,7 @@ import {
     card: {
         width: "268px",
         maxWidth: "100%",
-        paddingLeft: "40px"
+        marginTop: "15px",
       },
     text: {
         paddingTop: "30px",
@@ -106,8 +107,38 @@ import {
         alignSelf: "stretch",
     }
   });
+
   const MaintenanceCameras: React.FC<{ callParentFunction: () => void }>  = ({ callParentFunction }) => {
     const classes = useStyles();
+    // API integration code
+    type DataItem = {
+        id: number;
+        name: string;
+        description: string;
+        rtspuri: string;
+      };    
+      const dataItems: DataItem[] = [
+      ];
+      
+      const [data, setData] = useState([]);
+      useEffect(() => {
+        fetch('http://localhost:5002/cameras')
+          .then(response => response.json())
+          .then(json => setData(json))
+          .then()
+          .catch(error => console.error(error));
+      }, []);    
+      data.forEach(
+        function(d){
+          var newDataItem: DataItem = {
+            id: d["id"] ,
+            name: d["name"],
+            description: d["description"],
+            rtspuri: d["rtspuri"],
+          };
+          dataItems.push(newDataItem);      
+         }
+      )  
     return (
         <Stack id='maincontainer'>
             <Stack id='camerasheader' horizontal style={{width: "100%"}}>
@@ -124,7 +155,8 @@ import {
                 <Stack id='searchboxcontainer' className={classes.searchboxcontainer}>
                 <SearchBox placeholder="Search camera feeds" className={classes.searchbox} />
                 </Stack>
-            </Stack> 
+            </Stack>
+            { (dataItems.length == 0) ? (
             <Stack id='emptyspace'>
                 <Stack style={{height:'100%', width:'100%'}}>
                     <Text align="center" size={500} style={{marginTop: '126px'}}>No cameras to display</Text>
@@ -134,132 +166,33 @@ import {
                     </div>
                 </Stack>
             </Stack>
+            ) : (
+
             <Stack id='camerascollection'>
+            <div id='container' style={{display: "flex", width: "100%", flexWrap: 'wrap'}}>
+            {dataItems.map(item => (
+                <div id='inner' style={{ width: "25%"}}>
+                            <Card className={classes.card}>
+                            <CardPreview>
+                                <img src={cameraimage1} alt="" />
+                            </CardPreview>
+                            <CardFooter>
+                                <Stack>
+                                <Text><b>{item.name}</b></Text>
+                                <Text>Zone label</Text>
+                                <Text className={classes.text}>Status: Active</Text>
+                                <Text>People count: 10</Text>
+                                </Stack>
+                            </CardFooter>
+                        </Card>     
+                        </div>  
+                        ))
+                    }
+            </div>
                 <Stack horizontal>
-                    <Stack horizontal>
-
-                    <Card className={classes.card}>
-                        <CardPreview>
-                            <img src={cameraimage1} alt="" />
-                        </CardPreview>
-                        <CardFooter>
-                            <Stack>
-                            <Text><b>Camera title</b></Text>
-                            <Text>Zone label</Text>
-                            <Text className={classes.text}>Status: Active</Text>
-                            <Text>People count: 10</Text>
-                            </Stack>
-                        </CardFooter>
-                    </Card>
-                    <Card className={classes.card}>
-                        <CardPreview>
-                            <img src={cameraimage2} alt="" />
-                        </CardPreview>
-                        <CardFooter>
-                            <Stack>
-                            <Text><b>Camera title</b></Text>
-                            <Text>Zone label</Text>
-                            <Text className={classes.text}>Status: Active</Text>
-                            <Text>People count: 10</Text>
-                            </Stack>
-                        </CardFooter>
-                    </Card>
-
-                    </Stack>
-                    <Stack horizontal>
-
-                    <Card className={classes.card}>
-                        <CardPreview>
-                            <img src={cameraimage1} alt="" />
-                        </CardPreview>
-                        <CardFooter>
-                            <Stack>
-                            <Text><b>Camera title</b></Text>
-                            <Text>Zone label</Text>
-                            <Text className={classes.text}>Status: Active</Text>
-                            <Text>People count: 10</Text>
-                            </Stack>
-                        </CardFooter>
-                    </Card>
-                    <Card className={classes.card}>
-                        <CardPreview>
-                            <img src={cameraimage2} alt="" />
-                        </CardPreview>
-                        <CardFooter>
-                            <Stack>
-                            <Text><b>Camera title</b></Text>
-                            <Text>Zone label</Text>
-                            <Text className={classes.text}>Status: Active</Text>
-                            <Text>People count: 10</Text>
-                            </Stack>
-                        </CardFooter>
-                    </Card>
-
-                    </Stack>
-                </Stack>
-                <Stack horizontal>
-                    <Stack horizontal>
-
-                    <Card className={classes.card}>
-                        <CardPreview>
-                            <img src={cameraimage1} alt="" />
-                        </CardPreview>
-                        <CardFooter>
-                            <Stack>
-                            <Text><b>Camera title</b></Text>
-                            <Text>Zone label</Text>
-                            <Text className={classes.text}>Status: Active</Text>
-                            <Text>People count: 10</Text>
-                            </Stack>
-                        </CardFooter>
-                    </Card>
-                    <Card className={classes.card}>
-                        <CardPreview>
-                            <img src={cameraimage2} alt="" />
-                        </CardPreview>
-                        <CardFooter>
-                            <Stack>
-                            <Text><b>Camera title</b></Text>
-                            <Text>Zone label</Text>
-                            <Text className={classes.text}>Status: Active</Text>
-                            <Text>People count: 10</Text>
-                            </Stack>
-                        </CardFooter>
-                    </Card>
-
-                    </Stack>
-                    <Stack horizontal>
-
-                    <Card className={classes.card}>
-                        <CardPreview>
-                            <img src={cameraimage1} alt="" />
-                        </CardPreview>
-                        <CardFooter>
-                            <Stack>
-                            <Text><b>Camera title</b></Text>
-                            <Text>Zone label</Text>
-                            <Text className={classes.text}>Status: Active</Text>
-                            <Text>People count: 10</Text>
-                            </Stack>
-                        </CardFooter>
-                    </Card>
-                    <Card className={classes.card}>
-                        <CardPreview>
-                            <img src={cameraimage2} alt="" />
-                        </CardPreview>
-                        <CardFooter>
-                            <Stack>
-                            <Text><b>Camera title</b></Text>
-                            <Text>Zone label</Text>
-                            <Text className={classes.text}>Status: Active</Text>
-                            <Text>People count: 10</Text>
-                            </Stack>
-                        </CardFooter>
-                    </Card>
-
-                    </Stack>                
                 </Stack>
             </Stack>
+            )}
         </Stack>
     );
   };
