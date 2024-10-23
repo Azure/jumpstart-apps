@@ -5,3 +5,4 @@ Flask
 Flask-Session
 paho-mqtt
 azure-eventhub
+python-dotenv

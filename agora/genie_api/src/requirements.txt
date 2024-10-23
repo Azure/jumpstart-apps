@@ -7,7 +7,6 @@ pandas
 openai
 python-dotenv
 kaleido
-
 flask-cors
 prometheus_client 
 fastapi 
