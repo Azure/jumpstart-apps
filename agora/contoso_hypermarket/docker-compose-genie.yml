@@ -50,9 +50,11 @@ services:
       - influxdb
     restart: "no"
 
-  rag-on-edge-simulator:
-    image: agoraarmbladev.azurecr.io/rag-on-edge-simulator:1.2  # Docker image
-    container_name: rag_on_edge_simulator  # Name of the container
+  genie-simulator:
+    build:
+      context: ../genie_simulator/src  # This should point to the folder containing the Dockerfile
+      dockerfile: Dockerfile
+    container_name: genie_simulator  # Name of the container
     ports:
       - "5000:5000"  # Expose container port 5000
     environment:
@@ -84,6 +86,9 @@ services:
       SQL_SERVER: "10.0.0.4" 
       SQL_USERNAME: "SA" 
       SQL_PASSWORD: "ArcPassword123!!"
+      WHISPER_MODEL_PATH : ""
+      AZURE_AI_SPEECH_KEY : ""
+      AZURE_AI_SPEECH_REGION : ""
     restart: always  # Optional: Restart policy
 
 volumes:

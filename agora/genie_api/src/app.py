@@ -7,12 +7,17 @@ from llm import LLM
 from InfluxDBHandler import InfluxDBHandler
 import logging
 from SqlDBHandler import SqlDBHandler
+from datetime import datetime
+import os
+from SpeechToText import STT
+import azure.cognitiveservices.speech as speechsdk 
 
 app = Flask(__name__)
 
 llm = LLM()
 influx_handler = InfluxDBHandler()
 sql_handler = SqlDBHandler()
+stt = STT()
 
 logger = logging.getLogger(__name__)
 
@@ -322,7 +327,6 @@ class ExecuteQuery(Resource):
 
         return jsonify({'query': query, 'result': result})
     
-
 # Define the expected input model
 recommendation_model = ns.model('Recommendation', {
     'question': fields.String(required=True, description='The question to classify'),
@@ -430,6 +434,64 @@ class ProcessQuestion(Resource):
             print(f"Error in process_question route: {str(e)}")
             return jsonify({'error': 'An unexpected error occurred'}), 500
 
+
+@ns.route('/api/stt', methods=['POST'])
+class SttDecode(Resource):
+    @api.doc(responses={200: 'Success', 400: 'Missing required parameters', 500: 'Server error'})
+    @api.expect(api.parser().add_argument('audio_data', type='FileStorage', location='files', required=True, help='Audio file to be processed')
+                            .add_argument('model', type=str, location='form', required=False, help='Model to use for speech recognition'))
+    def post(self):
+        """Process speech file and get text response"""
+        print("****Process speech file and get text response***\n")    
+        audio_file_path = None
+        try:
+            # Get the audio file and model selection from the POST request
+            audio_file = request.files['audio_data']
+            model = request.form.get('model', 'azure')  # Default to Azure if not specified
+
+            audio_file_size = len(audio_file.read())
+            audio_file.seek(0)  # Reset file pointer to the beginning after reading
+            print(f"Received audio file size: {audio_file_size} bytes, model: {model}")
+
+            timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+            
+            audio_file_path = f'/tmp/uploaded_audio_{timestamp}.wav'
+            if os.name == 'nt':  # Check if the OS is Windows
+                audio_file_path = f'uploaded_audio_{timestamp}.wav'
+    
+            print(f"Saving audio file to: {audio_file_path}")
+            audio_file.save(audio_file_path)
+            audio_file.close()
+
+            print(f"Recognizing audio with model: {model}")
+            if model == 'whisper':
+                result = stt.recognize_with_whisper(audio_file_path)
+            else:
+                result = stt.recognize_with_azure(audio_file_path)
+            
+            if result.reason == speechsdk.ResultReason.RecognizedSpeech:
+                print(f"Azure recognized: {result.text}")
+                return jsonify({'text': result.text})
+            elif result.reason == speechsdk.ResultReason.NoMatch:
+                print(f"No speech could be recognized: {result.no_match_details}")
+                return jsonify({'error': 'No speech could be recognized'}), 400
+            elif result.reason == speechsdk.ResultReason.Canceled:
+                cancellation_details = result.cancellation_details
+                print(f"Speech Recognition canceled: {cancellation_details.reason}")
+                if cancellation_details.reason == speechsdk.CancellationReason.Error:
+                    print(f"Error details: {cancellation_details.error_details}")
+                    print("Did you set the speech resource key and region values?")
+                return jsonify({'error': 'Speech recognition canceled'}), 400
+            else:
+                print(f"Speech re: {result.reason}")
+                return jsonify({'error': 'Speech recognition failed'}), 400
+        
+        except Exception as e:
+            print(f"Error in recognize function: {str(e)}")
+            return jsonify({'error': f'Error processing the request: {str(e)}'}), 400
+        finally:
+            if audio_file_path and os.path.exists(audio_file_path):
+                os.remove(audio_file_path)
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5004)
