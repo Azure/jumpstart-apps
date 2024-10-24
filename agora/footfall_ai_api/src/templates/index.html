@@ -73,7 +73,7 @@
                 streamDiv.className = 'video-stream';
                 streamDiv.innerHTML = `
                     <h2>Video Stream - ${cameraName}</h2>
-                    <img src="/video_feed/${encodeURIComponent(rtspUrl)}?data=${encodeURIComponent(JSON.stringify({ x, y, w, h, debug, cameraName}))}" width="640" height="360">
+                    <img src="/video_feed?data=${encodeURIComponent(JSON.stringify({ x, y, w, h, debug, cameraName, video_url: rtspUrl}))}" width="640" height="360">
                 `;
                 container.appendChild(streamDiv);
             }
