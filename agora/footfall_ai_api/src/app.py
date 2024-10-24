@@ -47,8 +47,8 @@ def generate(data, video_url):
         else:
             time.sleep(0.01)
 
-@app.route('/video_feed/<path:video_url>')
-def video_feed(video_url):
+@app.route('/video_feed')
+def video_feed():
     json_str = request.args.get('data')
     print(f"Received data: {json_str}")
     if json_str is None:
@@ -57,6 +57,8 @@ def video_feed(video_url):
         data = json.loads(json_str)
     except ValueError:
         return "Invalid JSON format", 400
+    
+    video_url = data["video_url"]       
     return Response(generate(data, video_url),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
