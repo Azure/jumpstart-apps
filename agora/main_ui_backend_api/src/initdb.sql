@@ -43,11 +43,8 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM cameras) THEN
         INSERT INTO cameras (name, description, rtspuri)
         VALUES
-            ('Camera 1', 'Entrance Camera', 'rtsp://camera1/stream'),
-            ('Camera 2', 'Checkout Camera', 'rtsp://camera2/stream'),
-            ('Camera 3', 'Fridge Camera', 'rtsp://camera3/stream'),
-            ('Camera 4', 'Rear Camera', 'rtsp://camera3/stream'),
-            ('Camera 5', 'Front Camera', 'rtsp://camera3/stream');
+            ('Camera 1', 'Aisle Camera', 'rtsp://rtsp-stream-aisle:8554/stream'),
+            ('Camera 2', 'Produce Camera', 'rtsp://rtsp-stream-zoom:8555/stream'),
     END IF;
 END $$;
 

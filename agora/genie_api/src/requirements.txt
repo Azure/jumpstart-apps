@@ -7,10 +7,12 @@ pandas
 openai
 python-dotenv
 kaleido
-
 flask-cors
 prometheus_client 
 fastapi 
 uvicorn
 flask_restx
 pyodbc
+whisper
+azure-cognitiveservices-speech
+jsonify

@@ -45,7 +45,12 @@ spec:
           value: "SA"
         - name: SQL_PASSWORD
           value: "ArcPassword123!!"
-
+        - name: WHISPER_MODEL_PATH
+          value: ""
+        - name: AZURE_AI_SPEECH_KEY
+          value: ""
+        - name: AZURE_AI_SPEECH_REGION
+          value: ""
 ---
 apiVersion: v1
 kind: Service
