@@ -109,12 +109,16 @@ const CamerasZones: React.FC<CameraPanelProps> = ({ isOpen, onDismiss, onSave })
         : [];
     };
 
+    const onSaveDrawer  = () => {
+      alert("Saving data");
+      setIsDrawerOpen(false);
+    }
 
     const onRenderFooterContent = React.useCallback(
       () => (
         <Stack horizontal tokens={{ childrenGap: 10 }}>
-          <PrimaryButton onClick={onSave}>Save</PrimaryButton>
-          <DefaultButton onClick={onDismiss}>Cancel</DefaultButton>
+          <PrimaryButton onClick={onSaveDrawer}>Save</PrimaryButton>
+          <DefaultButton onClick={onCancelDrawer}>Cancel</DefaultButton>
         </Stack>
       ),
       [onSave, onDismiss]
@@ -130,6 +134,10 @@ const CamerasZones: React.FC<CameraPanelProps> = ({ isOpen, onDismiss, onSave })
       setIsDrawerOpen(!isDrawerOpen);
     };
 
+    const onCancelDrawer = () => {
+      setIsDrawerOpen(false);
+    };
+
     return (
         <FluentProvider theme={webLightTheme}>
         <CopilotProvider mode='sidecar'>
@@ -143,6 +151,9 @@ const CamerasZones: React.FC<CameraPanelProps> = ({ isOpen, onDismiss, onSave })
         headerText="Add camera"
         onRenderFooterContent={onRenderFooterContent}
         isFooterAtBottom={true}
+        hasCloseButton={true}
+        closeButtonAriaLabel="Close"
+        isLightDismiss={true}
       >
         <Stack>
             <Stack.Item>
@@ -182,7 +193,6 @@ const CamerasZones: React.FC<CameraPanelProps> = ({ isOpen, onDismiss, onSave })
                 noResultsFoundText: 'No tags found',
               }}
               itemLimit={5} // Optional: set a limit to the number of tags
-
             />
             </Stack.Item>
         </Stack>
