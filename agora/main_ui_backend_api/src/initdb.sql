@@ -44,7 +44,7 @@ BEGIN
         INSERT INTO cameras (name, description, rtspuri)
         VALUES
             ('Camera 1', 'Aisle Camera', 'rtsp://rtsp-stream-aisle:8554/stream'),
-            ('Camera 2', 'Produce Camera', 'rtsp://rtsp-stream-zoom:8555/stream'),
+            ('Camera 2', 'Produce Camera', 'rtsp://rtsp-stream-zoom:8555/stream');
     END IF;
 END $$;
 
@@ -55,10 +55,7 @@ BEGIN
         INSERT INTO regions (name, description, camera_id, x1, y1, x2, y2, threshold)
         VALUES
             ('Region 1', 'Entrance Region', 1, 0, 0, 100, 100, 70),
-            ('Region 2', 'Checkout Region', 2, 100, 0, 200, 100, 70),
-            ('Region 3', 'Fridge Region', 3, 0, 100, 100, 200, 70),
-            ('Region 4', 'Oven Region', 4, 100, 100, 200, 200, 70),
-            ('Region 5', 'Storage Region', 5, 200, 100, 300, 200, 70);
+            ('Region 2', 'Aisle Region', 1, 0, 0, 100, 100, 70);
     END IF;
 END $$;
 
