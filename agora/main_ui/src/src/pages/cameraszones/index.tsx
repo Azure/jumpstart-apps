@@ -18,6 +18,8 @@ import logo from './logo.svg';
 import '../../App.css';
 import MaintenanceCameras from '../../components/MaintenanceCameras';
 import MaintenanceZones from '../../components/MaintenanceZones';
+import VideoStream from '../../components/VideoStream';
+
 const Main = (props: IStackProps) => (
     <Stack horizontal grow={1} disableShrink {...props} />
   );
@@ -77,7 +79,7 @@ interface CameraPanelProps {
   isOpen: boolean;
   onDismiss: () => void;
   onSave: () => void;
-}
+} 
 const CamerasZones: React.FC<CameraPanelProps> = ({ isOpen, onDismiss, onSave }) => {
     const styles = useStyles();
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -85,9 +87,12 @@ const CamerasZones: React.FC<CameraPanelProps> = ({ isOpen, onDismiss, onSave })
     const handleCameraNameInputChange = (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
       setCameraNameInputValue(newValue || '');
     };
+    const [dataForVideo, setDataForVideo] = React.useState('');
+
     const [cameraEndpointInputValue, setCameraEndpointInputValue] = React.useState('');
     const handleCameraEndpointInputChange = (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
       setCameraEndpointInputValue(newValue || '');
+      setDataForVideo("http://127.0.0.1:5003/video_feed?data={\"x\" : 0, \"y\" : 0,\"w\" : 0, \"h\" : 0, \"debug\" : true, \"cameraName\" : \"Nabeel\", \"video_url\": \"" + newValue +"\" }");
     };
     const [tags, setTags] = React.useState<ITag[]>([]);
 
@@ -110,7 +115,34 @@ const CamerasZones: React.FC<CameraPanelProps> = ({ isOpen, onDismiss, onSave })
     };
 
     const onSaveDrawer  = () => {
-      alert("Saving data");
+      var cameraName = document.getElementById('txtCameraName')?.getAttribute('value');
+      var cameraEndpoint = document.getElementById('txtCameraEndpoint')?.getAttribute('value');
+      var jsonData = {
+        "name": cameraName,
+        "description": cameraName,
+        "rtspuri": cameraEndpoint
+      }
+      const requestOptions = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(jsonData),
+      };
+
+    // Send data to the backend via POST
+
+    fetch('http://localhost:5002/cameras', {
+      method: 'POST',
+      headers: {
+        'accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      // body: '{\n  "name": "Camera3",\n  "description": "Camera3",\n  "rtspuri": "rtsp://rtsp_stream_container:8554/stream"\n}',
+      body: JSON.stringify({
+        'name': cameraName,
+        'description': cameraName,
+        'rtspuri': cameraEndpoint
+      })
+    });
       setIsDrawerOpen(false);
     }
 
@@ -158,7 +190,11 @@ const CamerasZones: React.FC<CameraPanelProps> = ({ isOpen, onDismiss, onSave })
         <Stack>
             <Stack.Item>
               <div className={styles.cameraimagecontainer}>
-                <div className={styles.cameraimage}>Camera Feed</div>
+                <div className={styles.cameraimage}>Camera Feed
+                <VideoStream
+                  title="" 
+                  videoUrl={dataForVideo} />
+                </div>
               </div>
             </Stack.Item>
             <Stack.Item>
@@ -170,6 +206,7 @@ const CamerasZones: React.FC<CameraPanelProps> = ({ isOpen, onDismiss, onSave })
                   value={cameraNameInputValue}
                   onChange={handleCameraNameInputChange}
                   placeholder="Enter camera name"
+                  id="txtCameraName"
                 />
             </Stack.Item>
             <Stack.Item>
@@ -178,6 +215,7 @@ const CamerasZones: React.FC<CameraPanelProps> = ({ isOpen, onDismiss, onSave })
                   value={cameraEndpointInputValue}
                   onChange={handleCameraEndpointInputChange}
                   placeholder="Enter the URL"
+                  id="txtCameraEndpoint"
                 />
             </Stack.Item>
             <Stack.Item>

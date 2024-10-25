@@ -23,7 +23,9 @@ childrenGap: "m",
 padding: "m",
 };
 
+
 const Footfall = () => {
+  const dataforVideo = "http://127.0.0.1:5003/video_feed?data={\"x\" : 20, \"y\" : 20,\"w\" : 300, \"h\" : 300, \"debug\" : true, \"cameraName\" : \"Nabeel\", \"video_url\": \"rtsp://rtsp_stream_container:8554/stream\" }";
     return (
         <FluentProvider theme={webLightTheme}>
         <CopilotProvider mode='sidecar'>
@@ -39,8 +41,7 @@ const Footfall = () => {
             </Stack>
             <VideoStream 
               title="Footfall Camera" 
-              videoUrl={process.env.REACT_APP_FOOTFALL_VIDEO_URL || ""} 
-            />
+              videoUrl={dataforVideo} />
             </Stack.Item>
           </Main>
         </CopilotProvider>
