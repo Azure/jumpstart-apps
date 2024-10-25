@@ -226,6 +226,55 @@ const Main = (props: IStackProps) => (
       activeDot: {
         backgroundColor: tokens.colorBrandBackground,
       },      
+      reviewitemheading: {
+        display: 'inline-flex',
+        alignItems: 'flex-end',
+        gap: '4px',
+        color: 'var(--Light-Foreground-Foreground-1, #242424)',
+
+        /* Web/Subtitle 2 */
+        fontFamily: 'var(--Font-family-Base, "Segoe UI")',
+        fontSize: 'var(--Font-size-400, 16px)',
+        fontStyle: 'normal',
+        fontWeight: '600',
+        lineHeight: 'var(--Line-height-400, 22px)',/* 137.5% */      
+        marginTop: '15px',
+        marginBottom: '10px',
+      },
+      reviewitem: {
+        display: 'flex',
+        height: '21px',
+        alignItems: 'flex-start',
+        flexShrink: '0',
+        marginBottom: '10px',
+      },
+
+      reviewitemname: {
+        display: 'flex',
+        width: '160px',
+        alignItems: 'flex-start',
+        color: 'var(--Light-Theme-Text-colors-Secondary, #605E5C)',
+
+        /* Web/Body 1 */
+        fontFamily: 'var(--Font-family-Base, "Segoe UI")',
+        fontSize: 'var(--Font-size-300, 14px)',
+        fontStyle: 'normal',
+        fontWeight: '400',
+        lineHeight: 'var(--Line-height-300, 20px)', /* 142.857% */
+      },
+      reviewitemvalue: {
+        width: '282px',
+        height: '21px',
+        color: '#000000',
+
+        /* Web/Body 1 */
+        fontFamily: 'var(--Font-family-Base, "Segoe UI")',
+        fontSize: 'var(--Font-size-300, 14px)',
+        fontStyle: 'normal',
+        fontWeight: '400',
+        lineHeight: 'var(--Line-height-300, 20px)', /* 142.857% */
+      },
+      
     }
     );
 
@@ -345,22 +394,72 @@ const CamerasZonesWizardReview = () => {
                     <Stack.Item>           
                     </Stack.Item>
                     <Stack.Item>
-                    <Stack style={{border: '1px solid #ccc'}} tokens={stackTokens}>
+                    <Stack style={{marginLeft: '30px'}} tokens={stackTokens}>
                       {/* Preview area */}
                       <Stack.Item>
-                          <Text style={{fontSize: '16px', fontWeight: '400', lineHeight: '22px', color: '#000', textAlign: 'center'}}>Floor plan</Text>
-                          <div style={{ flexShrink: '0', width: '865', height: 575, border: '1px solid #D9D9D9', marginBottom: 20 }} />
+                          <Text className={styles.reviewitemheading}>Floor plan</Text>
                       </Stack.Item>
 
                       {/* Main content area */}
                       <Stack id='zones'>
-
+                        <Stack.Item>
+                          <Text className={styles.reviewitemheading}>Zones</Text>
+                          <Stack>
+                            <Stack horizontal className={styles.reviewitem}>
+                              <Text className={styles.reviewitemname}> Zone 1</Text>
+                              <Text className={styles.reviewitemvalue}> Produce</Text>
+                            </Stack>
+                          </Stack>
+                          <Stack>
+                            <Stack horizontal className={styles.reviewitem}>
+                              <Text className={styles.reviewitemname}> Zone 2</Text>
+                              <Text className={styles.reviewitemvalue}> Seafood</Text>
+                            </Stack>
+                          </Stack>    
+                          <Stack>
+                            <Stack horizontal className={styles.reviewitem}>
+                              <Text className={styles.reviewitemname}> Zone 3</Text>
+                              <Text className={styles.reviewitemvalue}> Deli</Text>
+                            </Stack>
+                          </Stack> 
+                          <Stack>
+                            <Stack horizontal className={styles.reviewitem}>
+                              <Text className={styles.reviewitemname}> Zone 4</Text>
+                              <Text className={styles.reviewitemvalue}> Checkout lanes</Text>
+                            </Stack>
+                          </Stack> 
+                          <Stack>
+                            <Stack horizontal className={styles.reviewitem}>
+                              <Text className={styles.reviewitemname}> Zone 5</Text>
+                              <Text className={styles.reviewitemvalue}> Enterance</Text>
+                            </Stack>
+                          </Stack>                                                                                                                               
+                        </Stack.Item>
                       </Stack>
+                      <Stack id='cameras'>
+                        <Stack.Item>
+                          <Text className={styles.reviewitemheading}>Cameras </Text>
+                          <Stack>
+                            <Stack horizontal className={styles.reviewitem}>
+                              <Text className={styles.reviewitemname}> Camera 1</Text>
+                              <Text className={styles.reviewitemvalue}> Cam-001-north-enterance</Text>
+                            </Stack>
+                          </Stack>                          
+                          <Stack>
+                            <Stack horizontal className={styles.reviewitem}>
+                              <Text className={styles.reviewitemname}> Camera 2</Text>
+                              <Text className={styles.reviewitemvalue}> Cam-002-north-enterance</Text>
+                            </Stack>
+                          </Stack>
+                          <Stack>
+                            <Stack horizontal className={styles.reviewitem}>
+                              <Text className={styles.reviewitemname}> Camera 3</Text>
+                              <Text className={styles.reviewitemvalue}> Cam-003-north-enterance</Text>
+                            </Stack>
+                          </Stack>                                                                              
+                        </Stack.Item>
+                      </Stack>                      
                       {/* Footer */}
-                      <Stack.Item>
-                          <div style={{ height: 50, border: '1px solid #ccc', marginTop: 20 }} />
-                      </Stack.Item>
-
                       {/* Search and Add buttons */}
                     </Stack>                        
                     </Stack.Item>

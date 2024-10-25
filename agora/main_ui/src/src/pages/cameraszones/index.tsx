@@ -1,4 +1,4 @@
-import React, { useState }  from 'react';
+import React, { useEffect, useState }  from 'react';
 import {
   FluentProvider,
   webLightTheme,
@@ -16,7 +16,7 @@ import { Panel, PanelType, DefaultButton } from '@fluentui/react';
 import { CopilotProvider } from "@fluentui-copilot/react-copilot";
 import logo from './logo.svg';
 import '../../App.css';
-import Cameras from '../../components/MaintenanceCameras';
+import MaintenanceCameras from '../../components/MaintenanceCameras';
 import MaintenanceZones from '../../components/MaintenanceZones';
 const Main = (props: IStackProps) => (
     <Stack horizontal grow={1} disableShrink {...props} />
@@ -109,12 +109,16 @@ const CamerasZones: React.FC<CameraPanelProps> = ({ isOpen, onDismiss, onSave })
         : [];
     };
 
+    const onSaveDrawer  = () => {
+      alert("Saving data");
+      setIsDrawerOpen(false);
+    }
 
     const onRenderFooterContent = React.useCallback(
       () => (
         <Stack horizontal tokens={{ childrenGap: 10 }}>
-          <PrimaryButton onClick={onSave}>Save</PrimaryButton>
-          <DefaultButton onClick={onDismiss}>Cancel</DefaultButton>
+          <PrimaryButton onClick={onSaveDrawer}>Save</PrimaryButton>
+          <DefaultButton onClick={onCancelDrawer}>Cancel</DefaultButton>
         </Stack>
       ),
       [onSave, onDismiss]
@@ -129,6 +133,11 @@ const CamerasZones: React.FC<CameraPanelProps> = ({ isOpen, onDismiss, onSave })
     const toggleDrawer = () => {
       setIsDrawerOpen(!isDrawerOpen);
     };
+
+    const onCancelDrawer = () => {
+      setIsDrawerOpen(false);
+    };
+
     return (
         <FluentProvider theme={webLightTheme}>
         <CopilotProvider mode='sidecar'>
@@ -142,6 +151,9 @@ const CamerasZones: React.FC<CameraPanelProps> = ({ isOpen, onDismiss, onSave })
         headerText="Add camera"
         onRenderFooterContent={onRenderFooterContent}
         isFooterAtBottom={true}
+        hasCloseButton={true}
+        closeButtonAriaLabel="Close"
+        isLightDismiss={true}
       >
         <Stack>
             <Stack.Item>
@@ -173,16 +185,15 @@ const CamerasZones: React.FC<CameraPanelProps> = ({ isOpen, onDismiss, onSave })
             </Stack.Item>
             <Stack.Item>
             <TagPicker
-  onResolveSuggestions={onResolveSuggestions}
-  selectedItems={tags}
-  onChange={onTagsChange}
-  pickerSuggestionsProps={{
-    suggestionsHeaderText: 'Suggested tags',
-    noResultsFoundText: 'No tags found',
-  }}
-  itemLimit={5} // Optional: set a limit to the number of tags
-
-/>
+              onResolveSuggestions={onResolveSuggestions}
+              selectedItems={tags}
+              onChange={onTagsChange}
+              pickerSuggestionsProps={{
+                suggestionsHeaderText: 'Suggested tags',
+                noResultsFoundText: 'No tags found',
+              }}
+              itemLimit={5} // Optional: set a limit to the number of tags
+            />
             </Stack.Item>
         </Stack>
           </Panel>
@@ -194,7 +205,7 @@ const CamerasZones: React.FC<CameraPanelProps> = ({ isOpen, onDismiss, onSave })
             <PivotItem headerText="Cameras">
               <div>
                 {/* Content for Cameras tab */}
-                <Cameras callParentFunction={toggleDrawer}/>
+                <MaintenanceCameras callParentFunction={toggleDrawer}/>
               </div>
             </PivotItem>
             <PivotItem headerText="Zones">
