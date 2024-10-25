@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rtsp-stream
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: rtsp-stream
+  template:
+    metadata:
+      labels:
+        app: rtsp-stream
+    spec:
+      initContainers:
+        - name: init-samples
+          image: alpine
+          command:
+          - wget 
+          - "-O"
+          - "/samples/sample.mp4"
+          - https://download.microsoft.com/download/caaf80b6-2394-4fbc-8430-8b41a3206c64/people-are-pushing-carts-along.mp4
+          volumeMounts:
+          - name: video-storage
+            mountPath: /samples
+      containers:
+        - name: rtsp-stream
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.port }}
+          env:
+          - name: SOURCE_URL
+            value: "file:///samples/sample.mp4"
+          volumeMounts:
+          - mountPath: /samples
+            name: video-storage
+      volumes: 
+      - name: video-storage
+        persistentVolumeClaim:
+          claimName: video-storage

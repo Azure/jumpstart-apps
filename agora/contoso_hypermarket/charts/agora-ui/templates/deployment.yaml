@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: main-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: main-ui
+  template:
+    metadata:
+      labels:
+        app: main-ui
+    spec:
+      containers:
+      - name: main-ui
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        ports:
+        - containerPort: 8080
+        env:
+        - name: REACT_APP_FOOTFALL_VIDEO_URL
+          value: "http://footfall-ai-api:5000/video_feed?x=50&y=20&w=540&h=320&source=rtsp://rtsp-stream:8554/stream"
+        - name: REACT_APP_INTRUSION_VIDEO_URL
+          value: "http://shopper-experience-api:5001/video_feed?x=50&y=20&w=540&h=320&source=rtsp://rtsp-stream:8554/stream"
+        - name: REACT_APP_GENIE_API_URL
+          value: "http://genie-api-service.contoso-hypermarket.svc.cluster.local:5003/Genie/api/process_question"
