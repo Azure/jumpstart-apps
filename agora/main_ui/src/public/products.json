@@ -1,0 +1,98 @@
+[
+    {
+      "product_id": 1,
+      "name": "Red Apple",
+      "price_range": {"min":0.2, "max":0.4},
+      "stock": 8000,
+      "photo_path": "tomato-on-vine-image.png",
+      "category": "Fruits"
+    },
+    {
+      "product_id": 2,
+      "name": "Grape Tomatoes",
+      "stock": 10000,
+      "price_range": {"min":0.15, "max":0.3},
+      "photo_path": "Grapetomatoes.png",
+      "category": "Fruits"
+    },
+    {
+      "product_id": 3,
+      "name": "Vegetables",
+      "price_range": {"min":0.7, "max":2.0},
+      "stock": 5000,
+      "photo_path": "vegetables.png",
+      "category": "Vegetables"
+    },
+    {
+      "product_id": 4,
+      "name": "Bread",
+      "price_range": {"min":3.0, "max":5.0},
+      "stock": 2000,
+      "photo_path": "bread.png",
+      "category": "Bakery"
+    },
+    {
+      "product_id": 5,
+      "name": "Milk",
+      "price_range": {"min":2.5, "max":4.5},
+      "stock": 1000,
+      "photo_path": "static/img/product5.jpg",
+      "category": "Dairy"
+    },
+    {
+      "product_id": 6,
+      "name": "Orange Juice",
+      "price_range": {"min":3.25, "max":4.75},
+      "stock": 1000,
+      "photo_path": "static/img/product6.jpg",
+      "category": "Beverages"
+    },
+    {
+      "product_id": 7,
+      "name": "Chips",
+      "price_range": {"min":0.25, "max":0.75},
+      "stock": 5000,
+      "photo_path": "static/img/product7.jpg",
+      "category": "Snacks"
+    },
+    {
+      "product_id": 8,
+      "name": "Red Pepper",
+      "price_range": {"min":0.5, "max":1.5},
+      "stock": 1000,
+      "photo_path": "static/img/product8.jpg",
+      "category": "Vegetables"
+    },
+    {
+      "product_id": 9,
+      "name": "Lettuce",
+      "price_range": {"min":0.2, "max":0.4},
+      "stock": 10000,
+      "photo_path": "static/img/product9.jpg",
+      "category": "Vegetables"
+    },
+    {
+      "product_id": 10,
+      "name": "Tomato",
+      "price_range": {"min":0.3, "max":0.6},
+      "stock": 10000,
+      "photo_path": "tomato-on-vine-image.png",
+      "category": "Vegetables"
+    },
+    {
+      "product_id": 11,
+      "name": "Strawberry",
+      "price_range": {"min":2.0, "max":4.0},
+      "stock": 10000,
+      "photo_path": "static/img/product11.jpg",
+      "category": "Fruits"
+    },
+    {
+      "product_id": 12,
+      "name": "Eggs",
+      "price_range": {"min":3.0, "max":6.0},
+      "stock": 10000,
+      "photo_path": "static/img/product12.jpg",
+      "category": "Poultry"
+    }
+  ]

@@ -2,6 +2,7 @@ import React, { useEffect, useState }  from 'react';
 import { Dropdown, SearchBox, Stack } from "@fluentui/react";
 import cameraimage1 from '../assets/cameraimage1.png'; 
 import cameraimage2 from '../assets/cameraimage2.png'; 
+import VideoStream from './VideoStream';
 import {
     makeStyles,
     Body1,
@@ -139,6 +140,7 @@ import {
           dataItems.push(newDataItem);      
          }
       )  
+      const dataforVideo = "http://127.0.0.1:5003/video_feed?data={\"x\" : 0, \"y\" : 0,\"w\" : 0, \"h\" : 0, \"debug\" : true, \"cameraName\" : \"Nabeel\", \"video_url\": \"rtsp://rtsp_stream_container:8554/stream\" }";
     return (
         <Stack id='maincontainer'>
             <Stack id='camerasheader' horizontal style={{width: "100%"}}>
@@ -164,6 +166,21 @@ import {
                     <div className={classes.addcameracontainer}>
                         <Button appearance="primary" className={classes.addcamerabuttoncenter} onClick={callParentFunction}>+ Add Camera</Button>
                     </div>
+                    <Card className={classes.card}>
+                            <CardPreview>
+                                <VideoStream 
+                                    title="" 
+                                    videoUrl={dataforVideo} />
+                            </CardPreview>
+                            <CardFooter>
+                                <Stack>
+                                <Text><b>Nabeel</b></Text>
+                                <Text>Zone label</Text>
+                                <Text className={classes.text}>Status: Active</Text>
+                                <Text>People count: 10</Text>
+                                </Stack>
+                            </CardFooter>
+                        </Card>                      
                 </Stack>
             </Stack>
             ) : (
@@ -174,7 +191,9 @@ import {
                 <div id='inner' style={{ width: "25%"}}>
                             <Card className={classes.card}>
                             <CardPreview>
-                                <img src={cameraimage1} alt="" />
+                                <VideoStream 
+                                    title="" 
+                                    videoUrl={dataforVideo} />
                             </CardPreview>
                             <CardFooter>
                                 <Stack>
