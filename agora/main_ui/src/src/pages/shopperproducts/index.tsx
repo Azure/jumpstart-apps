@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   FluentProvider,
   webLightTheme,
@@ -14,6 +14,7 @@ import {
   Input,
   Button,
 } from "@fluentui/react-components";
+import { useNavigate } from "react-router-dom";
 import Header from '../../components/ShopperHeader';
 import TopNav from '../../components/ShopperTopNav';
 import ShopperProdcutsInteraction from '../../components/ShopperProdcutsInteraction';
@@ -320,6 +321,7 @@ const useStyles = makeStyles({
       height: 300,
     };
 
+
     const californiaSundriedTomatoeProps: IImageProps = {
         src: 'CaliforniaSundriedTomatoes.png',
         alt: 'CaliforniaSundriedTomatoes',
@@ -359,6 +361,7 @@ const useStyles = makeStyles({
         onDismiss: () => void;
         onSave: () => void;
       }    
+      
     const ShopperProducts: React.FC<CartPanelProps> = ({ isOpen, onDismiss, onSave },props: Partial<DropdownProps>) => {
         const [isDrawerOpen, setIsDrawerOpen] = useState(false);        
         const toggleDrawer = () => {
@@ -408,6 +411,43 @@ const useStyles = makeStyles({
         "2 lb"
       ];      
         const styles = useStyles();
+
+// API integration code
+type DataItem = {
+  productId: number;
+  name: string;
+  stock: string;
+  photoPath: string;
+  category: string;
+};    
+const dataItems: DataItem[] = [
+];
+
+const [data, setData] = useState([]);
+useEffect(() => {
+  fetch('/products.json')
+    .then(response => response.json())
+    .then(json => setData(json))
+    .then()
+    .catch(error => console.error(error));
+}, []);    
+
+data.forEach(
+  function(d){
+    var newDataItem: DataItem = {
+      productId: d["product_id"] ,
+      name: d["name"],
+      stock: d["stock"],
+      photoPath: d["photo_path"],
+      category: d["category"],
+    };
+    dataItems.push(newDataItem);      
+   }
+) 
+const navigate = useNavigate();
+const productDetailsNavigation = (event: { currentTarget: { id: any; }; }) => {
+  navigate('/shopperproductdetail?productId=' + event.currentTarget.id);
+}
           return (
               <FluentProvider theme={webLightTheme}>
                 <CopilotProvider mode='sidecar'>
@@ -592,6 +632,58 @@ const useStyles = makeStyles({
                                 <Stack>
                                     <Stack>
                                         <ShopperProdcutsInteraction />    
+                                        <Stack id='productCollection'>
+                                          <div id='container' style={{display: "flex", width: "100%", flexWrap: 'wrap'}}>
+                                            {dataItems.map(item => (
+                                                <div id='inner' style={{ width: "33%"}}>
+                                                  <Stack tokens={stackTokens} id={item.productId.toString()} className={styles.productdetails} onClick={productDetailsNavigation}>
+                                                      {/* <Image {...imageProps} /> */}
+                                                      <Image  
+                                                        src={item.photoPath}
+                                                        alt='Tomatoes on vine'
+                                                        width='300px'
+                                                        height='300px' />
+                                                      <Text variant="large" block className={styles.productname}>
+                                                        {item.name}
+                                                      </Text>
+                                                      <Text variant="large" block className={styles.productprice}>
+                                                      $4.99 / lb
+                                                      </Text>
+                                                      <Stack horizontal style={{alignItems: 'bottom'}}>
+                                                          <Stack horizontal>       
+                                                              <Stack>
+                                                                  <label id={dropdownId}>Weight</label>
+                                                                  <Dropdown
+                                                                  aria-labelledby={dropdownId}
+                                                                  className={styles.dropdown}
+                                                                  placeholder="Select weight"
+                                                                  {...props}
+                                                                  >
+                                                                  {options.map((option) => (
+                                                                  <option key={option} value={option} disabled={option === "Ferret"}>
+                                                                      {option}
+                                                                  </option>
+                                                                  ))}                                                  
+                                                                  </Dropdown> 
+                                                                  
+                                                              </Stack>         
+                                                              <div  style={{
+                                                              display: 'flex',
+                                                              flexDirection: 'column',
+                                                              justifyContent: 'flex-end',
+                                                              height: '100%'
+                                                              }}>
+                                                              <PrimaryButton className={styles.addtocartbutton} text="Add to cart" iconProps={{ iconName: 'CustomIconName' }}></PrimaryButton>
+                                                              </div>
+                                                          </Stack>       
+                                                      </Stack>
+                                                  </Stack>     
+                                                </div>  
+                                              ))
+                                            }
+                                          </div>                                          
+                                        </Stack>
+
                                         <Stack id='producefirstrow'>
                                             <Stack horizontal id='firstrowhorizontalcontainer' style={{justifyContent: 'center', width:'100%', marginBottom:'30px'}}>
                                                 <Stack tokens={stackTokens} id='ProductDetails' className={styles.productdetails}>

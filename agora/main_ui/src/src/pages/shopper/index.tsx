@@ -12,7 +12,7 @@ import Header from '../../components/ShopperHeader';
 import TopNav from '../../components/ShopperTopNav';
 import Footer from '../../components/ShopperFooter';
 import { CopilotProvider } from "@fluentui-copilot/react-copilot";
-
+import { useNavigate } from "react-router-dom";
 import { Panel, PanelType, DefaultButton } from '@fluentui/react';
 import { IDropdownOption, IImageProps, IStackProps, IStackTokens, Stack,   PrimaryButton, Image} from "@fluentui/react";
 
@@ -174,7 +174,10 @@ const useStyles = makeStyles({
         const toggleDrawer = () => {
             setIsDrawerOpen(!isDrawerOpen);
           };
-
+        const navigate = useNavigate();
+        const productsNavigation = () => {
+          navigate('/shopperproducts');
+        }
         const onRenderFooterContent = React.useCallback(
         () => (
             <Stack horizontal tokens={{ childrenGap: 10 }}>
@@ -255,7 +258,7 @@ const useStyles = makeStyles({
                                 <Text className={styles.explorecategories}>Explore Categories</Text>
                               </Stack>                                                 
                             </Stack>
-                            <Stack horizontal id='ExploreCategories'>
+                            <Stack horizontal id='ExploreCategories' onClick={productsNavigation}>
                              <Stack horizontal id='Categories' className={styles.categories}>
                                 <Stack styles={childStackStyles}>
                                   <img src="Rectangle 34655402.png" alt="Category 1" style={categoryStyles.root} />

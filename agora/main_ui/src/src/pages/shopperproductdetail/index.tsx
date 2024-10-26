@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   FluentProvider,
   webLightTheme,
@@ -449,6 +449,44 @@ const useStyles = makeStyles({
         "2 lb"
       ];      
 
+  const searchParams = new URLSearchParams(document.location.search);
+  const productId = searchParams.get('productId');
+
+// API integration code
+type DataItem = {
+  productId: number;
+  name: string;
+  stock: string;
+  photoPath: string;
+  category: string;
+};    
+const dataItems: DataItem[] = [
+];
+
+const [data, setData] = useState([]);
+useEffect(() => {
+  fetch('/products.json')
+    .then(response => response.json())
+    .then(json => setData(json))
+    .then()
+    .catch(error => console.error(error));
+}, []);    
+
+data.forEach(
+  function(d){
+    var newDataItem: DataItem = {
+      productId: d["product_id"] ,
+      name: d["name"],
+      stock: d["stock"],
+      photoPath: d["photo_path"],
+      category: d["category"],
+    };
+    if(newDataItem.productId.toString() === productId)
+    {
+      dataItems.push(newDataItem);      
+    }
+   }
+) 
           return (
               <FluentProvider theme={webLightTheme}>
                 <CopilotProvider mode='sidecar'>
@@ -492,10 +530,16 @@ const useStyles = makeStyles({
                                 <Stack.Item grow={4}>
                                     <Stack>
                                         <Stack>
+                                        {dataItems.map(item => (
                                             <Stack id='productdetail'>
                                                 <Stack horizontal>
                                                     <Stack id='productimage'>
-                                                    <Image {...imageProps} />
+                                                    <Image 
+                                                      src={item.photoPath}
+                                                      alt= 'Tomatoes on vine'
+                                                      width= '500px'
+                                                      height='460px'
+                                                      ></Image>
                                                     </Stack>
                                                     <Stack id='productmeta' style={{marginLeft: '37px'}}>
                                                         <Stack id='interactionparent'>
@@ -506,7 +550,7 @@ const useStyles = makeStyles({
                                                                 <Text>Produce | Aisle 3</Text>
                                                             </div>
                                                             <Text variant="large" block className={styles.productname}>
-                                                                Tomatoes, on vine
+                                                                {item.name}
                                                             </Text>
                                                             <Text variant="large" block className={styles.productprice}>
                                                                 $4.99 / lb
@@ -573,6 +617,8 @@ const useStyles = makeStyles({
                                                     </Stack>
                                                 </Stack>
                                             </Stack>
+                                            ))
+                                          }
                                             <Stack id='youmayalsolikecontainerparent'>
                                             </Stack>
                                             <Stack id='youmayalsolikecontainer'>
