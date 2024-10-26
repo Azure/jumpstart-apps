@@ -1,4 +1,4 @@
-import React, { useState }  from 'react';
+import React, { useState, useEffect, useRef }  from 'react';
 import {
   FluentProvider,
   webLightTheme,
@@ -12,10 +12,23 @@ import {
   Card,
   tokens,
   Toolbar,
-  Dropdown
+  ToolbarButton,
+  ToolbarDivider,
+  Slider,
 } from "@fluentui/react-components";
+import { Dropdown, IDropdownStyles, IDropdownOption } from '@fluentui/react/lib/Dropdown';
+import {
+  MathFormatLinear24Regular,
+  CalligraphyPen24Regular,
+  ArrowUndo24Regular,
+  ArrowRedo24Regular,
+  DeleteRegular,
+  DrawerRegular,
+} from "@fluentui/react-icons";
+import { Toggle } from '@fluentui/react/lib/Toggle';
 import { useNavigate } from "react-router-dom";
 import Header from '../../components/SuiteHeader';
+import VideoStreamWizard from '../../components/VideoStreamWizard';
 import SideMenu from "../../components/MaintenanceMenu";
 import { ITag, Pivot, PivotItem, PrimaryButton, TagPicker, TextField } from '@fluentui/react';
 import { IStackProps, IStackTokens, Stack } from "@fluentui/react";
@@ -29,6 +42,7 @@ import MaintenanceZones from '../../components/MaintenanceZones';
 import {  SearchBox, IconButton } from '@fluentui/react';
 import { useDropzone } from 'react-dropzone';
 import { useCallback } from 'react';
+import { text } from 'stream/consumers';
 const Main = (props: IStackProps) => (
     <Stack horizontal grow={1} disableShrink {...props} />
   );
@@ -225,7 +239,11 @@ const Main = (props: IStackProps) => (
       },
       activeDot: {
         backgroundColor: tokens.colorBrandBackground,
-      },      
+      },
+      dropDown: {
+        width: '312px',
+        marginLeft: '30px'
+      }      
     }
     );
 
@@ -307,6 +325,69 @@ const CamerasZonesWizardSetupCamera = () => {
       const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
       const navigate = useNavigate();
       const stackTokens: IStackTokens = { childrenGap: 10 };
+      const DropdownOptions:IDropdownOption[] = [];
+      
+    // API integration code
+    type DataItem = {
+      id: number;
+      name: string;
+      description: string;
+      rtspuri: string;
+    };    
+    const dataItems: DataItem[] = [
+    ];
+    
+    const [data, setData] = useState([]);
+    useEffect(() => {
+      fetch('http://localhost:5002/cameras')
+        .then(response => response.json())
+        .then(json => setData(json))
+        .then()
+        .catch(error => console.error(error));
+    }, []);    
+    data.forEach(
+      function(d){
+        var newDataItem: DataItem = {
+          id: d["id"] ,
+          name: d["name"],
+          description: d["description"],
+          rtspuri: d["rtspuri"],
+        };
+        dataItems.push(newDataItem);      
+        DropdownOptions.push({key: newDataItem.rtspuri, text: newDataItem.name});
+       }
+    )  
+    const [dataForVideo, setDataForVideo] = React.useState('');
+
+    const handleCameraDropdownChange = (event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption, index?: number) =>{
+      //setCameraEndpointInputValue(newValue || '');
+      setDataForVideo("http://127.0.0.1:5003/video_feed?data={\"x\" : 0, \"y\" : 0,\"w\" : 0, \"h\" : 0, \"debug\" : true, \"cameraName\" : \"Nabeel\", \"video_url\": \"" + option?.key +"\" }");
+    };
+
+      ///TOP
+      class MousePosition {
+        public x: number = 0 ;
+        public y: number = 0 ;
+      }
+
+      const [isDrawing, setIsDrawing] = useState(false);
+      const canvasRef = useRef<HTMLCanvasElement>(null);
+      //const start: MousePosition;
+      let x = 0;
+      let y = 0;
+      let hasDrawn = false;
+      let [start, setStart] = useState({});      
+      const getMousePos = (e:React.MouseEvent<HTMLCanvasElement, MouseEvent>) => {
+        var rect = e.currentTarget.getBoundingClientRect(),
+        scaleX =  e.currentTarget.width / rect.width,
+        scaleY =  e.currentTarget.height / rect.height;
+    
+        return {
+        x: Math.floor((e.clientX - rect.left) * scaleX),
+        y: Math.floor((e.clientY - rect.top) * scaleY)
+        }
+    }               
+
     return (
         <FluentProvider theme={webLightTheme}>
         <CopilotProvider mode='sidecar'>
@@ -346,24 +427,112 @@ const CamerasZonesWizardSetupCamera = () => {
                         <Stack tokens={{ childrenGap: 10 }}>
                           <Toolbar></Toolbar>
                         </Stack>            
-                        <Stack>
+                        <Stack horizontal>
                           <Text>Select Camera</Text>
-                          <Dropdown></Dropdown>
-                        </Stack>            
+                          <Dropdown
+                            onChange={handleCameraDropdownChange}
+                            placeholder="Select a camera"
+                            className={styles.dropDown}
+                            options={DropdownOptions}>
+                          </Dropdown>                         
+                        </Stack>       
+                        <Stack tokens={{ childrenGap: 200 }} horizontal>
+                          <Toolbar size="large">
+                            <ToolbarButton aria-label="Insert image" icon={<CalligraphyPen24Regular />}>Draw</ToolbarButton>
+                            <ToolbarButton
+                              appearance="primary"
+                              icon={<ArrowUndo24Regular />}
+                              aria-label="Insert Table"
+                            >
+                              Undo
+                            </ToolbarButton>
+                            <ToolbarButton
+                              aria-label="Insert Formula"
+                              icon={<ArrowRedo24Regular />}
+                            >Redo</ToolbarButton>
+                            <ToolbarDivider />
+                            <ToolbarButton
+                             icon={<DeleteRegular />}
+                            >
+                              Delete
+                            </ToolbarButton>
+                          </Toolbar>
+                          <Toggle inlineLabel label="Debug" onText="Yes" offText="No"  />
+                        </Stack>                             
                     </Stack.Item>
                     <Stack.Item>
                     <Stack style={{border: '1px solid #ccc'}} tokens={stackTokens}>
                       {/* Preview area */}
                       <Stack.Item>
-                          <Text style={{fontSize: '16px', fontWeight: '400', lineHeight: '22px', color: '#000', textAlign: 'center'}}>Preview area</Text>
-                          <div style={{ flexShrink: '0', width: '865', height: 575, border: '1px solid #D9D9D9', marginBottom: 20 }} />
+                          <div style={{ flexShrink: '0', width: '865', height: 575, border: '1px solid #D9D9D9', marginBottom: 20, position: 'relative' }}>
+                          <VideoStreamWizard 
+                                    title="" 
+                                    videoUrl={dataForVideo} />
+                          <canvas id="videoCanvas"
+                              ref={canvasRef}
+                              style={{
+                              width: "865px",
+                              height: "575px",
+                              top: 0,
+                              left: 0,
+                              position: 'absolute',
+                              backgroundColor: 'rgba(200, 200, 200, 0.1)',
+                              backgroundSize: 'cover',
+                            }}
+                            onMouseDown={(e) => {
+                              // know that we are drawing, for future mouse movements.
+                              setIsDrawing(true);
+                              const context = e.currentTarget.getContext("2d");
+                              if(context) {
+                                const mouseValue = getMousePos(e);
+                                setStart(mouseValue);
+                                let {x, y} = getMousePos( e);
+                                // begin path.
+                                if (context) {
+                                  context.beginPath();
+                                  context.lineWidth = 1;
+                                  context.lineCap = "round";
+                                  context.strokeStyle = "#9747FF69";
+                                  context.fillStyle = "#9747FF14"
+                                  context.moveTo(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
+                                }
+                              }}
+                            }
+                            onMouseMove={(e) => {
+                            }}
+                            onMouseUp={(e) => {
+                              // end drawing.
+                              // only handle mouse moves when the mouse is already down.
+                              if (isDrawing) {
+                                const context = e.currentTarget.getContext("2d");
+                                if (context) {
+                                  let end: MousePosition = getMousePos(e);  
+                                  const values = Object.values(start);
+                                  const startX = values[0];
+                                  const startY = values[1];
+                                  context.rect(Number(startX),Number(startY), end.x - Number(startX), end.y - Number(startY));
+                                  context.fillRect(Number(startX),Number(startY), end.x - Number(startX), end.y - Number(startY));
+                                  context.stroke();
+                                }
+                              }                              
+                              setIsDrawing(false);
+                            }}
+                            ></canvas>       
+                          </div>
+                          <Stack horizontal style={{width:'100%'}}>
+                            <Text style={{marginRight:'20px'}}>Confidence threshold </Text>
+                            <Slider defaultValue={80} step={25} min={0} max={100} style={{marginRight:'20px'}}></Slider>
+                            <Label aria-hidden style={{marginRight:'20px', fontStyle: 'bold'}}><strong>80%</strong></Label>
+                            <Text style={{marginRight:'120px'}}>Inference level explanation </Text>
+                            <Button style={{right: '0'}}>Back to default</Button>
+                          </Stack>
+                   
                       </Stack.Item>
 
                       {/* Main content area */}
-
                       {/* Footer */}
                       <Stack.Item>
-                          <div style={{ height: 50, border: '1px solid #ccc', marginTop: 20 }} />
+                          
                       </Stack.Item>
 
                       {/* Search and Add buttons */}
