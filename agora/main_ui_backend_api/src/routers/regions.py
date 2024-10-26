@@ -69,3 +69,15 @@ def delete_region(region_id: int):
     if cursor.rowcount == 0:
         raise HTTPException(status_code=404, detail="Region not found")
     return {"message": "Region deleted successfully"}
+
+@router.get("/regions/camera/{camera_id}", response_model=List[Region], tags=["regions"])
+def get_regions_by_camera_id(camera_id: int):
+    conn = get_db_connection()
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
+    cursor.execute('SELECT * FROM regions WHERE camera_id = %s', (camera_id,))
+    regions = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    if not regions:
+        raise HTTPException(status_code=404, detail="No regions found for the given camera_id")
+    return [Region(**region) for region in regions]

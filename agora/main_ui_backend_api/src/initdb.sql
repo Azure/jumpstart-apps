@@ -55,7 +55,7 @@ BEGIN
         INSERT INTO regions (name, description, camera_id, x1, y1, x2, y2, threshold)
         VALUES
             ('Region 1', 'Entrance Region', 1, 0, 0, 100, 100, 70),
-            ('Region 2', 'Aisle Region', 1, 0, 0, 100, 100, 70);
+            ('Region 2', 'Aisle Region', 2, 0, 0, 100, 100, 70);
     END IF;
 END $$;
 
