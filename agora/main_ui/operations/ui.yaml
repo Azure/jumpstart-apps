@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: main-ui
-        image: agacrd2f52.azurecr.io/main-ui:latest
+        image: agacrac434.azurecr.io/main-ui:latest
         ports:
         - containerPort: 8080
         env:

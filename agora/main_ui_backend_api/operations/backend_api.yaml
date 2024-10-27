@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: main-ui-backend-api
-        image: agacrd2f52.azurecr.io/main-ui-backend-api:latest
+        image: agacrac434.azurecr.io/main-ui-backend-api:latest
         ports:
         - containerPort: 5002
         env:
