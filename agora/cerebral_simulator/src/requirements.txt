@@ -1,0 +1,8 @@
+influxdb-client
+prometheus_client
+psutil
+Flask
+Flask-Session
+paho-mqtt
+azure-eventhub
+python-dotenv
