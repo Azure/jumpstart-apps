@@ -15,7 +15,7 @@ from PIL import Image
 from PIL import ImageOps
 
 class VideoProcessor:
-    def __init__(self, url, index, name, debug=False):
+    def __init__(self, url, index, name, debug=False, enable_saving=True):
         self.url = url
         self.index = index
         self.processed_frame_queue = Queue(maxsize=10)
@@ -27,6 +27,7 @@ class VideoProcessor:
         self.running = False
         self.last_activity = time.time()
         self.inactivity_threshold = 30  # 30 seconds
+        self.enable_saving = enable_saving  # Flag to enable/disable saving frames and videos
         self.debug = debug
 
         # Initialize save_lock for thread-safe operations
@@ -46,13 +47,11 @@ class VideoProcessor:
         # Keep track of processed person directories
         self.processed_person_dirs = set()
         
-
-        # Start the GIF creation thread
+        # Start the Video creation thread
         self.video_creation_thread = None
 
-
         # OpenVINO setup
-        MODEL_PATH = os.getenv("MODEL_PATH", "C:\\Users\\lakshitdabas\\Developer\\jumpstart-apps\\agora\\contoso_hypermarket\\models")
+        MODEL_PATH = os.getenv("MODEL_PATH", ".\\models")
         self.ie = Core()
         self.det_model = self.ie.read_model(os.path.join(MODEL_PATH, "person-detection-retail-0013.xml"))
         self.det_compiled_model = self.ie.compile_model(model=self.det_model, device_name="CPU")
@@ -104,18 +103,20 @@ class VideoProcessor:
             print(f"Started processing thread for video {self.index}")
 
               # Start the video creation thread
-            if self.video_creation_thread is None or not self.video_creation_thread.is_alive():
-                self.video_creation_thread = threading.Thread(target=self.video_creation_worker)
-                self.video_creation_thread.daemon = True  # Daemon thread exits when main thread exits
-                self.video_creation_thread.start()
-                print(f"Started video creation thread for video {self.index}")
+            if self.enable_saving:
+                # Start the video creation thread
+                if self.video_creation_thread is None or not self.video_creation_thread.is_alive():
+                    self.video_creation_thread = threading.Thread(target=self.video_creation_worker)
+                    self.video_creation_thread.daemon = True  # Daemon thread exits when main thread exits
+                    self.video_creation_thread.start()
+                    print(f"Started video creation thread for video {self.index}")
     
     def stop(self):
         self.running = False
         if self.process_thread:
             self.process_thread.join()
-        if self.gif_creation_thread:
-            self.gif_creation_thread.join()
+        if self.enable_saving and self.video_creation_thread:
+            self.video_creation_thread.join()
         if self.vs:
             self.vs.stop()
         print(f"Stopped processing thread for video {self.index}")
@@ -170,8 +171,6 @@ class VideoProcessor:
         x, y = point
         x1, y1, x2, y2 = rectangle
         return x1 <= x <= x2 and y1 <= y <= y2
-    
-    
 
     def create_video(self, image_folder, person_dir):
         # Get list of image files in the folder
@@ -236,7 +235,7 @@ class VideoProcessor:
         print(f"Video saved as {output_path}")
 
     def video_creation_worker(self):
-        while self.running:
+        while self.running and self.enable_saving:
             # Wait for 60 seconds
             time.sleep(60)
             # Get list of person directories
@@ -261,6 +260,8 @@ class VideoProcessor:
                         print(f"Directory {full_person_dir} has less than 5 frames. Skipping video creation.")
 
     def save_detected_person(self, frame, bbox, person_id):
+        if not self.enable_saving:
+            return  # Exit early if saving is disabled
         with self.save_lock:
             x1, y1, x2, y2 = bbox
 
@@ -269,7 +270,7 @@ class VideoProcessor:
             bbox_height = y2 - y1
 
             # Define the expansion factor (e.g., 0.2 for 20%)
-            expansion_factor = 0.4
+            expansion_factor = 0.2
 
             # Expand the bounding box coordinates
             x1_expanded = int(x1 - bbox_width * expansion_factor)
@@ -336,20 +337,6 @@ class VideoProcessor:
                     age = self.extract_age(frame, bbox)
                     current_frame_detections.append((bbox, features, age))
 
-                    # Calculate the center point of the bounding box in normalized coordinates
-                    #center_x = (bbox[0] + bbox[2]) / 2 / frame.shape[1]
-                    #center_y = (bbox[1] + bbox[3]) / 2 / frame.shape[0]
-                    #center = (center_x, center_y)
-
-                    # Check if the center point is within any detection area
-                    #is_in_area = any(
-                    #    self.point_in_rectangle(center, area) for area in self.restricted_areas
-                    #)
-
-                    # Save the detected person image only if they are in a detection area
-                    #if is_in_area:
-                    #    self.save_detected_person(frame, bbox)
-
             new_person_tracker = {}
             for person_id, (last_bbox, last_features, frames_tracked, is_shopper, person_hash, last_age) in self.person_tracker.items():
                 best_match = min(
@@ -404,11 +391,6 @@ class VideoProcessor:
 
             self.current_shoppers = len(frame_shoppers)
             self.person_tracker = new_person_tracker
-
-            # Check for persons no longer being tracked to create videos
-            #for person_id in list(self.person_videos.keys()):
-            #    if person_id not in self.person_tracker:
-            #        self.create_person_video(person_id)
 
             for person_id, (bbox, _, _, is_shopper, person_hash, age) in self.person_tracker.items():
                 color = (0, 0, 255) if is_shopper else (0, 255, 0)
