@@ -110,6 +110,8 @@ import {
   });
 
   const MaintenanceCameras: React.FC<{ callParentFunction: () => void }>  = ({ callParentFunction }) => {
+    var storeAPI = process.env.REACT_APP_STORE_API_URL;
+    var footfallAIAPI = process.env.REACT_APP_FOOTFALL_VIDEO_URL;
     const classes = useStyles();
     // API integration code
     type DataItem = {
@@ -135,7 +137,7 @@ import {
 
       const [data, setData] = useState([]);
       useEffect(() => {
-        fetch('http://localhost:5002/cameras')
+        fetch(storeAPI + '/cameras')
           .then(response => response.json())
           .then(json => setData(json))
           .then()
@@ -154,10 +156,11 @@ import {
             }
         )  
     }
-      const dataforVideo = "http://127.0.0.1:5003/video_feed?data={\"x\" : 0, \"y\" : 0,\"w\" : 100, \"h\" : 100, \"debug\" : true, \"cameraName\" : \"Nabeel\", \"video_url\": \"rtsp://rtsp_stream_container:8554/stream\" }";   
+
+      const dataforVideo = footfallAIAPI +  "/video_feed?data={\"x\" : 0, \"y\" : 0,\"w\" : 100, \"h\" : 100, \"debug\" : true, \"cameraName\" : \"Nabeel\", \"video_url\": \"rtsp://rtsp_stream_container:8554/stream\" }";   
       
       function generateDataForVideo(cameraId: number, rtspurl: string) {
-        var dataforVideo = "http://127.0.0.1:5003/video_feed?data={\"x\" : " + "0" + ", \"y\" : " + "0" + ",\"w\" : " + "100" + ", \"h\" : " + "100" + ", \"debug\" : true, \"cameraName\" : \"Nabeel\", \"video_url\": \"rtsp://rtsp_stream_container:8554/stream\" }";           
+        var dataforVideo = footfallAIAPI +  "/video_feed?data={\"x\" : " + "0" + ", \"y\" : " + "0" + ",\"w\" : " + "100" + ", \"h\" : " + "100" + ", \"debug\" : true, \"cameraName\" : \"Nabeel\", \"video_url\": \"rtsp://rtsp_stream_container:8554/stream\" }";           
 
         //RegionItem
         const regionItems: RegionItem[] = [
@@ -166,10 +169,11 @@ import {
         var y1 = 0;
         var x2 = 0;
         var y2 = 0;
-        fetch('http://localhost:5002/regions/camera/1')
+        var cameraRegionURL = storeAPI + "/regions/camera/" + cameraId.toString();
+        fetch(cameraRegionURL)
         .then(response => response.json())
         .then(json => {
-            console.log('n');
+            if(json && json[0]) {
             var newRegionItem: RegionItem = {
                 id: json[0]["id"],
                 camerId: json[0]["camera_id"],
@@ -186,9 +190,16 @@ import {
             x2 = json[0]["x2"];
             y2 = json[0]["y2"];
             regionItems.push(newRegionItem);
-            var dataforVideo = "http://127.0.0.1:5003/video_feed?data={\"x\" : " + regionItems[0].x1 + ", \"y\" : " + regionItems[0].y1 + ",\"w\" : " + regionItems[0].x2 + ", \"h\" : " + regionItems[0].y2 + ", \"debug\" : true, \"cameraName\" : \"Nabeel\", \"video_url\": \"" + rtspurl + "" + " }";           
+            var dataforVideo = footfallAIAPI + "/video_feed?data={\"x\" : " + regionItems[0].x1 + ", \"y\" : " + regionItems[0].y1 + ",\"w\" : " + regionItems[0].x2 + ", \"h\" : " + regionItems[0].y2 + ", \"debug\" : true, \"cameraName\" : \"Nabeel\", \"video_url\": \"" + rtspurl + "" + " }";           
+            console.log('dataforVideo');
+            console.log(dataforVideo);
             return dataforVideo;
-        });
+        }
+        else {
+            return "";
+        }
+        })
+        .catch(error => console.error(error));
         return dataforVideo
       }    
     return (

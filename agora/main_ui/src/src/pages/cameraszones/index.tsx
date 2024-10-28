@@ -81,6 +81,8 @@ interface CameraPanelProps {
   onSave: () => void;
 } 
 const CamerasZones: React.FC<CameraPanelProps> = ({ isOpen, onDismiss, onSave }) => {
+    var storeAPI = process.env.REACT_APP_STORE_API_URL;
+    var footfallAIAPI = process.env.REACT_APP_FOOTFALL_VIDEO_URL;
     const styles = useStyles();
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [cameraNameInputValue, setCameraNameInputValue] = React.useState('');
@@ -92,7 +94,7 @@ const CamerasZones: React.FC<CameraPanelProps> = ({ isOpen, onDismiss, onSave })
     const [cameraEndpointInputValue, setCameraEndpointInputValue] = React.useState('');
     const handleCameraEndpointInputChange = (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
       setCameraEndpointInputValue(newValue || '');
-      setDataForVideo("http://127.0.0.1:5003/video_feed?data={\"x\" : 0, \"y\" : 0,\"w\" : 0, \"h\" : 0, \"debug\" : true, \"cameraName\" : \"Nabeel\", \"video_url\": \"" + newValue +"\" }");
+      setDataForVideo(footfallAIAPI + "/video_feed?data={\"x\" : 0, \"y\" : 0,\"w\" : 0, \"h\" : 0, \"debug\" : true, \"cameraName\" : \"Nabeel\", \"video_url\": \"" + newValue +"\" }");
     };
     const [tags, setTags] = React.useState<ITag[]>([]);
 
@@ -130,7 +132,7 @@ const CamerasZones: React.FC<CameraPanelProps> = ({ isOpen, onDismiss, onSave })
 
     // Send data to the backend via POST
 
-    fetch('http://localhost:5002/cameras', {
+    fetch(storeAPI + '/cameras', {
       method: 'POST',
       headers: {
         'accept': 'application/json',
