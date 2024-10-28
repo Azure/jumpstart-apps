@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: genie-api
-        image: agacrd2f52.azurecr.io/genie-api:latest
+        image: agacrac434.azurecr.io/genie-api:latest
         ports:
         - containerPort: 5003
         env:

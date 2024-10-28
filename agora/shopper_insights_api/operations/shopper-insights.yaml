@@ -47,7 +47,7 @@ spec:
           mountPath: /tmp/models
       containers:
       - name: shopper-insights-api
-        image: agacrd2f52.azurecr.io/shopper-insights-api:latest
+        image: agacrac434.azurecr.io/shopper-insights-api:latest
         ports:
         - containerPort: 5001
         env:
