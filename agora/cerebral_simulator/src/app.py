@@ -23,8 +23,8 @@ from flask import Flask, Response
 from store_simulator import run_store_simulator
 
 #dev mode
-from dotenv import load_dotenv
-load_dotenv()
+#from dotenv import load_dotenv
+#load_dotenv()
 
 
 # InfluxDB Settings

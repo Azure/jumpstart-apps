@@ -4,7 +4,7 @@ from datetime import timedelta, time, datetime
 import time
 import os
 from azure.eventhub import EventHubProducerClient, EventHubConsumerClient, EventData
-from dotenv import load_dotenv
+#from dotenv import load_dotenv
 from threading import Thread
 import logging
 
@@ -56,7 +56,7 @@ class StoreSimulator:
         
         # dev mode
         # Load environment variables from .env file
-        load_dotenv()
+        #load_dotenv()
         
         # Load configuration from environment variables
         self.EVENTHUB_CONNECTION_STRING = os.getenv('EVENTHUB_CONNECTION_STRING')
