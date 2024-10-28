@@ -88,7 +88,7 @@ import {
         background: "SubtleBackground.Rest",
     },
     card: {
-        width: "268px",
+        width: "468px",
         maxWidth: "100%",
         marginTop: "15px",
       },
@@ -120,7 +120,19 @@ import {
       };    
       const dataItems: DataItem[] = [
       ];
-      
+
+      type RegionItem = {
+        id: number;
+        name: string;
+        description: string;
+        camerId: number;
+        x1: number;
+        y1: number;
+        x2: number;
+        y2: number;
+        threshold: number;
+      };   
+
       const [data, setData] = useState([]);
       useEffect(() => {
         fetch('http://localhost:5002/cameras')
@@ -129,18 +141,56 @@ import {
           .then()
           .catch(error => console.error(error));
       }, []);    
-      data.forEach(
-        function(d){
-          var newDataItem: DataItem = {
-            id: d["id"] ,
-            name: d["name"],
-            description: d["description"],
-            rtspuri: d["rtspuri"],
-          };
-          dataItems.push(newDataItem);      
-         }
-      )  
-      const dataforVideo = "http://127.0.0.1:5003/video_feed?data={\"x\" : 0, \"y\" : 0,\"w\" : 0, \"h\" : 0, \"debug\" : true, \"cameraName\" : \"Nabeel\", \"video_url\": \"rtsp://rtsp_stream_container:8554/stream\" }";
+      if(data) {
+        data.forEach(
+            function(d){
+            var newDataItem: DataItem = {
+                id: d["id"] ,
+                name: d["name"],
+                description: d["description"],
+                rtspuri: d["rtspuri"],
+            };
+            dataItems.push(newDataItem);      
+            }
+        )  
+    }
+      const dataforVideo = "http://127.0.0.1:5003/video_feed?data={\"x\" : 0, \"y\" : 0,\"w\" : 100, \"h\" : 100, \"debug\" : true, \"cameraName\" : \"Nabeel\", \"video_url\": \"rtsp://rtsp_stream_container:8554/stream\" }";   
+      
+      function generateDataForVideo(cameraId: number, rtspurl: string) {
+        var dataforVideo = "http://127.0.0.1:5003/video_feed?data={\"x\" : " + "0" + ", \"y\" : " + "0" + ",\"w\" : " + "100" + ", \"h\" : " + "100" + ", \"debug\" : true, \"cameraName\" : \"Nabeel\", \"video_url\": \"rtsp://rtsp_stream_container:8554/stream\" }";           
+
+        //RegionItem
+        const regionItems: RegionItem[] = [
+        ];
+        var x1 = 0;
+        var y1 = 0;
+        var x2 = 0;
+        var y2 = 0;
+        fetch('http://localhost:5002/regions/camera/1')
+        .then(response => response.json())
+        .then(json => {
+            console.log('n');
+            var newRegionItem: RegionItem = {
+                id: json[0]["id"],
+                camerId: json[0]["camera_id"],
+                name: json[0]["name"],
+                description: json[0]["description"],
+                x1: json[0]["x1"],
+                y1: json[0]["y1"],
+                x2: json[0]["x2"],
+                y2: json[0]["y2"],
+                threshold: json[0]["threshold"]
+            }
+            x1 = json[0]["x1"];
+            x1 = json[0]["x1"];
+            x2 = json[0]["x2"];
+            y2 = json[0]["y2"];
+            regionItems.push(newRegionItem);
+            var dataforVideo = "http://127.0.0.1:5003/video_feed?data={\"x\" : " + regionItems[0].x1 + ", \"y\" : " + regionItems[0].y1 + ",\"w\" : " + regionItems[0].x2 + ", \"h\" : " + regionItems[0].y2 + ", \"debug\" : true, \"cameraName\" : \"Nabeel\", \"video_url\": \"" + rtspurl + "" + " }";           
+            return dataforVideo;
+        });
+        return dataforVideo
+      }    
     return (
         <Stack id='maincontainer'>
             <Stack id='camerasheader' horizontal style={{width: "100%"}}>
@@ -165,39 +215,23 @@ import {
                     <Text align="center" size={300}>No cameras added yet. Click 'Add Camera' to get started.</Text>
                     <div className={classes.addcameracontainer}>
                         <Button appearance="primary" className={classes.addcamerabuttoncenter} onClick={callParentFunction}>+ Add Camera</Button>
-                    </div>
-                    <Card className={classes.card}>
-                            <CardPreview>
-                                <VideoStream 
-                                    title="" 
-                                    videoUrl={dataforVideo} />
-                            </CardPreview>
-                            <CardFooter>
-                                <Stack>
-                                <Text><b>Nabeel</b></Text>
-                                <Text>Zone label</Text>
-                                <Text className={classes.text}>Status: Active</Text>
-                                <Text>People count: 10</Text>
-                                </Stack>
-                            </CardFooter>
-                        </Card>                      
+                    </div>                     
                 </Stack>
             </Stack>
             ) : (
-
             <Stack id='camerascollection'>
             <div id='container' style={{display: "flex", width: "100%", flexWrap: 'wrap'}}>
             {dataItems.map(item => (
-                <div id='inner' style={{ width: "25%"}}>
+                <div id='inner' style={{ width: "50%"}}>
                             <Card className={classes.card}>
                             <CardPreview>
                                 <VideoStream 
                                     title="" 
-                                    videoUrl={dataforVideo} />
+                                    videoUrl={generateDataForVideo(item.id, item.rtspuri)} />
                             </CardPreview>
                             <CardFooter>
                                 <Stack>
-                                <Text><b>{item.name}</b></Text>
+                                <Text><b>{item.name}</b>{generateDataForVideo(item.id, item.rtspuri)}</Text>
                                 <Text>Zone label</Text>
                                 <Text className={classes.text}>Status: Active</Text>
                                 <Text>People count: 10</Text>
