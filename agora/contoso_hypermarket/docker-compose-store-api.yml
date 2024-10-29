@@ -11,4 +11,9 @@ services:
       - DATABASE_PASSWORD=password
       - DATABASE_NAME=contoso
       - DATABASE_USER=postgres
+      - MQTT_BROKER=test.mosquitto.org
+      - MQTT_PORT=1883
+      - MQTT_TOPIC=Store/Cameras/PeopleCount
+      - FOOTFALL_API=http://footfall-ai-api:5000/status
+      - SI_API=http://shopper-insights-api:5001/status
     entrypoint: ["/bin/bash", "init-db.sh"]

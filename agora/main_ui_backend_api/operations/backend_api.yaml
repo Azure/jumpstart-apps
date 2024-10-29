@@ -33,6 +33,16 @@ spec:
           value: "development"
         - name: FLASK_RUN_HOST
           value: ""
+        - name: MQTT_BROKER
+          value: "aio-broker-insecure.azure-iot-operations.svc.cluster.local"
+        - name: MQTT_PORT
+          value: "1883"
+        - name: MQTT_TOPIC
+          value: "Store/Cameras/PeopleCount"
+        - name: FOOTFALL_API
+          value: "http://footfall-ai-api:5000/status"
+        - name: SI_API
+          value: "http://shopper-insights-api:5001/status"
       imagePullSecrets:
       - name: acr-secret
 
