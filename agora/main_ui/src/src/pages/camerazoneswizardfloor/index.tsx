@@ -381,35 +381,11 @@ const CamerasZonesWizardFloor: React.FC = () => {
         [] // no dependencies means that it will be called once on mount.
       );
       const onSaveDrawer  = () => {
-        var cameraName = document.getElementById('txtCameraName')?.getAttribute('value');
-        var cameraEndpoint = document.getElementById('txtCameraEndpoint')?.getAttribute('value');
-        var jsonData = {
-          "name": cameraName,
-          "description": cameraName,
-          "rtspuri": cameraEndpoint
-        }
-        const requestOptions = {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(jsonData),
-        };
-  
+        var zoneLabel = document.getElementById('txtZoneLabel')?.getAttribute('value');
       // Send data to the backend via POST
-  
-      fetch(storeAPI + '/cameras', {
-        method: 'POST',
-        headers: {
-          'accept': 'application/json',
-          'Content-Type': 'application/json'
-        },
-        // body: '{\n  "name": "Camera3",\n  "description": "Camera3",\n  "rtspuri": "rtsp://rtsp_stream_container:8554/stream"\n}',
-        body: JSON.stringify({
-          'name': cameraName,
-          'description': cameraName,
-          'rtspuri': cameraEndpoint
-        })
-      });
+
         setIsDrawerOpen(false);
+        navigate("/camerazoneswizardsetupcamera");
       }
       const onRenderFooterContent = React.useCallback(
         () => (
@@ -472,13 +448,13 @@ const CamerasZonesWizardFloor: React.FC = () => {
             isLightDismiss={true}
       >
         <Stack>
-            <Stack.Item>
+            <Stack.Item style={{ marginTop: '20px', marginBottom: '20px'}}>
                 <TextField
                   label="Zone label"
                   value={cameraNameInputValue}
                   onChange={handleCameraNameInputChange}
                   placeholder="Name your zone"
-                  id="txtCameraName"
+                  id="txtZoneLabel"
                 />
             </Stack.Item>
             <Stack.Item>
@@ -489,6 +465,7 @@ const CamerasZonesWizardFloor: React.FC = () => {
                             placeholder="Select a camera"
                             className={styles.dropDown}
                             options={DropdownOptions}>
+                            id="selectedCamera"
                           </Dropdown>                         
                         </Stack> 
             </Stack.Item>
@@ -619,7 +596,7 @@ const CamerasZonesWizardFloor: React.FC = () => {
           <div className={styles.footer}>
             <Stack horizontal>
           <Button appearance="secondary" className={styles.footerpreviousbutton} onClick={() => navigate("/camerazoneswizard")}>Previous</Button>
-          <Button appearance="primary" className={styles.footernextbutton} onClick={() => navigate("/camerazoneswizardassigncameras")}>Next</Button>
+          <Button appearance="primary" className={styles.footernextbutton} onClick={() => navigate("/camerazoneswizardsetupcamera")}>Next</Button>
           </Stack>
           </div>
           </Stack.Item>

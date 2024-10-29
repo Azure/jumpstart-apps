@@ -550,7 +550,7 @@ const CamerasZonesWizardSetupCamera = () => {
           </Stack>
           <div className={styles.footer}>
             <Stack horizontal>
-            <Button appearance="secondary" className={styles.footerpreviousbutton}onClick={() => navigate("/camerazoneswizardassigncameras")}>Previous</Button>
+            <Button appearance="secondary" className={styles.footerpreviousbutton}onClick={() => navigate("/camerazoneswizardfloor")}>Previous</Button>
             <Button appearance="primary" className={styles.footernextbutton} onClick={() => navigate("/camerazoneswizardreview")}>Next</Button>
           </Stack>
           </div>
