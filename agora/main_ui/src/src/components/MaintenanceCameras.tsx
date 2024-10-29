@@ -88,7 +88,7 @@ import {
         background: "SubtleBackground.Rest",
     },
     card: {
-        width: "468px",
+        width: "537px",
         maxWidth: "100%",
         marginTop: "15px",
       },
@@ -242,10 +242,12 @@ import {
                             </CardPreview>
                             <CardFooter>
                                 <Stack>
-                                <Text><b>{item.name}</b>{generateDataForVideo(item.id, item.rtspuri)}</Text>
-                                <Text>Zone label</Text>
-                                <Text className={classes.text}>Status: Active</Text>
-                                <Text>People count: 10</Text>
+                                <Text><b>{item.name}</b></Text>
+                                <Stack horizontal>
+                                <Text>Zone label </Text>
+                                <Text>&nbsp; | Status: Active | </Text>
+                                <Text>&nbsp;People count: 10</Text>
+                                </Stack>
                                 </Stack>
                             </CardFooter>
                         </Card>     
