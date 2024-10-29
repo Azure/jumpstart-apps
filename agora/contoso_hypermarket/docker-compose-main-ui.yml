@@ -7,6 +7,6 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - REACT_APP_FOOTFALL_VIDEO_URL=http://footfall_ai_api_container:5000/video_feed?x=50&y=20&w=540&h=320&source=rtsp://rtsp_stream_container:8554/stream
-      - REACT_APP_INTRUSION_VIDEO_URL=http://shopper_insights_api:5001/video_feed?x=50&y=20&w=540&h=320&source=rtsp://rtsp_stream_container:8554/stream
+      - REACT_APP_FOOTFALL_API=http://footfall_ai_api_container:5000
+      - REACT_APP_INTRUSION_API=http://shopper_insights_api:5001
       - REACT_APP_CEREBRAL_API_URL=http://cerebral_api:5002
