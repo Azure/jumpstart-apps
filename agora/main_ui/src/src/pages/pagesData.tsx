@@ -14,7 +14,7 @@ import CamerasZonesWizardAssignCameras from "./camerazoneswizardassigncameras";
 import CamerasZonesWizardSetupCamera from "./cameraszoneswizardsetupcamera";
 import CamerasZonesWizardFloor from "./camerazoneswizardfloor";
 import CamerasZonesWizardReview from "./camerazoneswizardreview";
-import Genie from "./genie";
+import Cerbral from "./cerebral";
 import ShopperProducts from "./shopperproducts";
 import ShopperProductDetail from "./shopperproductdetail";
 import ShopperReviewCart from "./shopperreviewcart";
@@ -110,9 +110,9 @@ const pagesData: routerType[] = [
     title: "Intrusion"
   },
   {
-    path: "genie",
-    element: <Genie />,
-    title: "Genie"
+    path: "cerebral",
+    element: <Cerebral />,
+    title: "Cerebral"
   }
 ];
 
