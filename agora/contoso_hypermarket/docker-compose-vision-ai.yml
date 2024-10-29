@@ -11,6 +11,7 @@ services:
     environment:
       - MODEL_PATH=/tmp/models/yolov8n.pt
       - RTSP_URL=rtsp://rtsp_stream_container:8554/stream
+      - FLASK_PORT=5003
 
   shopper_insights_api:
     build:

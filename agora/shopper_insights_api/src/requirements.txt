@@ -3,4 +3,5 @@ opencv-python-headless==4.10.0.84
 numpy==2.0.2
 openvino==2024.4.0
 scipy==1.13.1
-prometheus_client
+prometheus_client==0.21.0
+Pillow==11.0.0
