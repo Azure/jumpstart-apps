@@ -175,7 +175,7 @@ class StoreSimulator:
                     product_inventory.in_stock = product_inventory.in_stock - quantity_sold
                 else:
                     product_inventory.in_stock = product_inventory.in_stock + product.stock - quantity_sold
-                    product_inventory.last_restocked = current_time_str
+                    product_inventory.last_restocked = current_time
 
                 # Update inventory date
                 product_inventory.date_time = current_time
