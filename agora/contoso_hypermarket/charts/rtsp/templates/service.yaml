@@ -1,13 +1,28 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: rtsp-stream
+  name: rtsp-stream-aisle
 spec:
-  type: {{ .Values.service.type }}
+  type: {{ .Values.services.aisle.type }}
   ports:
-    - port: {{ .Values.service.port }}
-      targetPort: {{ .Values.service.port }}
+    - port: {{ .Values.services.aisle.port }}
+      targetPort: 8554
       protocol: TCP
       name: rtsp
   selector:
-    app: rtsp-stream
+    app: rtsp-stream-aisle
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: rtsp-stream-zoom
+spec:
+  selector:
+    app: rtsp-stream-zoom
+  ports:
+    - protocol: TCP
+      port: {{ .Values.services.zoom.port}}
+      targetPort: 8554  
+  type: {{ .Values.services.zoom.type }}
