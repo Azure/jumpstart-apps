@@ -7,8 +7,6 @@ import MaintenanceWorkerDashboard from "./maintenanceworkerdashboard";
 import InventoryDashboard from "./inventorydashboard";
 import CamerasZones from "./cameraszones";
 import Shopper from "./shopper";
-import Footfall from "./footfall"; 
-import Intrusion from "./intrusion"; 
 import CamerasZonesWizard from "./camerazoneswizard";
 import CamerasZonesWizardAssignCameras from "./camerazoneswizardassigncameras";
 import CamerasZonesWizardSetupCamera from "./cameraszoneswizardsetupcamera";
@@ -98,16 +96,6 @@ const pagesData: routerType[] = [
     path: "shopperreviewcart",
     element: <ShopperReviewCart isOpen={false} onDismiss={() => {}} onSave={() => {}}/>,
     title: "Shopper Review Cart"
-  },
-  {
-    path: "footfall",
-    element: <Footfall />,
-    title: "Footfall"
-  },
-  {
-    path: "intrusion",
-    element: <Intrusion />,
-    title: "Intrusion"
   },
   {
     path: "cerebral",

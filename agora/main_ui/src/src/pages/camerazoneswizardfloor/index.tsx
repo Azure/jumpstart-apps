@@ -266,7 +266,7 @@ interface CameraPanelProps {
 }
 const CamerasZonesWizardFloor: React.FC = () => {
     var storeAPI = process.env.REACT_APP_STORE_API_URL;
-    var footfallAIAPI = process.env.REACT_APP_FOOTFALL_VIDEO_URL;  
+    var footfallAIAPI = process.env.REACT_APP_FOOTFALL_API;  
     const styles = useStyles();
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [cameraNameInputValue, setCameraNameInputValue] = React.useState('');
