@@ -2,6 +2,7 @@ import os
 import time
 import cv2
 from flask import Flask, render_template, Response, request
+from flask_cors import CORS
 from ultralytics import YOLO
 import torch
 import json
@@ -14,6 +15,8 @@ FLASK_DEBUG = os.getenv("FLASK_DEBUG", "false").lower() in ["true", "1", "t"]
 
 # Initialize Flask app
 app = Flask(__name__)
+
+CORS(app, resources={r"/*": {"origins": "*", "methods": ["GET", "POST", "PUT"]}})
 
 # Global variables
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -60,8 +63,7 @@ def video_feed():
         return "Invalid JSON format", 400
     
     camera_name = data["cameraName"]       
-    return Response(generate(data, camera_name),
-                    mimetype='multipart/x-mixed-replace; boundary=frame')
+    return Response(generate(data, camera_name), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route('/')
 def index():
