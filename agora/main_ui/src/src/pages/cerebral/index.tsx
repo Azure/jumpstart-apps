@@ -13,7 +13,7 @@ import { IStackProps, IStackTokens, Stack } from "@fluentui/react";
 import { CopilotProvider } from "@fluentui-copilot/react-copilot";
 import '../../App.css';
 import VideoStream from '../../components/VideoStream';
-import GenieChat from '../../components/GenieChat';
+import CerebralChatWithAudio from '../../components/CerebralChat';
 
 const Main = (props: IStackProps) => (
     <Stack horizontal grow={1} disableShrink {...props} />
@@ -24,7 +24,7 @@ childrenGap: "m",
 padding: "m",
 };
 
-const Genie = () => {
+const Cerebral = () => {
     return (
         <FluentProvider theme={webLightTheme}>
         <CopilotProvider mode='sidecar'>
@@ -38,7 +38,7 @@ const Genie = () => {
               <Greetings />
               <Banner></Banner>
             </Stack>
-            <GenieChat />
+            <CerebralChatWithAudio />
             </Stack.Item>
           </Main>
         </CopilotProvider>
@@ -46,4 +46,4 @@ const Genie = () => {
     );
   };
   
-  export default Genie;
+  export default Cerebral;

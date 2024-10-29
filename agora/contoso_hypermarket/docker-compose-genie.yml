@@ -21,7 +21,7 @@ services:
       - MSSQL_SA_PASSWORD=ArcPassword123!!
     volumes:
       - mssql-data:/var/opt/mssql
-      - ./genie_api/operations/sql-setup.sh:/tmp/sql-setup.sh
+      - ./cerebral_api/operations/sql-setup.sh:/tmp/sql-setup.sh
     depends_on:
       mssql:
         condition: service_started
@@ -44,17 +44,17 @@ services:
     image: mcr.microsoft.com/azurelinux/base/influxdb:2.7
     container_name: influxdb_setup_job
     volumes:
-      - ./genie_api/operations/influxdb-setup.sh:/docker-entrypoint-initdb.d/influxdb-setup.sh  # Mount the setup script
+      - ./cerebral_api/operations/influxdb-setup.sh:/docker-entrypoint-initdb.d/influxdb-setup.sh  # Mount the setup script
     command: ["/bin/bash", "/docker-entrypoint-initdb.d/influxdb-setup.sh"]  # Run the script
     depends_on:
       - influxdb
     restart: "no"
 
-  genie-simulator:
+  cerebral-simulator:
     build:
-      context: ../genie_simulator/src  # This should point to the folder containing the Dockerfile
+      context: ../cerebral_simulator/src  # This should point to the folder containing the Dockerfile
       dockerfile: Dockerfile
-    container_name: genie_simulator  # Name of the container
+    container_name: cerebral_simulator  # Name of the container
     ports:
       - "5000:5000"  # Expose container port 5000
     environment:
@@ -65,11 +65,11 @@ services:
       VERBOSE: "true"
     restart: always  # Optional: Restart policy
 
-  genie-api:
+  cerebral-api:
     build:
-        context: ../genie_api/src  # This should point to the folder containing the Dockerfile and requirements.txt
+        context: ../cerebral_api/src  # This should point to the folder containing the Dockerfile and requirements.txt
         dockerfile: Dockerfile
-    container_name: genie_api  # Name of the container
+    container_name: cerebral_api  # Name of the container
     ports:
       - "5004:5004"  # Map host port 5003 to container port 5003
       - "8000:8000"  # Map host port 8000 to container port 8000
