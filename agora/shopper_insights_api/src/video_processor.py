@@ -10,9 +10,12 @@ from scipy.spatial.distance import cosine
 from collections import defaultdict
 from video_capture import VideoCapture
 import os
+from datetime import datetime
+from PIL import Image
+from PIL import ImageOps
 
 class VideoProcessor:
-    def __init__(self, url, index, name, debug=False):
+    def __init__(self, url, index, name, debug=False, enable_saving=True):
         self.url = url
         self.index = index
         self.processed_frame_queue = Queue(maxsize=10)
@@ -24,10 +27,31 @@ class VideoProcessor:
         self.running = False
         self.last_activity = time.time()
         self.inactivity_threshold = 30  # 30 seconds
+        self.enable_saving = enable_saving  # Flag to enable/disable saving frames and videos
         self.debug = debug
 
+        # Initialize save_lock for thread-safe operations
+        self.save_lock = threading.Lock()
+
+        # Directory to store person images
+        #MNT PATH FOR ACSA SHOULD BE SET TO /app/detected_persons
+        self.person_image_dir = "/app/detected_persons/frames"
+        if not os.path.exists(self.person_image_dir):
+            os.makedirs(self.person_image_dir)
+        
+        # Directory to store GIFs
+        self.videos_output_dir = "/app/detected_persons/videos"
+        if not os.path.exists(self.videos_output_dir):
+            os.makedirs(self.videos_output_dir)
+        
+        # Keep track of processed person directories
+        self.processed_person_dirs = set()
+        
+        # Start the Video creation thread
+        self.video_creation_thread = None
+
         # OpenVINO setup
-        MODEL_PATH = os.getenv("MODEL_PATH", "C:\\Users\\fcabrera\\Downloads\\jumpstart-apps\\agora\\contoso_hypermarket\\models")
+        MODEL_PATH = os.getenv("MODEL_PATH", ".\\models")
         self.ie = Core()
         self.det_model = self.ie.read_model(os.path.join(MODEL_PATH, "person-detection-retail-0013.xml"))
         self.det_compiled_model = self.ie.compile_model(model=self.det_model, device_name="CPU")
@@ -52,6 +76,7 @@ class VideoProcessor:
         # Person tracking variables
         self.person_tracker = {}
         self.next_person_id = 0
+        self.person_videos = {}
         self.max_frames_to_track = 60
         self.max_distance_threshold = 0.3
         self.min_detection_confidence = 0.6
@@ -76,11 +101,22 @@ class VideoProcessor:
             self.process_thread = threading.Thread(target=self.process_frames)
             self.process_thread.start()
             print(f"Started processing thread for video {self.index}")
+
+              # Start the video creation thread
+            if self.enable_saving:
+                # Start the video creation thread
+                if self.video_creation_thread is None or not self.video_creation_thread.is_alive():
+                    self.video_creation_thread = threading.Thread(target=self.video_creation_worker)
+                    self.video_creation_thread.daemon = True  # Daemon thread exits when main thread exits
+                    self.video_creation_thread.start()
+                    print(f"Started video creation thread for video {self.index}")
     
     def stop(self):
         self.running = False
         if self.process_thread:
             self.process_thread.join()
+        if self.enable_saving and self.video_creation_thread:
+            self.video_creation_thread.join()
         if self.vs:
             self.vs.stop()
         print(f"Stopped processing thread for video {self.index}")
@@ -136,6 +172,134 @@ class VideoProcessor:
         x1, y1, x2, y2 = rectangle
         return x1 <= x <= x2 and y1 <= y <= y2
 
+    def create_video(self, image_folder, person_dir):
+        # Get list of image files in the folder
+        images = [
+            img for img in os.listdir(image_folder)
+            if img.lower().endswith(('.jpg', '.jpeg', '.png'))
+        ]
+
+        # Sort images based on their creation time or name
+        images.sort()
+
+        # Ensure there are enough images to process
+        if len(images) < 5:
+            print(f"Not enough images in {image_folder} to create a video. Skipping.")
+            return
+
+        # Handle resampling filter compatibility
+        try:
+            resample_filter = Image.Resampling.LANCZOS  # Pillow >= 10.0.0
+        except AttributeError:
+            resample_filter = Image.LANCZOS  # Pillow < 10.0.0
+
+        frames = []
+        desired_size = (200, 400)  # Set desired width and height
+
+        for img_name in images:
+            img_path = os.path.join(image_folder, img_name)
+            with Image.open(img_path) as img:
+                img = img.convert('RGB')  # Ensure image is in RGB mode
+
+                # Resize image while maintaining aspect ratio
+                img.thumbnail(desired_size, resample=resample_filter)
+
+                # Create a new image with a white background
+                new_frame = Image.new('RGB', desired_size, (255, 255, 255))
+                # Calculate position to paste the image to center it
+                paste_position = (
+                    (desired_size[0] - img.size[0]) // 2,
+                    (desired_size[1] - img.size[1]) // 2
+                )
+                new_frame.paste(img, paste_position)
+
+                # Convert to numpy array and BGR format for OpenCV
+                frame = cv2.cvtColor(np.array(new_frame), cv2.COLOR_RGB2BGR)
+                frames.append(frame)
+
+        # Ensure the output directory exists
+        if not os.path.exists(self.videos_output_dir):
+            os.makedirs(self.videos_output_dir)
+
+        # Define the codec and create VideoWriter object
+        output_filename = f"{person_dir}.mp4"
+        output_path = os.path.join(self.videos_output_dir, output_filename)
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # You can use 'avc1' or 'H264' if available
+        fps = 10  # Set desired frames per second
+        out = cv2.VideoWriter(output_path, fourcc, fps, desired_size)
+
+        for frame in frames:
+            out.write(frame)
+
+        out.release()
+        print(f"Video saved as {output_path}")
+
+    def video_creation_worker(self):
+        while self.running and self.enable_saving:
+            # Wait for 60 seconds
+            time.sleep(60)
+            # Get list of person directories
+            person_dirs = [
+                d for d in os.listdir(self.person_image_dir)
+                if os.path.isdir(os.path.join(self.person_image_dir, d))
+            ]
+            for person_dir in person_dirs:
+                if person_dir not in self.processed_person_dirs:
+                    full_person_dir = os.path.join(self.person_image_dir, person_dir)
+                    # Check if the person directory has at least 5 frames
+                    num_images = len([
+                        img for img in os.listdir(full_person_dir)
+                        if img.lower().endswith(('.jpg', '.jpeg', '.png'))
+                    ])
+                    if num_images >= 5:
+                        # Create video
+                        self.create_video(full_person_dir, person_dir)
+                        # Mark as processed
+                        self.processed_person_dirs.add(person_dir)
+                    else:
+                        print(f"Directory {full_person_dir} has less than 5 frames. Skipping video creation.")
+
+    def save_detected_person(self, frame, bbox, person_id):
+        if not self.enable_saving:
+            return  # Exit early if saving is disabled
+        with self.save_lock:
+            x1, y1, x2, y2 = bbox
+
+            # Calculate the width and height of the bounding box
+            bbox_width = x2 - x1
+            bbox_height = y2 - y1
+
+            # Define the expansion factor (e.g., 0.2 for 20%)
+            expansion_factor = 0.2
+
+            # Expand the bounding box coordinates
+            x1_expanded = int(x1 - bbox_width * expansion_factor)
+            y1_expanded = int(y1 - bbox_height * expansion_factor)
+            x2_expanded = int(x2 + bbox_width * expansion_factor)
+            y2_expanded = int(y2 + bbox_height * expansion_factor)
+
+            # Ensure coordinates are within frame boundaries
+            x1_expanded = max(0, x1_expanded)
+            y1_expanded = max(0, y1_expanded)
+            x2_expanded = min(frame.shape[1], x2_expanded)
+            y2_expanded = min(frame.shape[0], y2_expanded)
+            
+            # Crop the expanded area from the frame
+            person_image = frame[y1_expanded:y2_expanded, x1_expanded:x2_expanded]
+            
+            # Define the directory for this person
+            person_dir = os.path.join(self.person_image_dir, f"person_{person_id}")
+            if not os.path.exists(person_dir):
+                os.makedirs(person_dir)
+            
+            # Use a timestamp for the image filename
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S%f")
+            filename = f"{timestamp}.jpg"
+            filepath = os.path.join(person_dir, filename)
+            
+            # Save the image
+            cv2.imwrite(filepath, person_image)
+
     def process_frames(self):
         processing_times = collections.deque(maxlen=200)
         frame_count = 0
@@ -180,12 +344,27 @@ class VideoProcessor:
                     key=lambda x: x[1],
                     default=(None, float('inf'))
                 )
-                
+
                 if best_match[0] is not None and best_match[1] < self.max_distance_threshold:
                     bbox, features, age = current_frame_detections.pop(best_match[0])
                     new_person_tracker[person_id] = (bbox, features, frames_tracked + 1, is_shopper, person_hash, age)
                     self.update_area_presence(person_hash, bbox, frame.shape, current_time)
                     self.update_age_stats(person_hash, age)
+
+                    # Calculate the center point of the bounding box in normalized coordinates
+                    center_x = (bbox[0] + bbox[2]) / 2 / frame.shape[1]
+                    center_y = (bbox[1] + bbox[3]) / 2 / frame.shape[0]
+                    center = (center_x, center_y)
+
+                    # Check if the center point is within any detection area
+                    is_in_area = any(
+                        self.point_in_rectangle(center, area) for area in self.restricted_areas
+                    )
+
+                    # Save the detected person image if they are in a detection area
+                    if is_in_area:
+                        self.save_detected_person(frame, bbox, person_id)
+
                 elif frames_tracked < self.max_frames_to_track:
                     new_person_tracker[person_id] = (last_bbox, last_features, frames_tracked + 1, is_shopper, person_hash, last_age)
                 else:
