@@ -11,6 +11,8 @@ WORKDIR /app
 
 # Copy requirements.txt and install dependencies
 COPY requirements.txt /app/
+
+# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the application code
@@ -20,10 +22,12 @@ ENV AZURE_OPENAI_API_KEY=<your_azure_openai_api_key> \
     CHATGPT_MODEL=gpt-35-turbo \
     AZURE_OPENAI_ENDPOINT=<your_azure_openai_endpoint> \
     OPENAI_API_VERSION=2024-03-01-preview \
-    INFLUXDB_URL=http://influxdb.genie.svc.cluster.local:8086 \
-    INFLUXDB_BUCKET=genie \
+    # Environment variables for InfluxDB
+    INFLUXDB_URL=http://influxdb.cerebral.svc.cluster.local:8086 \
+    INFLUXDB_BUCKET=cerebral \
     INFLUXDB_TOKEN=secret-token \
     INFLUXDB_ORG=InfluxData \
+    # Environment variables for SQL
     SQL_DATABASE=RetailDB \
     SQL_SERVER=10.0.0.4 \
     SQL_USERNAME=SA \

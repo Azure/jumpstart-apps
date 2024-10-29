@@ -7,14 +7,12 @@ import MaintenanceWorkerDashboard from "./maintenanceworkerdashboard";
 import InventoryDashboard from "./inventorydashboard";
 import CamerasZones from "./cameraszones";
 import Shopper from "./shopper";
-import Footfall from "./footfall"; 
-import Intrusion from "./intrusion"; 
 import CamerasZonesWizard from "./camerazoneswizard";
 import CamerasZonesWizardAssignCameras from "./camerazoneswizardassigncameras";
 import CamerasZonesWizardSetupCamera from "./cameraszoneswizardsetupcamera";
 import CamerasZonesWizardFloor from "./camerazoneswizardfloor";
 import CamerasZonesWizardReview from "./camerazoneswizardreview";
-import Genie from "./genie";
+import Cerebral from "./cerebral";
 import ShopperProducts from "./shopperproducts";
 import ShopperProductDetail from "./shopperproductdetail";
 import ShopperReviewCart from "./shopperreviewcart";
@@ -100,19 +98,9 @@ const pagesData: routerType[] = [
     title: "Shopper Review Cart"
   },
   {
-    path: "footfall",
-    element: <Footfall />,
-    title: "Footfall"
-  },
-  {
-    path: "intrusion",
-    element: <Intrusion />,
-    title: "Intrusion"
-  },
-  {
-    path: "genie",
-    element: <Genie />,
-    title: "Genie"
+    path: "cerebral",
+    element: <Cerebral />,
+    title: "Cerebral"
   }
 ];
 

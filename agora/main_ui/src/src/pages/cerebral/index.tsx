@@ -13,6 +13,7 @@ import { IStackProps, IStackTokens, Stack } from "@fluentui/react";
 import { CopilotProvider } from "@fluentui-copilot/react-copilot";
 import '../../App.css';
 import VideoStream from '../../components/VideoStream';
+import CerebralChatWithAudio from '../../components/CerebralChat';
 
 const Main = (props: IStackProps) => (
     <Stack horizontal grow={1} disableShrink {...props} />
@@ -23,7 +24,7 @@ childrenGap: "m",
 padding: "m",
 };
 
-const Intrusion = () => {
+const Cerebral = () => {
     return (
         <FluentProvider theme={webLightTheme}>
         <CopilotProvider mode='sidecar'>
@@ -37,10 +38,7 @@ const Intrusion = () => {
               <Greetings />
               <Banner></Banner>
             </Stack>
-            <VideoStream 
-              title="Intrusion Camera" 
-              videoUrl={process.env.REACT_APP_INTRUSION_VIDEO_URL || ""} 
-            />
+            <CerebralChatWithAudio />
             </Stack.Item>
           </Main>
         </CopilotProvider>
@@ -48,4 +46,4 @@ const Intrusion = () => {
     );
   };
   
-  export default Intrusion;
+  export default Cerebral;

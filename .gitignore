@@ -183,3 +183,9 @@ agora/main_ui/src/yarn.lock
 /models
 /agora/contoso_hypermarket/models
 /agora/contoso_hypermarket/samples
+
+
+agora/cerebral_rag/src/cpu_and_mobile/cpu-int4-rtn-block-32-acc-level-4/*.onnx.data
+agora/cerebral_rag/src/cpu_and_mobile/cpu-int4-rtn-block-32-acc-level-4/*.onnx
+.cache
+__pycache__
