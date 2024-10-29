@@ -1,0 +1,13 @@
+Service:
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-db
+spec:
+  selector:
+    app: backend-db
+  ports:
+    - protocol: TCP
+      port: {{ .Values.service.port }}
+      targetPort: 5432
+  type: {{ .Values.service.type }}
