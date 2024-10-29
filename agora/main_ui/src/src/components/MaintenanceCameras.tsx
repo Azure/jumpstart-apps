@@ -229,7 +229,6 @@ import {
             if(cameraRegions) {
                 cameraRegions.forEach(cameraRegion => {
                     if(cameraRegion.camerId === d["id"]) {
-                        console.log("Matched");
                         x1 = cameraRegion.x1;
                         x2 = cameraRegion.x2;
                         y1 = cameraRegion.y1;
@@ -249,9 +248,7 @@ import {
                 x2: x2,
                 y2: y2
             };
-            dataItems.push(newDataItem);  
-            console.log('dataitems');
-            console.log(dataItems);    
+            dataItems.push(newDataItem);     
             }
         )  
     }
