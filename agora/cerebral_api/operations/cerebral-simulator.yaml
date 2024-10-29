@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: genie-simulator-config
+  name: cerebral-simulator-config
   namespace: contoso-hypermarket
 data:
   INFLUXDB_URL: "http://influxdb.contoso-hypermarket.svc.cluster.local:8086"
@@ -30,40 +30,40 @@ data:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: genie-simulator
+  name: cerebral-simulator
   namespace: contoso-hypermarket
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: genie-simulator
+      app: cerebral-simulator
   template:
     metadata:
       labels:
-        app: genie-simulator
+        app: cerebral-simulator
     spec:
       containers:
-      - name: genie-simulator
-        image: agacrac434.azurecr.io/genie-simulator:latest
+      - name: cerebral-simulator
+        image: agacrac434.azurecr.io/cerebral-simulator:latest
         envFrom: 
         - configMapRef:
-            name: genie-simulator-config
+            name: cerebral-simulator-config
 
 ---
 
 apiVersion: v1
 kind: Service
 metadata:
-  name: genie-simulator-service
+  name: cerebral-simulator-service
   namespace: contoso-hypermarket
   labels:
-    app: genie-simulator-service
+    app: cerebral-simulator-service
 spec:
   type: LoadBalancer
   selector:
-    app: genie-simulator
+    app: cerebral-simulator
   ports:
-    - name: genie-metrics
+    - name: cerebral-metrics
       protocol: TCP
       port: 8001
       targetPort: 8001

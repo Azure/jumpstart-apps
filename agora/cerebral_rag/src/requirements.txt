@@ -1,13 +1,13 @@
 chromadb==0.4.22
 langchain==0.1.9
-langchain-community==0.0.24
+langchain-community==0.2.9
 python-magic==0.4.27
 pypdf==4.0.1
 tensorflow-text==2.14.0
 tensorflow-hub==0.15.0
 numpy==1.24.3
 pandas==2.1.4
-tqdm==4.66.1
+tqdm==4.66.3
 python-dotenv==1.0.0
 fastapi==0.109.0
 uvicorn==0.27.0

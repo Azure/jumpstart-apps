@@ -135,7 +135,7 @@ export const SingleSelect = () => {
   const defaultSelectedItems = React.useMemo(() => new Set([1]), []);
   const [data, setData] = useState([]);
   useEffect(() => {
-    fetch('http://74.249.31.17:5003/Genie/api/get_applications')
+    fetch('http://74.249.31.17:5003/Cerebral/api/get_applications')
       .then(response => response.json())
       .then(json => setData(json))
       .then()

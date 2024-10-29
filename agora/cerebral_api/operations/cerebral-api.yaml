@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: genie-api-deployment
+  name: cerebral-api-deployment
   namespace: contoso-hypermarket
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: genie-api
+      app: cerebral-api
   template:
     metadata:
       labels:
-        app: genie-api
+        app: cerebral-api
     spec:
       containers:
-      - name: genie-api
-        image: agacrac434.azurecr.io/genie-api:latest
+      - name: cerebral-api
+        image: agacrac434.azurecr.io/cerebral-api:latest
         ports:
         - containerPort: 5003
         env:
@@ -55,12 +55,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: genie-api-service
+  name: cerebral-api-service
   namespace: contoso-hypermarket
 spec:
   type: LoadBalancer
   selector:
-    app: genie-api
+    app: cerebral-api
   ports:
     - protocol: TCP
       port: 5003
