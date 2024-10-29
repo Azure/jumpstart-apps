@@ -7,6 +7,7 @@ class PrometheusMetrics:
         self.total_shoppers = Gauge('total_shoppers', 'Total number of shoppers', ['camera'])
         self.current_shoppers = Gauge('current_shoppers', 'Current number of shoppers', ['camera'])
         self.fps = Gauge('detection_fps', 'Current FPS of detection system', ['camera'])
+        self.time_in_area_avg = Gauge('time_in_area_avg', 'Average time shoppers spend in an area', ['camera', 'area_id'])
         
         # Gauges for age demographics per camera
         self.age_groups = {}
@@ -68,14 +69,27 @@ class PrometheusMetrics:
             # Update area statistics
             for area_id, stats in detection_data['area_stats'].items():
                 metric = self._get_area_metric(area_id, camera_label)
-                metric.labels(camera=camera_label).set(stats)
-            
-            # Update people near areas
-            for person_id, areas in detection_data['people_near_areas'].items():
-                for area_id, is_near in areas.items():
-                    metric = self._get_proximity_metric(person_id, area_id, camera_label)
-                    metric.labels(
-                        camera=camera_label,
-                        person_id=str(person_id),
-                        area_id=str(area_id)
-                    ).set(1 if is_near else 0)
+                metric.labels(camera=camera_label).set(stats['current_count'])
+                metric.labels(camera=camera_label).set(stats['total_count'])
+
+            # Update time inside area metrics
+            for area_id, times in detection_data['people_near_areas'].items():
+                metric_key = f'time_in_area_{area_id}_{camera_label}'
+                if metric_key not in self.area_stats:
+                    self.area_stats[metric_key] = Gauge(
+                        f'time_in_area_{area_id}',
+                        f'Time spent in area {area_id}',
+                        ['camera']
+                    )
+                metric = self.area_stats[metric_key]
+                metric.labels(camera=camera_label).set(times[0]['end_time'] - times[0]['start_time'])
+                
+            # Update average time in area metrics
+            total_time = 0
+            for area_id, times in detection_data['people_near_areas'].items():
+                if not times or len(times) == 0:
+                    continue
+                total_time += times[0]['end_time'] - times[0]['start_time']
+
+            average_time = total_time / len(times) if times else 0
+            self.time_in_area_avg.labels(camera=camera_label, area_id=area_id).set(average_time)
