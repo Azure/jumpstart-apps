@@ -74,12 +74,13 @@ def status():
     all_status = []
     for video_url, processor in video_processors.items():
         status_info = {
-            "name" : processor.get_name(),
+            "name": processor.get_name(),
             "video_url": video_url,
             "current_count": processor.get_current_count(),
             "line_points": processor.get_line_points(),
-            "fps" : processor.get_fps(),
-            "debug": processor.get_debug()
+            "fps": processor.get_fps(),
+            "debug": processor.get_debug(),
+            "timestamp": int(time.time())
         }
         all_status.append(status_info)
     return {"statuses": all_status}, 200
