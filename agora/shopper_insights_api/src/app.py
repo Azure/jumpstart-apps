@@ -93,16 +93,18 @@ def set_video_source():
 
 @app.route('/status')
 def status():
+
     video_url = request.args.get('video_url', default="")
-    if video_url == "":
-        return jsonify({"message": "Video processor not started"}), 200
-    
-    processor = get_or_create_processor(video_url, None)
-    if processor:
-        data = processor.get_detection_data()
-        return jsonify(data)
+    if video_url:
+        processor = video_processors.get(video_url)
+        if processor:
+            data = processor.get_detection_data()
+            return jsonify(data)
+        else:
+            return jsonify({"message": "Video processor not found"}), 404
     else:
-        return jsonify({"message": "Video processor not started or not found"}), 200
+        all_processors_data = {url: processor.get_detection_data() for url, processor in video_processors.items()}
+        return jsonify(all_processors_data)
 
 def get_all_cameras_data_func():
     results = {}
