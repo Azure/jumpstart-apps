@@ -24,3 +24,5 @@ spec:
           value: "http://shopper-experience-api:5001"
         - name: REACT_APP_CEREBRAL_API_URL
           value: "http://cerebral-api-service.contoso-hypermarket.svc.cluster.local:5003/Cerebral/api/process_question"
+        - name: REACT_APP_STORE_API
+          value: "http://backend-api.contoso-hypermarket.svc.cluster.local:5002"
