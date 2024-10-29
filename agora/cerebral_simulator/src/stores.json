@@ -1,18 +1,50 @@
 [
   {
     "store_id": "CHI",
-    "location": "Chicago, IL"
+    "city": "Chicago",
+    "state": "IL",
+    "country": "United States"
   },
   {
     "store_id": "SEA",
-    "location": "Seattle, WA"
+    "city": "Seattle",
+    "state": "WA",
+    "country": "United States"
   },
   {
     "store_id": "NYC",
-    "location": "New York, NY"
+    "city": "New York City",
+    "state": "NY",
+    "country": "United States"
   },
   {
     "store_id": "DAL",
-    "location": "Dallas, TX"
+    "city": "Dallas",
+    "state": "TX",
+    "country": "United States"
+  },
+  {
+    "store_id": "ATL",
+    "city": "Atlanta",
+    "state": "GA",
+    "country": "United States"
+  },
+  {
+    "store_id": "LAS",
+    "city": "Las Vegas",
+    "state": "NV",
+    "country": "United States"
+  },
+  {
+    "store_id": "MIA",
+    "city": "Miami",
+    "state": "FL",
+    "country": "United States"
+  },
+  {
+    "store_id": "LAX",
+    "city": "Los Angeles",
+    "state": "CA",
+    "country": "United States"
   }
 ]

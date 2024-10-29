@@ -29,15 +29,17 @@ class Product:
         return f"Product(product_id={self.product_id}, name={self.name}, price_range={self.price_range}, stock={self.stock}, photo_path={self.photo_path}, category={self.category})"
 
 class ProductInventory:
-    def __init__(self, date_time, product_id, store_id, retail_price, in_stock):
+    def __init__(self, date_time, product_id, store_id, retail_price, in_stock, reorder_threshold, last_restocked):
         self.date_time = date_time
         self.product_id = product_id
         self.store_id = store_id
         self.retail_price = retail_price
         self.in_stock = in_stock
+        self.reorder_threshold = reorder_threshold
+        self.last_restocked = last_restocked
 
     def __repr__(self):
-        return f"ProductInventory(date_time={self.date_time}, product_id={self.product_id}, store_id={self.store_id}, retail_price={self.retail_price}, in_stock={self.in_stock})"
+        return f"ProductInventory(date_time={self.date_time}, product_id={self.product_id}, store_id={self.store_id}, retail_price={self.retail_price}, in_stock={self.in_stock}, reorder_threshold={self.reorder_threshold}, last_restocked={self.last_restocked})"
 
     def to_dict(self):
         return {
@@ -45,7 +47,9 @@ class ProductInventory:
             "product_id": self.product_id,
             "store_id": self.store_id,
             "retail_price": self.retail_price,
-            "in_stock": self.in_stock
+            "in_stock": self.in_stock,
+            "reorder_threshold": self.reorder_threshold,
+            "last_restocked": self.last_restocked.isoformat()
         }
 
 class StoreSimulator:
@@ -76,13 +80,21 @@ class StoreSimulator:
             eventhub_name=self.INVENTORY_EVENTHUB_NAME
         )
 
-        # Initialize data structures
+        # Initialize store details data structures
         self.store_details = [
-            {"store_id": "CHI", "location": "Chicago, IL"},
-            {"store_id": "SEA", "location": "Seattle, WA"},
-            {"store_id": "NYC", "location": "New York, NY"},
-            {"store_id": "DAL", "location": "Dallas, TX"}
+            { "store_id": "CHI", "city": "Chicago", "state": "IL", "country": "United States" },
+            { "store_id": "SEA", "city": "Seattle", "state": "WA", "country": "United States" },
+            { "store_id": "NYC", "city": "New York City", "state": "NY", "country": "United States" },
+            { "store_id": "DAL", "city": "Dallas", "state": "TX", "country": "United States" },
+            { "store_id": "ATL", "city": "Atlanta", "state": "GA", "country": "United States" },
+            { "store_id": "LAS", "city": "Las Vegas", "state": "NV", "country": "United States" },
+            { "store_id": "MIA", "city": "Miami", "state": "FL", "country": "United States" },
+            { "store_id": "LAX", "city": "Los Angeles", "state": "CA", "country": "United States" }
         ]
+
+        self.store_registers = ["R-001", "R-002", "R-003", "R-004", "R-005"]
+        self.payment_methods = ["credit_card", "cash", "debit_card", "check"]
+        self.product_discount = [0, 5, 10, 15, 20]
 
         self.products_list = []
         self.current_inventory = {}
@@ -104,7 +116,9 @@ class StoreSimulator:
                     store_id=store["store_id"],
                     product_id=product.product_id,
                     retail_price=product_price,
-                    in_stock=product.stock
+                    in_stock=product.stock,
+                    reorder_threshold = int(product.stock - product.stock * 0.8),
+                    last_restocked = current_time - timedelta(days=random.randint(1, 30))
                 )
 
                 self.current_inventory[(product_inventory.store_id, product_inventory.product_id)] = product_inventory
@@ -137,7 +151,6 @@ class StoreSimulator:
             store_index = random.randint(0, len(self.store_details) - 1)
             order_id = current_time.strftime('%Y%m%d%H%M%S-') + '{:03d}'.format(orderIndex)
 
-            line_items = []
             line_item_count = random.randint(1, product_count)
             product_indexes = []
             while len(product_indexes) < line_item_count:
@@ -145,7 +158,9 @@ class StoreSimulator:
                 if product_index not in product_indexes:
                     product_indexes.append(product_index)
 
-            order_total_price = 0
+            # Define different profit margins to apply for each product sale
+            profit_choices = random.sample(range(-20, 30), 5)
+
             for product_index in product_indexes:
                 product = self.products_list[product_index]
                 quantity_sold = random.randint(1, 100)
@@ -160,6 +175,7 @@ class StoreSimulator:
                     product_inventory.in_stock = product_inventory.in_stock - quantity_sold
                 else:
                     product_inventory.in_stock = product_inventory.in_stock + product.stock - quantity_sold
+                    product_inventory.last_restocked = current_time_str
 
                 # Update inventory date
                 product_inventory.date_time = current_time
@@ -168,33 +184,50 @@ class StoreSimulator:
                 # Send updated inventory to event hub
                 self.send_inventory_to_event_hub(json.dumps(product_inventory.to_dict()))
 
-                line_item_total_price = product_inventory.retail_price * quantity_sold
-                order_total_price = order_total_price + line_item_total_price
+                discount = random.choice(self.product_discount) / 100
+                line_item_total_price = round(product_inventory.retail_price * quantity_sold * (1 - discount), 2)
+                profit = round(line_item_total_price * random.choice(profit_choices) / 100, 2)
                 line_item = {
+                    'sale_id': order_id,
+                    'sale_date': current_time_str,
+                    'store_id': self.store_details[store_index]['store_id'],
+                    'store_city': self.store_details[store_index]['city'],
                     'product_id': product.product_id,
-                    'quantity': quantity_sold,
+                    'product_category': product.category,
+                    'product_name': product.name,
                     'price': product_inventory.retail_price,
-                    'item_total': line_item_total_price
+                    'discount': discount,
+                    'quantity': quantity_sold,
+                    'item_total': line_item_total_price,
+                    'profit': profit,
+                    'payment_method': random.choice(self.payment_methods),
+                    'customer_id': 'C-001',
+                    'register_id': random.choice(self.store_registers),
                 }
-                line_items.append(line_item)
 
-            order = {
-                'store_id': self.store_details[store_index]['store_id'],
-                'order_id': order_id,
-                'order_date': current_time_str,
-                'line_items': line_items,
-                'order_total': order_total_price
-            }
-            self.send_orders_to_event_hub(json.dumps(order))
+                # Send sales data to event hub
+                self.send_orders_to_event_hub(json.dumps(line_item))
 
     def send_inventory_to_event_hub(self, simulation_data):
-        event_data = EventData(simulation_data)
+        staging_event = {
+        "source": "simulator",
+        "subject": "topic/inventory",
+        "event_data": json.loads(simulation_data)
+        }
+
+        event_data = EventData(json.dumps(staging_event))
         self.inventory_producer.send_batch([event_data])
         if os.getenv("VERBOSE", "False").lower() == "true":
             self.logger.info(f"Sent inventory data: {simulation_data}")
 
     def send_orders_to_event_hub(self, simulation_data):
-        event_data = EventData(simulation_data)
+        staging_event = {
+        "source": "simulator",
+        "subject": "topic/sales",
+        "event_data": json.loads(simulation_data)
+        }
+
+        event_data = EventData(json.dumps(staging_event))
         self.orders_producer.send_batch([event_data])
         if os.getenv("VERBOSE", "False").lower() == "true":
             self.logger.info(f"Sent order data: {simulation_data}")
@@ -223,7 +256,7 @@ class StoreSimulator:
             while production_datetime <= datetime.now():
                 self.logger.info(f'Generating data for: {production_datetime}')
                 self.simulate_order_data(production_datetime)
-                production_datetime += timedelta(minutes=self.ORDER_FREQUENCY)
+                production_datetime += timedelta(minutes=self.ORDER_FREQUENCY)  # Increment by ORDER_FREQUENCY minutes
 
             # Generate live data
             self.logger.info("Now generating live data...")
@@ -231,7 +264,7 @@ class StoreSimulator:
                 current_time = datetime.now()
                 self.logger.info(f'Generating for: {current_time}')
                 self.simulate_order_data(current_time)
-                time.sleep(self.ORDER_FREQUENCY * 60)
+                time.sleep(60)  # Sleep for 1 minute for live data
 
         except KeyboardInterrupt:
             self.logger.info("Received keyboard interrupt, shutting down...")
