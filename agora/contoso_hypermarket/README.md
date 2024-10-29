@@ -28,3 +28,6 @@ kubectl apply -f ../footfall_ai_api/operations/footfall.yaml
 kubectl apply -f ../shopper_insights_api/operations/shopper-insights.yaml
 kubectl apply -f ../cerebral_api/operations/cerebral-api.yaml
 kubectl apply -f ../cerebral_api/operations/cerebral-simulator.yaml
+
+kubectl apply -f ../cerebral_api/operations/cerebral-simulator-prometheus.yaml
+kubectl apply -f ../shopper_insights_api/operations/shopper-insights-prometheus.yaml
