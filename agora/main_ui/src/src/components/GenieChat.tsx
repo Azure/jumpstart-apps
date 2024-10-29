@@ -30,7 +30,7 @@ interface ChatMessage {
   isAudio?: boolean;
 }
 
-const GenieChatWithAudio = (props: CopilotChatProps) => {
+const CerebralChatWithAudio = (props: CopilotChatProps) => {
   const copilotMode = useCopilotMode();
   const [inputMessage, setInputMessage] = React.useState("");
   const [isRecording, setIsRecording] = React.useState(false);
@@ -110,12 +110,12 @@ const GenieChatWithAudio = (props: CopilotChatProps) => {
   const processAudioWithSTT = async (audioBlob: Blob) => {
     setIsProcessing(true);
     try {
-      const model = process.env.REACT_APP_GENIE_STT_MODEL || 'azure';
+      const model = process.env.REACT_APP_CEREBRAL_STT_MODEL || 'azure';
       const formData = new FormData();
       formData.append('audio_data', audioBlob, 'recording.wav');
       formData.append('model', model);
 
-      const apiSttUrl = process.env.REACT_APP_GENIE_STT_API_URL || 'http://localhost:5004/Genie/api/stt';
+      const apiSttUrl = process.env.REACT_APP_CEREBRAL_STT_API_URL || 'http://localhost:5004/Cerebral/api/stt';
       const response = await fetch(apiSttUrl, {       
         method: 'POST',
         body: formData,
@@ -136,8 +136,8 @@ const GenieChatWithAudio = (props: CopilotChatProps) => {
       };
       setMessages(prev => [...prev, transcriptionMessage]);
 
-      // Process transcription with Genie
-      await handleGenieApiCall(transcription);
+      // Process transcription with Cerebral
+      await handleCerebralApiCall(transcription);
     } catch (error) {
       console.error('Error processing audio:', error);
       const errorMessage: ChatMessage = {
@@ -151,11 +151,11 @@ const GenieChatWithAudio = (props: CopilotChatProps) => {
     }
   };
 
-  const handleGenieApiCall = async (inputMessage: string): Promise<void> => {
+  const handleCerebralApiCall = async (inputMessage: string): Promise<void> => {
     try {
-      const apiUrl = process.env.REACT_APP_GENIE_API_URL || 'http://localhost:5004/Genie/api/process_question';
-      const industry = process.env.REACT_APP_GENIE_INDUSTRY || 'default';
-      const role = process.env.REACT_APP_GENIE_ROLE || 'default';
+      const apiUrl = process.env.REACT_APP_CEREBRAL_API_URL || 'http://localhost:5004/Cerebral/api/process_question';
+      const industry = process.env.REACT_APP_CEREBRAL_INDUSTRY || 'default';
+      const role = process.env.REACT_APP_CEREBRAL_ROLE || 'default';
 
       const response = await fetch(apiUrl, {
         method: 'POST',
@@ -210,7 +210,7 @@ const GenieChatWithAudio = (props: CopilotChatProps) => {
     setInputMessage("");
 
     try {
-      await handleGenieApiCall(inputMessage);
+      await handleCerebralApiCall(inputMessage);
     } catch (error) {
       console.error('Error sending message:', error);
       const errorMessage: ChatMessage = {
@@ -267,7 +267,7 @@ const GenieChatWithAudio = (props: CopilotChatProps) => {
               }}
             />
           }
-          name="Genie"
+          name="Cerebral"
           defaultFocused={index === messages.length - 1}
           actions={
             <Button
@@ -325,4 +325,4 @@ const GenieChatWithAudio = (props: CopilotChatProps) => {
   );
 };
 
-export default GenieChatWithAudio;
+export default CerebralChatWithAudio;
