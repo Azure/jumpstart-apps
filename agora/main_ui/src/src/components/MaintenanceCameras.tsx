@@ -119,10 +119,12 @@ import {
         name: string;
         description: string;
         rtspuri: string;
+        currentCount: number;
       };    
       const dataItems: DataItem[] = [
       ];
-
+      const footfallStatuses: FootfallStatus[] = [
+    ];
       type RegionItem = {
         id: number;
         name: string;
@@ -135,6 +137,14 @@ import {
         threshold: number;
       };   
 
+      type FootfallStatus = {
+        currentCount: number,
+        debug: boolean,
+        fps: string,
+        name:string,
+        videoUrl: string
+      }
+
       const [data, setData] = useState([]);
       useEffect(() => {
         fetch(storeAPI + '/cameras')
@@ -143,14 +153,49 @@ import {
           .then()
           .catch(error => console.error(error));
       }, []);    
+      const [statuses, setStatusData] = useState();
+      useEffect(() => {
+        fetch(footfallAIAPI + '/status')
+          .then(response => response.json())
+          .then(json => setStatusData(json))
+          .then()
+          .catch(error => console.error(error));
+      }, []);  
+      if(statuses) {
+        if(Array.isArray(statuses["statuses"])) {
+            var arrayedObject = Object.entries(statuses["statuses"]);
+            arrayedObject.forEach(element => 
+            {
+                var objectFiedStatus = JSON.parse(JSON.stringify(element[1]));
+                var newFootfallStatus: FootfallStatus = {
+                    currentCount: objectFiedStatus.current_count,
+                    videoUrl: objectFiedStatus.video_url,
+                    fps: objectFiedStatus.fps,
+                    name: objectFiedStatus.name,
+                    debug: objectFiedStatus.debug
+                }
+                footfallStatuses.push(newFootfallStatus);
+            }
+            );
+        }
+      }
       if(data) {
         data.forEach(
             function(d){
+            var currentCount = 0;
+            if(footfallStatuses) {
+                footfallStatuses.forEach(footFallStatus => {
+                    if(d["rtspuri"] === footFallStatus.videoUrl) {
+                        currentCount = footFallStatus.currentCount;
+                    }
+                });
+            }
             var newDataItem: DataItem = {
                 id: d["id"] ,
                 name: d["name"],
                 description: d["description"],
                 rtspuri: d["rtspuri"],
+                currentCount: currentCount
             };
             dataItems.push(newDataItem);      
             }
@@ -244,7 +289,7 @@ import {
                                 <Stack horizontal>
                                 <Text>Zone label </Text>
                                 <Text>&nbsp; | Status: Active | </Text>
-                                <Text>&nbsp;People count: 10</Text>
+                                <Text>&nbsp;People count: {item.currentCount}</Text>
                                 </Stack>
                                 </Stack>
                             </CardFooter>
