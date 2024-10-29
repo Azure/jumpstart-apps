@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: genie-api-deployment
+  namespace: contoso-hypermarket
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: genie-api
+  template:
+    metadata:
+      labels:
+        app: genie-api
+    spec:
+      containers:
+      - name: genie-api
+        image: agacrac434.azurecr.io/genie-api:latest
+        ports:
+        - containerPort: 5003
+        env:
+        - name: AZURE_OPENAI_API_KEY
+          value: "replaceme"
+        - name: CHATGPT_MODEL
+          value: "gpt-35-turbo"
+        - name: AZURE_OPENAI_ENDPOINT
+          value: "https://jsextoai.openai.azure.com"
+        - name: OPENAI_API_VERSION
+          value: "2024-03-01-preview"
+        - name: INFLUXDB_URL
+          value: "http://influxdb.contoso-hypermarket.svc.cluster.local:8086"
+        - name: INFLUXDB_BUCKET
+          value: "hypermarket"
+        - name: INFLUXDB_TOKEN
+          value: "secret-token"
+        - name: INFLUXDB_ORG
+          value: "InfluxData"
+        - name: REDIS_URL
+          value: "redis://redis-service.contoso-hypermarket.svc.cluster.local:6379"
+        - name: SQL_DATABASENAME
+          value: "RetailDB"
+        - name: SQL_SERVER
+          value: "mssql-service"
+        - name: SQL_USERNAME
+          value: "SA"
+        - name: SQL_PASSWORD
+          value: "ArcPassword123!!"
+        - name: WHISPER_MODEL_PATH
+          value: ""
+        - name: AZURE_AI_SPEECH_KEY
+          value: ""
+        - name: AZURE_AI_SPEECH_REGION
+          value: ""
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: genie-api-service
+  namespace: contoso-hypermarket
+spec:
+  type: LoadBalancer
+  selector:
+    app: genie-api
+  ports:
+    - protocol: TCP
+      port: 5003
+      targetPort: 5003
