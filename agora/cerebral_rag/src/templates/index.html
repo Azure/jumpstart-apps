@@ -1,0 +1,150 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG Assistant</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        #chat-container {
+            border: 1px solid #ccc;
+            padding: 20px;
+            margin-bottom: 20px;
+            height: 400px;
+            overflow-y: auto;
+        }
+        .context {
+            background-color: #f0f0f0;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .question {
+            color: #0066cc;
+            margin: 10px 0;
+        }
+        .response {
+            margin: 10px 0;
+        }
+        .metrics {
+            font-size: 0.8em;
+            color: #666;
+            margin-top: 10px;
+        }
+        #question-input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        #submit-btn {
+            padding: 10px 20px;
+            background-color: #0066cc;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        #submit-btn:disabled {
+            background-color: #ccc;
+        }
+        .error {
+            color: red;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>RAG Assistant</h1>
+    <div id="chat-container"></div>
+    <div id="input-container">
+        <textarea id="question-input" rows="3" placeholder="Enter your question..."></textarea>
+        <button id="submit-btn">Ask Question</button>
+    </div>
+
+    <script>
+        const socket = io();
+        const chatContainer = document.getElementById('chat-container');
+        const questionInput = document.getElementById('question-input');
+        const submitBtn = document.getElementById('submit-btn');
+        let currentResponse = null;
+
+        socket.on('connect', () => {
+            console.log('Connected to server');
+        });
+
+        socket.on('context', (data) => {
+            const contextDiv = document.createElement('div');
+            contextDiv.className = 'context';
+            contextDiv.textContent = data.context;
+            chatContainer.appendChild(contextDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        });
+
+        socket.on('token', (data) => {
+            if (!currentResponse) {
+                currentResponse = document.createElement('div');
+                currentResponse.className = 'response';
+                chatContainer.appendChild(currentResponse);
+            }
+            currentResponse.textContent += data.token;
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        });
+
+        socket.on('metrics', (data) => {
+            const metricsDiv = document.createElement('div');
+            metricsDiv.className = 'metrics';
+            metricsDiv.innerHTML = `
+                Total tokens: ${data.total_tokens}<br>
+                Time to first token: ${data.time_to_first_token.toFixed(2)}s<br>
+                Total time: ${data.total_time.toFixed(2)}s<br>
+                Tokens per second: ${data.tokens_per_second.toFixed(2)}
+            `;
+            chatContainer.appendChild(metricsDiv);
+        });
+
+        socket.on('complete', () => {
+            currentResponse = null;
+            submitBtn.disabled = false;
+            questionInput.disabled = false;
+        });
+
+        socket.on('error', (data) => {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error';
+            errorDiv.textContent = `Error: ${data.error}`;
+            chatContainer.appendChild(errorDiv);
+            submitBtn.disabled = false;
+            questionInput.disabled = false;
+        });
+
+        submitBtn.addEventListener('click', () => {
+            const question = questionInput.value.trim();
+            if (question) {
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'question';
+                questionDiv.textContent = question;
+                chatContainer.appendChild(questionDiv);
+                
+                submitBtn.disabled = true;
+                questionInput.disabled = true;
+                
+                socket.emit('question', { question });
+                questionInput.value = '';
+            }
+        });
+
+        questionInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                submitBtn.click();
+            }
+        });
+    </script>
+</body>
+</html>

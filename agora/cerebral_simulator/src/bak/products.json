@@ -1,0 +1,110 @@
+[
+    {
+      "ProductID": "PROD001",
+      "ProductName": "Red Apple",
+      "Category": "Fruits",
+      "Description": "Fresh red apples, perfect for healthy snacking",
+      "Price": 0.30,
+      "SupplierID": "SUP001",
+      "DateAdded": "2024-01-01T00:00:00"
+    },
+    {
+      "ProductID": "PROD002",
+      "ProductName": "Banana",
+      "Category": "Fruits",
+      "Description": "Fresh yellow bananas",
+      "Price": 0.23,
+      "SupplierID": "SUP001",
+      "DateAdded": "2024-01-01T00:00:00"
+    },
+    {
+      "ProductID": "PROD003",
+      "ProductName": "Avocado",
+      "Category": "Vegetables",
+      "Description": "Ripe Hass avocados",
+      "Price": 1.35,
+      "SupplierID": "SUP002",
+      "DateAdded": "2024-01-01T00:00:00"
+    },
+    {
+      "ProductID": "PROD004",
+      "ProductName": "Bread",
+      "Category": "Bakery",
+      "Description": "Freshly baked bread",
+      "Price": 4.00,
+      "SupplierID": "SUP003",
+      "DateAdded": "2024-01-01T00:00:00"
+    },
+    {
+      "ProductID": "PROD005",
+      "ProductName": "Milk",
+      "Category": "Dairy",
+      "Description": "Fresh whole milk",
+      "Price": 3.50,
+      "SupplierID": "SUP004",
+      "DateAdded": "2024-01-01T00:00:00"
+    },
+    {
+      "ProductID": "PROD006",
+      "ProductName": "Orange Juice",
+      "Category": "Beverages",
+      "Description": "100% pure orange juice",
+      "Price": 4.00,
+      "SupplierID": "SUP005",
+      "DateAdded": "2024-01-01T00:00:00"
+    },
+    {
+      "ProductID": "PROD007",
+      "ProductName": "Chips",
+      "Category": "Snacks",
+      "Description": "Crispy potato chips",
+      "Price": 0.50,
+      "SupplierID": "SUP006",
+      "DateAdded": "2024-01-01T00:00:00"
+    },
+    {
+      "ProductID": "PROD008",
+      "ProductName": "Red Pepper",
+      "Category": "Vegetables",
+      "Description": "Fresh red bell peppers",
+      "Price": 1.00,
+      "SupplierID": "SUP002",
+      "DateAdded": "2024-01-01T00:00:00"
+    },
+    {
+      "ProductID": "PROD009",
+      "ProductName": "Lettuce",
+      "Category": "Vegetables",
+      "Description": "Fresh crisp lettuce",
+      "Price": 0.30,
+      "SupplierID": "SUP002",
+      "DateAdded": "2024-01-01T00:00:00"
+    },
+    {
+      "ProductID": "PROD010",
+      "ProductName": "Tomato",
+      "Category": "Vegetables",
+      "Description": "Fresh ripe tomatoes",
+      "Price": 0.45,
+      "SupplierID": "SUP002",
+      "DateAdded": "2024-01-01T00:00:00"
+    },
+    {
+      "ProductID": "PROD011",
+      "ProductName": "Strawberry",
+      "Category": "Fruits",
+      "Description": "Fresh sweet strawberries",
+      "Price": 3.00,
+      "SupplierID": "SUP001",
+      "DateAdded": "2024-01-01T00:00:00"
+    },
+    {
+      "ProductID": "PROD012",
+      "ProductName": "Eggs",
+      "Category": "Poultry",
+      "Description": "Fresh farm eggs",
+      "Price": 4.50,
+      "SupplierID": "SUP007",
+      "DateAdded": "2024-01-01T00:00:00"
+    }
+  ]

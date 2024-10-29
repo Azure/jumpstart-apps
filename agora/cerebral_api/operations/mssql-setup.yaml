@@ -1,0 +1,123 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mssql-setup-script
+  namespace: contoso-hypermarket
+data:
+  setup-sql.sh: |
+    #!/bin/bash
+    /opt/mssql-tools/bin/sqlcmd -S mssql-service -U SA -P $SA_PASSWORD -Q "CREATE DATABASE RetailDB"
+    sleep 10s
+    cat << EOF > script.sql
+      USE RetailDB;
+      CREATE TABLE Products (
+        ProductID INT PRIMARY KEY,
+        ProductName VARCHAR(100),
+        Category VARCHAR(50),
+        Description VARCHAR(100),
+        Price DECIMAL(10, 2),
+        SupplierID INT,
+        DateAdded DATE
+      );
+      CREATE TABLE Stores(
+        StoreID INT PRIMARY KEY,
+        StoreName VARCHAR(100),
+        Address VARCHAR(100),
+        City VARCHAR(100),
+        StateCode CHAR(2),
+        Zipcode CHAR(5)
+      );
+      CREATE TABLE StoreInventory(
+        ProductID INT,
+        StoreID INT,
+        StockLevel INT,
+        ReorderThreshold INT,
+        LastRestocked DATE,
+        PRIMARY KEY (ProductID, StoreID),
+        FOREIGN KEY (ProductID) REFERENCES Products(ProductID), 
+        FOREIGN KEY (StoreID) REFERENCES Stores(StoreID)
+      );
+      CREATE TABLE WarehouseInventory(
+        ProductID INT,
+        StockLevel INT,
+        ReorderThreshold INT,
+        LastRestocked DATE,
+        StorageLocation VARCHAR(20),
+        PRIMARY KEY (ProductID),
+        FOREIGN KEY (ProductID) REFERENCES Products(ProductID)
+      );
+      CREATE TABLE Sales (
+        SaleID INT PRIMARY KEY,
+        ProductID INT,
+        StoreID INT,
+        QuantitySold INT,
+        SaleDate DATE,
+        SalePrice DECIMAL(10, 2),
+        PaymentMethod VARCHAR(20),
+        CustomerID INT,
+        RegisterID INT,
+        FOREIGN KEY (ProductID) REFERENCES Products(ProductID)
+      );
+      CREATE TABLE Suppliers (
+        SupplierID INT PRIMARY KEY,
+        SupplierName VARCHAR(100),
+        ContactName VARCHAR(100),
+        PhoneNumber VARCHAR(15),
+        Email VARCHAR(100),
+        DeliveryLeadTimeDays INT
+      );
+      CREATE TABLE Customers (
+        CustomerID INT PRIMARY KEY,
+        CustomerName VARCHAR(100),
+        Email VARCHAR(100),
+        LoyaltyPoints INT,
+        JoinDate DATE,
+        LastSeen DATE
+      );
+      CREATE TABLE Orders(
+        OrderID INT PRIMARY KEY,
+        OrderGenerated DATE,
+        DeliveryDate DATE,
+        ProductID INT,
+        Quantity INT,
+        StoreID INT,
+        FOREIGN KEY (ProductID) REFERENCES Products(ProductID),
+        FOREIGN KEY (StoreID) REFERENCES Stores(StoreID)
+      );
+    EOF
+    /opt/mssql-tools/bin/sqlcmd -S mssql-service -U SA -P $SA_PASSWORD -i script.sql
+    
+---
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: mssql-setup-job
+  namespace: contoso-hypermarket
+spec:
+  template:
+    spec:
+      containers:
+      - name: mssql-job
+        image: mcr.microsoft.com/mssql-tools
+        command: ["/bin/bash", "-c"]
+        args: ["cp /mssql/data/setup-sql.sh /tmp/setup-sql.sh && chmod +x /tmp/setup-sql.sh && /tmp/setup-sql.sh"]
+        volumeMounts:
+        - name: script-volume
+          mountPath: /mssql/data
+          readOnly: true
+        - name: tmp-volume
+          mountPath: /tmp
+        env:
+        - name: ACCEPT_EULA
+          value: "Y"
+        - name: SA_PASSWORD
+          value: "ArcPassword123!!"
+      restartPolicy: Never
+      volumes:
+      - name: script-volume
+        configMap:
+          name: mssql-setup-script
+      - name: tmp-volume
+        emptyDir: {}
+  backoffLimit: 4
