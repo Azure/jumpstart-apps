@@ -72,10 +72,10 @@ def index():
 @app.route('/status', methods=['GET'])
 def status():
     all_status = []
-    for video_url, processor in video_processors.items():
+    for camera_name, processor in video_processors.items():
         status_info = {
-            "name": processor.get_name(),
-            "video_url": video_url,
+            "name": camera_name,
+            "video_url": processor.get_video_url(),
             "current_count": processor.get_current_count(),
             "line_points": processor.get_line_points(),
             "fps": processor.get_fps(),

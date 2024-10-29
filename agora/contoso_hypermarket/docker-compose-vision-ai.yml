@@ -10,7 +10,8 @@ services:
       - "5003:5003"  # Adjusting to expose port 5000 as mapped in the Dockerfile
     environment:
       - MODEL_PATH=/tmp/models/yolov8n.pt
-      - RTSP_URL=rtsp://rtsp_stream_container:8554/stream
+      - RTSP_URL=rtsp://rtsp-stream-aisle:8554/stream
+      - FLASK_PORT=5003
 
   shopper_insights_api:
     build:
@@ -23,16 +24,27 @@ services:
       - "5001:5001"  # Adjusting to expose port 5001 as mapped in the Dockerfile
     environment:
       - MODEL_PATH=/tmp/models/
-      - RTSP_URL=rtsp://rtsp_stream_container:8554/stream
+      - RTSP_URL=rtsp://rtsp-stream-aisle:8554/stream
       - FLASK_PORT=5001
 
-  rtsp_stream:
+  rtsp-stream-aisle:
     image: kerberos/virtual-rtsp:1.0.6
-    container_name: rtsp_stream_container
+    container_name: rtsp-stream-aisle
     ports:
       - "554:8554"
     volumes:
       - ./samples:/samples
     environment:
       - SOURCE_URL=file:///samples/sample.mp4
+    restart: always
+  
+  rtsp-stream-zoom:
+    image: kerberos/virtual-rtsp:1.0.6
+    container_name: rtsp-stream-zoom
+    ports:
+      - "555:8554"
+    volumes:
+      - ./samples:/samples
+    environment:
+      - SOURCE_URL=file:///samples/sample2.mp4
     restart: always

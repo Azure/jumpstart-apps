@@ -66,6 +66,9 @@ class VideoProcessor:
     
     def get_name(self):
         return self.name
+    
+    def get_video_url(self):
+        return self.url
 
     def start(self):
         if not self.running:

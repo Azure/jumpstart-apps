@@ -111,7 +111,7 @@ import {
 
   const MaintenanceCameras: React.FC<{ callParentFunction: () => void }>  = ({ callParentFunction }) => {
     var storeAPI = process.env.REACT_APP_STORE_API_URL;
-    var footfallAIAPI = process.env.REACT_APP_FOOTFALL_VIDEO_URL;
+    var footfallAIAPI = process.env.REACT_APP_FOOTFALL_API;
     const classes = useStyles();
     // API integration code
     type DataItem = {
@@ -157,10 +157,8 @@ import {
         )  
     }
 
-      const dataforVideo = footfallAIAPI +  "/video_feed?data={\"x\" : 0, \"y\" : 0,\"w\" : 100, \"h\" : 100, \"debug\" : true, \"cameraName\" : \"Nabeel\", \"video_url\": \"rtsp://rtsp_stream_container:8554/stream\" }";   
-      
-      function generateDataForVideo(cameraId: number, rtspurl: string) {
-        var dataforVideo = footfallAIAPI +  "/video_feed?data={\"x\" : " + "0" + ", \"y\" : " + "0" + ",\"w\" : " + "100" + ", \"h\" : " + "100" + ", \"debug\" : true, \"cameraName\" : \"Nabeel\", \"video_url\": \"rtsp://rtsp_stream_container:8554/stream\" }";           
+      function generateDataForVideo(cameraId: number, rtspurl: string, cameraName: string) {
+        var dataforVideo = footfallAIAPI +  "/video_feed?data={\"x\" : " + "0" + ", \"y\" : " + "0" + ",\"w\" : " + "400" + ", \"h\" : " + "400" + ", \"debug\" : true, \"cameraName\" : \"" + cameraName +  "\", \"video_url\": \"" + rtspurl + "\" }";           
 
         //RegionItem
         const regionItems: RegionItem[] = [
@@ -238,7 +236,7 @@ import {
                             <CardPreview>
                                 <VideoStream 
                                     title="" 
-                                    videoUrl={generateDataForVideo(item.id, item.rtspuri)} />
+                                    videoUrl={generateDataForVideo(item.id, item.rtspuri, item.name)} />
                             </CardPreview>
                             <CardFooter>
                                 <Stack>
