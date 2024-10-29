@@ -248,8 +248,8 @@ const useStyles = makeStyles({
                             />
                             <CardFooter className={styles.cardfooter}>  
                             <div className={styles.cardfootercontent}>
-                              <Text className={styles.cardfootertitlecontenttext}>Let Genie handle your dinner recipes</Text>
-                              <Text className={styles.cardfootersubtitlecontenttext}>Ask Genie</Text>                        
+                              <Text className={styles.cardfootertitlecontenttext}>Let Cerebral handle your dinner recipes</Text>
+                              <Text className={styles.cardfootersubtitlecontenttext}>Ask Cerebral</Text>                        
                             </div>
                             </CardFooter>
                               </Card>      
