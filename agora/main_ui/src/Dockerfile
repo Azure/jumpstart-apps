@@ -11,7 +11,7 @@ FROM mcr.microsoft.com/cbl-mariner/base/nginx:1
 RUN tdnf install awk -y 
 
 RUN mkdir -p /usr/share/nginx/html
-#COPY .env /usr/share/nginx/html
+COPY nginx.nv.placeholder /usr/share/nginx/html/.env
 COPY ./nginx.conf.template /etc/nginx/nginx.conf.default
 COPY --from=build /app/build /usr/share/nginx/html
 COPY ./env-config.sh /docker-entrypoint.d/env-config.sh
