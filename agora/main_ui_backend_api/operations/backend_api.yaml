@@ -34,7 +34,7 @@ spec:
         - name: FLASK_RUN_HOST
           value: ""
         - name: MQTT_BROKER
-          value: "aio-broker-insecure"
+          value: "aio-broker-insecure.azure-iot-operations.svc.cluster.local"
         - name: MQTT_PORT
           value: "1883"
         - name: MQTT_TOPIC
