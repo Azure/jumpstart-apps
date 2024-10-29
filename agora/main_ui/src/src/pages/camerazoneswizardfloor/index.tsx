@@ -19,6 +19,7 @@ import {
   PopoverTrigger,
 
 } from "@fluentui/react-components";
+import { Dropdown, IDropdownStyles, IDropdownOption } from '@fluentui/react/lib/Dropdown';
 import {
   MathFormatLinear24Regular,
   CalligraphyPen24Regular,
@@ -240,6 +241,10 @@ const Main = (props: IStackProps) => (
       activeDot: {
         backgroundColor: tokens.colorBrandBackground,
       },      
+      dropDown: {
+        width: '312px',
+        marginLeft: '0px'
+      }       
     }
     );
 
@@ -260,6 +265,8 @@ interface CameraPanelProps {
   onSave: () => void;
 }
 const CamerasZonesWizardFloor: React.FC = () => {
+    var storeAPI = process.env.REACT_APP_STORE_API_URL;
+    var footfallAIAPI = process.env.REACT_APP_FOOTFALL_VIDEO_URL;  
     const styles = useStyles();
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [cameraNameInputValue, setCameraNameInputValue] = React.useState('');
@@ -321,7 +328,10 @@ const CamerasZonesWizardFloor: React.FC = () => {
       const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
       const navigate = useNavigate();
       const stackTokens: IStackTokens = { childrenGap: 10 };
-
+      const handleCameraDropdownChange = (event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption, index?: number) =>{
+        //setCameraEndpointInputValue(newValue || '');
+        //setDataForVideo(footfallAIAPI + "/video_feed?data={\"x\" : 0, \"y\" : 0,\"w\" : 0, \"h\" : 0, \"debug\" : true, \"cameraName\" : \"Nabeel\", \"video_url\": \"" + option?.key +"\" }");
+      };
 
       ///TOP
       class MousePosition {
@@ -370,12 +380,120 @@ const CamerasZonesWizardFloor: React.FC = () => {
         },
         [] // no dependencies means that it will be called once on mount.
       );
-
+      const onSaveDrawer  = () => {
+        var cameraName = document.getElementById('txtCameraName')?.getAttribute('value');
+        var cameraEndpoint = document.getElementById('txtCameraEndpoint')?.getAttribute('value');
+        var jsonData = {
+          "name": cameraName,
+          "description": cameraName,
+          "rtspuri": cameraEndpoint
+        }
+        const requestOptions = {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(jsonData),
+        };
+  
+      // Send data to the backend via POST
+  
+      fetch(storeAPI + '/cameras', {
+        method: 'POST',
+        headers: {
+          'accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        // body: '{\n  "name": "Camera3",\n  "description": "Camera3",\n  "rtspuri": "rtsp://rtsp_stream_container:8554/stream"\n}',
+        body: JSON.stringify({
+          'name': cameraName,
+          'description': cameraName,
+          'rtspuri': cameraEndpoint
+        })
+      });
+        setIsDrawerOpen(false);
+      }
+      const onRenderFooterContent = React.useCallback(
+        () => (
+          <Stack horizontal tokens={{ childrenGap: 10 }}>
+            <PrimaryButton onClick={onSaveDrawer}>Done</PrimaryButton>
+            <DefaultButton onClick={onCancelDrawer}>Cancel</DefaultButton>
+          </Stack>
+        ),
+        []
+      );
+      const onCancelDrawer = () => {
+        setIsDrawerOpen(false);
+      };      
+      const DropdownOptions:IDropdownOption[] = [];      
+    // API integration code
+    type DataItem = {
+      id: number;
+      name: string;
+      description: string;
+      rtspuri: string;
+    };    
+    const dataItems: DataItem[] = [
+    ];
+    
+    const [data, setData] = useState([]);
+    useEffect(() => {
+      fetch( storeAPI + '/cameras')
+        .then(response => response.json())
+        .then(json => setData(json))
+        .then()
+        .catch(error => console.error(error));
+    }, []);    
+    data.forEach(
+      function(d){
+        var newDataItem: DataItem = {
+          id: d["id"] ,
+          name: d["name"],
+          description: d["description"],
+          rtspuri: d["rtspuri"],
+        };
+        dataItems.push(newDataItem);      
+        DropdownOptions.push({key: newDataItem.rtspuri, text: newDataItem.name});
+       }
+    )       
       return (
         <FluentProvider theme={webLightTheme}>
         <CopilotProvider mode='sidecar'>
           <Header />
           <Main className={styles.main}>
+          <Panel
+            isOpen={isDrawerOpen}
+            onDismiss={toggleDrawer}
+            type={PanelType.custom}
+            customWidth="25%"
+            headerText="Zone details"
+            onRenderFooterContent={onRenderFooterContent}
+            isFooterAtBottom={true}
+            hasCloseButton={true}
+            closeButtonAriaLabel="Close"
+            isLightDismiss={true}
+      >
+        <Stack>
+            <Stack.Item>
+                <TextField
+                  label="Zone label"
+                  value={cameraNameInputValue}
+                  onChange={handleCameraNameInputChange}
+                  placeholder="Name your zone"
+                  id="txtCameraName"
+                />
+            </Stack.Item>
+            <Stack.Item>
+            <Stack>
+                          <Text>Select Camera</Text>
+                          <Dropdown
+                            onChange={handleCameraDropdownChange}
+                            placeholder="Select a camera"
+                            className={styles.dropDown}
+                            options={DropdownOptions}>
+                          </Dropdown>                         
+                        </Stack> 
+            </Stack.Item>
+        </Stack>
+          </Panel>            
           <Stack.Item>
               <SideMenu />
           </Stack.Item>
@@ -480,6 +598,7 @@ const CamerasZonesWizardFloor: React.FC = () => {
                                 }
                               }                              
                               setIsDrawing(false);
+                              setIsDrawerOpen(true);
                             }}
                             ></canvas>
                       </Stack.Item>

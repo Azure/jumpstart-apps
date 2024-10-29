@@ -178,16 +178,16 @@ const CamerasZones: React.FC<CameraPanelProps> = ({ isOpen, onDismiss, onSave })
           <Header />
           <Main className={styles.main}>
           <Panel
-        isOpen={isDrawerOpen}
-        onDismiss={toggleDrawer}
-        type={PanelType.custom}
-        customWidth="25%"
-        headerText="Add camera"
-        onRenderFooterContent={onRenderFooterContent}
-        isFooterAtBottom={true}
-        hasCloseButton={true}
-        closeButtonAriaLabel="Close"
-        isLightDismiss={true}
+            isOpen={isDrawerOpen}
+            onDismiss={toggleDrawer}
+            type={PanelType.custom}
+            customWidth="25%"
+            headerText="Add camera"
+            onRenderFooterContent={onRenderFooterContent}
+            isFooterAtBottom={true}
+            hasCloseButton={true}
+            closeButtonAriaLabel="Close"
+            isLightDismiss={true}
       >
         <Stack>
             <Stack.Item>
