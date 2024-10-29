@@ -23,8 +23,8 @@ ENV AZURE_OPENAI_API_KEY=<your_azure_openai_api_key> \
     AZURE_OPENAI_ENDPOINT=<your_azure_openai_endpoint> \
     OPENAI_API_VERSION=2024-03-01-preview \
     # Environment variables for InfluxDB
-    INFLUXDB_URL=http://influxdb.genie.svc.cluster.local:8086 \
-    INFLUXDB_BUCKET=genie \
+    INFLUXDB_URL=http://influxdb.cerebral.svc.cluster.local:8086 \
+    INFLUXDB_BUCKET=cerebral \
     INFLUXDB_TOKEN=secret-token \
     INFLUXDB_ORG=InfluxData \
     # Environment variables for SQL
