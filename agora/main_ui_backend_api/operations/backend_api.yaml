@@ -34,15 +34,15 @@ spec:
         - name: FLASK_RUN_HOST
           value: ""
         - name: MQTT_BROKER
-          value: ""
+          value: "aio-broker-insecure"
         - name: MQTT_PORT
           value: "1883"
         - name: MQTT_TOPIC
           value: "Store/Cameras/PeopleCount"
         - name: FOOTFALL_API
-          value: "http://footfall-ai-api:5000/api/footfall"
+          value: "http://footfall-ai-api:5000/status"
         - name: SI_API
-          value: "http://shopper-insights-api:5001/api/si"
+          value: "http://shopper-insights-api:5001/status"
       imagePullSecrets:
       - name: acr-secret
 
