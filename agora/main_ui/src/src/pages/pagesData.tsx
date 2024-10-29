@@ -14,7 +14,7 @@ import CamerasZonesWizardAssignCameras from "./camerazoneswizardassigncameras";
 import CamerasZonesWizardSetupCamera from "./cameraszoneswizardsetupcamera";
 import CamerasZonesWizardFloor from "./camerazoneswizardfloor";
 import CamerasZonesWizardReview from "./camerazoneswizardreview";
-import Cerbral from "./cerebral";
+import Cerebral from "./cerebral";
 import ShopperProducts from "./shopperproducts";
 import ShopperProductDetail from "./shopperproductdetail";
 import ShopperReviewCart from "./shopperreviewcart";
