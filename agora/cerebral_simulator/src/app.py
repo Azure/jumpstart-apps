@@ -45,7 +45,7 @@ DEVICE_COUNTS = {
     "SmartShelf": int(os.getenv("SMARTSHELF_COUNT", 2)),
     "HVAC": int(os.getenv("HVAC_COUNT", 2)),
     "LightingSystem": int(os.getenv("LIGHTINGSYSTEM_COUNT", 2)),
-    "AutomatedCheckout": int(os.getenv("AUTOMATEDCHECKOUT_COUNT", 2))
+    "AutomatedCheckout": int(os.getenv("AUTOMATEDCHECKOUT_COUNT", 10))
 }
 
 # Connect to MQTT Broker
@@ -186,6 +186,9 @@ def generate_equipment_data(equipment_type, device_id, pk):
             "total_amount_usd": round(random.uniform(10, 500), 2),
             "payment_method": random.choice(["credit_card", "cash", "mobile_payment"]),
             "errors": float(random.randint(0, 5)),
+            "status": random.choice(["open", "closed"]),
+            "avgWaitTime": float(random.randint(0, 3)),
+            "queueLength": float(random.randint(0, 3))
         })
     
     return data
@@ -317,7 +320,49 @@ def simulate_device(pk, equipment_type, device_id):
             logger.error(f"Error in {device_id} simulation: {str(e)}")
             time.sleep(5)  # Wait a bit before retrying
 
+def get_open_automated_checkouts():
+    devices = get_devices().json
+    open_automated_checkouts = 0
+    total_checkouts = 0
+    avg_wait_time = 0
+    queue_length = 0
+    for device in devices:
+        device_id = device.get('device_id')
+        equipment_type = device.get('equipment_type')
+        key = f"{equipment_type}_{device_id}"
+        metrics = devices_metrics[key].get('metrics', {})
+        if device.get('equipment_type') == 'AutomatedCheckout':
+            total_checkouts += 1
+            queue_length = queue_length + metrics.get('queueLength')
+            avg_wait_time = avg_wait_time + metrics.get('avgWaitTime')
+            if metrics.get('status') == 'open':
+                open_automated_checkouts += 1
+    closed_automated_checkouts = total_checkouts - open_automated_checkouts
+    avg_wait_time = avg_wait_time / total_checkouts
+
+    return jsonify({'open_automated_checkouts': open_automated_checkouts, 'closed_automated_checkouts': closed_automated_checkouts, 'total_checkouts': total_checkouts, 'avg_wait_time': avg_wait_time, 'queue_length': queue_length})
+
 # REST API Endpoints
+@app.route('/api/v1/automated_checkouts/open', methods=['GET'])
+@swag_from({
+    'responses': {
+        200: {
+            'description': 'Number of open AutomatedCheckouts and total checkouts',
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'open_automated_checkouts': {'type': 'integer'},
+                    'total_checkouts': {'type': 'integer'}
+                }
+            }
+        }
+    },
+    'summary': 'Returns the number of open AutomatedCheckouts and total checkouts',
+    'tags': ['AutomatedCheckouts']
+})
+def get_open_automated_checkouts_endpoint():
+    return get_open_automated_checkouts()
+
 @app.route('/api/v1/devices', methods=['GET'])
 @swag_from({
     'responses': {
@@ -483,6 +528,6 @@ if __name__ == "__main__":
             mqtt_client.disconnect()
             
             logger.info("Shutting down InfluxDB client...")
-            client.close()
+            #client.close()
             
             logger.info("Program terminated.")
