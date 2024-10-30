@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState }  from 'react';
 import {
   FluentProvider,
   webLightTheme,
@@ -19,6 +19,7 @@ import { CopilotProvider } from "@fluentui-copilot/react-copilot";
 import logo from './logo.svg';
 import '../../App.css';
 import Cameras from '../../components/Cameras';
+import CerebralChatWithAudio from '../../components/CerebralChat';
 const Main = (props: IStackProps) => (
     <Stack horizontal grow={1} disableShrink {...props} />
   );
@@ -154,10 +155,14 @@ const useStyles = makeStyles({
 });  
 const StoreManager = () => {
   const styles = useStyles();
+  const [isCerebralDrawerOpen, setIsCerebralDrawerOpen] = useState(false);
+  const toggleCerebralDrawer = () => {
+    setIsCerebralDrawerOpen(!isCerebralDrawerOpen);
+  }; 
     return (
         <FluentProvider theme={webLightTheme}>
         <CopilotProvider mode='sidecar'>
-          <Header />
+          <Header callParentFunction={toggleCerebralDrawer}/>
           <Main>
           <Stack.Item>
               <SideMenu />

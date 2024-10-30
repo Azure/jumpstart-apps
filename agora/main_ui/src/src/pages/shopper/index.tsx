@@ -15,7 +15,7 @@ import { CopilotProvider } from "@fluentui-copilot/react-copilot";
 import { useNavigate } from "react-router-dom";
 import { Panel, PanelType, DefaultButton } from '@fluentui/react';
 import { IDropdownOption, IImageProps, IStackProps, IStackTokens, Stack,   PrimaryButton, Image} from "@fluentui/react";
-
+import CerebralChatWithAudio from '../../components/CerebralChat';
 import {
   Card,
   CardFooter,
@@ -187,10 +187,42 @@ const useStyles = makeStyles({
         ),
         [onSave, onDismiss]
         );          
+        const [isCerebralDrawerOpen, setIsCerebralDrawerOpen] = useState(false);
+        const toggleCerebralDrawer = () => {
+          setIsCerebralDrawerOpen(!isCerebralDrawerOpen);
+        }; 
+        const onRenderCerebralFooterContent = React.useCallback(
+          () => (
+            <Stack horizontal tokens={{ childrenGap: 10 }}>
+              {/* <PrimaryButton onClick={onSaveDrawer}>Save</PrimaryButton> */}
+              <DefaultButton onClick={onCancelCerebralDrawer}>Close</DefaultButton>
+            </Stack>
+          ),
+          []
+        );
+        const onCancelCerebralDrawer = () => {
+          setIsCerebralDrawerOpen(false);
+        };   
+      
           return (
               <FluentProvider theme={webLightTheme}>
                 <CopilotProvider mode='sidecar'>
                     <Stack>
+                    <Panel
+            isOpen={isCerebralDrawerOpen}
+            onDismiss={toggleCerebralDrawer}
+            type={PanelType.custom}
+            customWidth="25%"
+            headerText=""
+            onRenderFooterContent={onRenderCerebralFooterContent}
+            isFooterAtBottom={true}
+            hasCloseButton={true}
+            closeButtonAriaLabel="Close"
+            isLightDismiss={true}            
+            >
+              <CerebralChatWithAudio />
+          </Panel>  
+
                     <Panel
                         isOpen={isDrawerOpen}
                         onDismiss={toggleDrawer}
@@ -215,7 +247,10 @@ const useStyles = makeStyles({
                             </Stack.Item>
                         </Stack>
                         </Panel>                          
-                        <Header callParentFunction={toggleDrawer}/>
+                        <Header 
+                          callParentFunction={toggleDrawer}
+                          callCerebralParentFunction={toggleCerebralDrawer} 
+                        />
                         <TopNav />
                         <Stack id='MainContent' style={{alignItems: 'center', marginTop: '21px'}}>
                             <Stack>
