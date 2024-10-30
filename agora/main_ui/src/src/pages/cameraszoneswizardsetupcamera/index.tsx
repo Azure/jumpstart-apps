@@ -43,6 +43,7 @@ import {  SearchBox, IconButton } from '@fluentui/react';
 import { useDropzone } from 'react-dropzone';
 import { useCallback } from 'react';
 import { text } from 'stream/consumers';
+import CerebralChatWithAudio from '../../components/CerebralChat';
 const Main = (props: IStackProps) => (
     <Stack horizontal grow={1} disableShrink {...props} />
   );
@@ -264,10 +265,11 @@ interface CameraPanelProps {
   onSave: () => void;
 }
 const CamerasZonesWizardSetupCamera = () => {
-    var storeAPI = process.env.REACT_APP_STORE_API_URL;
-    var footfallAIAPI = process.env.REACT_APP_FOOTFALL_API;
+    var storeAPI = process.env.REACT_APP_STORE_API_URL || "/store_api";
+    var footfallAIAPI = process.env.REACT_APP_FOOTFALL_API || "/footfall_api";
     const styles = useStyles();
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+    const [isCerebralDrawerOpen, setIsCerebralDrawerOpen] = useState(false);
     const [cameraNameInputValue, setCameraNameInputValue] = React.useState('');
     const handleCameraNameInputChange = (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
       setCameraNameInputValue(newValue || '');
@@ -365,7 +367,21 @@ const CamerasZonesWizardSetupCamera = () => {
       //setCameraEndpointInputValue(newValue || '');
       setDataForVideo(footfallAIAPI + "/video_feed?data={\"x\" : 0, \"y\" : 0,\"w\" : 0, \"h\" : 0, \"debug\" : true, \"cameraName\" : \"Nabeel\", \"video_url\": \"" + option?.key +"\" }");
     };
-
+    const toggleCerebralDrawer = () => {
+      setIsCerebralDrawerOpen(!isCerebralDrawerOpen);
+    };
+    const onRenderCerebralFooterContent = React.useCallback(
+      () => (
+        <Stack horizontal tokens={{ childrenGap: 10 }}>
+          {/* <PrimaryButton onClick={onSaveDrawer}>Save</PrimaryButton> */}
+          <DefaultButton onClick={onCancelCerebralDrawer}>Close</DefaultButton>
+        </Stack>
+      ),
+      []
+    );
+    const onCancelCerebralDrawer = () => {
+      setIsCerebralDrawerOpen(false);
+    }; 
       ///TOP
       class MousePosition {
         public x: number = 0 ;
@@ -393,8 +409,22 @@ const CamerasZonesWizardSetupCamera = () => {
     return (
         <FluentProvider theme={webLightTheme}>
         <CopilotProvider mode='sidecar'>
-          <Header />
+        <Header callParentFunction={toggleCerebralDrawer}/>
           <Main className={styles.main}>
+          <Panel
+            isOpen={isCerebralDrawerOpen}
+            onDismiss={toggleCerebralDrawer}
+            type={PanelType.custom}
+            customWidth="25%"
+            headerText=""
+            onRenderFooterContent={onRenderCerebralFooterContent}
+            isFooterAtBottom={true}
+            hasCloseButton={true}
+            closeButtonAriaLabel="Close"
+            isLightDismiss={true}            
+            >
+              <CerebralChatWithAudio />
+          </Panel>               
           <Stack.Item>
               <SideMenu />
           </Stack.Item>

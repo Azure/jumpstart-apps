@@ -19,6 +19,7 @@ import '../../App.css';
 import MaintenanceCameras from '../../components/MaintenanceCameras';
 import MaintenanceZones from '../../components/MaintenanceZones';
 import VideoStream from '../../components/VideoStream';
+import CerebralChatWithAudio from '../../components/CerebralChat';
 
 const Main = (props: IStackProps) => (
     <Stack horizontal grow={1} disableShrink {...props} />
@@ -81,10 +82,11 @@ interface CameraPanelProps {
   onSave: () => void;
 } 
 const CamerasZones: React.FC<CameraPanelProps> = ({ isOpen, onDismiss, onSave }) => {
-    var storeAPI = process.env.REACT_APP_STORE_API_URL;
-    var footfallAIAPI = process.env.REACT_APP_FOOTFALL_API;
+    var storeAPI = process.env.REACT_APP_STORE_API_URL || "/store_api";
+    var footfallAIAPI = process.env.REACT_APP_FOOTFALL_API || "/footfall_api";
     const styles = useStyles();
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+    const [isCerebralDrawerOpen, setIsCerebralDrawerOpen] = useState(false);
     const [cameraNameInputValue, setCameraNameInputValue] = React.useState('');
     const handleCameraNameInputChange = (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
       setCameraNameInputValue(newValue || '');
@@ -158,12 +160,22 @@ const CamerasZones: React.FC<CameraPanelProps> = ({ isOpen, onDismiss, onSave })
       [onSave, onDismiss]
     );
 
+    const onRenderCerebralFooterContent = React.useCallback(
+      () => (
+        <Stack horizontal tokens={{ childrenGap: 10 }}>
+          {/* <PrimaryButton onClick={onSaveDrawer}>Save</PrimaryButton> */}
+          <DefaultButton onClick={onCancelCerebralDrawer}>Close</DefaultButton>
+        </Stack>
+      ),
+      []
+    );
     const onFilterChanged = (filterText: string, tag: ITag) => {
       return tag.name.toLowerCase().startsWith(filterText.toLowerCase());
     };
     const onEmptyInputFocus = () => {
       return true;
     };
+    
     const toggleDrawer = () => {
       setIsDrawerOpen(!isDrawerOpen);
     };
@@ -172,11 +184,32 @@ const CamerasZones: React.FC<CameraPanelProps> = ({ isOpen, onDismiss, onSave })
       setIsDrawerOpen(false);
     };
 
+    const toggleCerebralDrawer = () => {
+      setIsCerebralDrawerOpen(!isCerebralDrawerOpen);
+    };
+
+    const onCancelCerebralDrawer = () => {
+      setIsCerebralDrawerOpen(false);
+    };
     return (
         <FluentProvider theme={webLightTheme}>
         <CopilotProvider mode='sidecar'>
-          <Header />
+          <Header callParentFunction={toggleCerebralDrawer}/>
           <Main className={styles.main}>
+          <Panel
+            isOpen={isCerebralDrawerOpen}
+            onDismiss={toggleCerebralDrawer}
+            type={PanelType.custom}
+            customWidth="25%"
+            headerText=""
+            onRenderFooterContent={onRenderCerebralFooterContent}
+            isFooterAtBottom={true}
+            hasCloseButton={true}
+            closeButtonAriaLabel="Close"
+            isLightDismiss={true}            
+            >
+              <CerebralChatWithAudio />
+          </Panel>
           <Panel
             isOpen={isDrawerOpen}
             onDismiss={toggleDrawer}

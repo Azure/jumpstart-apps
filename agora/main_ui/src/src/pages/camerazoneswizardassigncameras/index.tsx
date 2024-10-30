@@ -28,6 +28,8 @@ import MaintenanceZones from '../../components/MaintenanceZones';
 import {  SearchBox, IconButton } from '@fluentui/react';
 import { useDropzone } from 'react-dropzone';
 import { useCallback } from 'react';
+import CerebralChatWithAudio from '../../components/CerebralChat';
+
 const Main = (props: IStackProps) => (
     <Stack horizontal grow={1} disableShrink {...props} />
   );
@@ -303,10 +305,13 @@ const CamerasZonesWizardAssignCameras = () => {
         "Finish"
       ];      
       const [activeStep, setActiveStep] = useState(0);      
+      const [isCerebralDrawerOpen, setIsCerebralDrawerOpen] = useState(false);
       const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
       const navigate = useNavigate();
       const stackTokens: IStackTokens = { childrenGap: 10 };
-
+      const toggleCerebralDrawer = () => {
+        setIsCerebralDrawerOpen(!isCerebralDrawerOpen);
+      }; 
       /// TOP
       class MousePosition {
         public x: number = 0 ;
@@ -401,7 +406,7 @@ const CamerasZonesWizardAssignCameras = () => {
     return (
         <FluentProvider theme={webLightTheme}>
         <CopilotProvider mode='sidecar'>
-          <Header />
+          <Header callParentFunction={toggleCerebralDrawer}/>
           <Main className={styles.main}>
           <Stack.Item>
               <SideMenu />
