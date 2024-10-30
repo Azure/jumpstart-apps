@@ -12,6 +12,7 @@ docker compose -f docker-compose-vision-ai.yml -f docker-compose-main-ui.yml -f 
 
 kubectl create ns contoso-hypermarket
 
+helm dependency build .\charts\contoso-hypermarket\ --namespace contoso-hypermarket
 helm install contoso-hypermarket .\charts\contoso-hypermarket\ --namespace contoso-hypermarket
 
 kubectl apply -f ../main_ui_backend_api/operations/backend_db.yaml
@@ -27,3 +28,6 @@ kubectl apply -f ../footfall_ai_api/operations/footfall.yaml
 kubectl apply -f ../shopper_insights_api/operations/shopper-insights.yaml
 kubectl apply -f ../cerebral_api/operations/cerebral-api.yaml
 kubectl apply -f ../cerebral_api/operations/cerebral-simulator.yaml
+
+kubectl apply -f ../cerebral_api/operations/cerebral-simulator-prometheus.yaml
+kubectl apply -f ../shopper_insights_api/operations/shopper-insights-prometheus.yaml

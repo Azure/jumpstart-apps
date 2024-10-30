@@ -44,7 +44,7 @@ BEGIN
         INSERT INTO cameras (name, description, rtspuri)
         VALUES
             ('Camera 1', 'Aisle Camera', 'rtsp://rtsp-stream-aisle:8554/stream'),
-            ('Camera 2', 'Produce Camera', 'rtsp://rtsp-stream-zoom:8555/stream');
+            ('Camera 2', 'Produce Camera', 'rtsp://rtsp-stream-zoom:8554/stream');
     END IF;
 END $$;
 

@@ -15,6 +15,12 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of the application code
 COPY . /app
 
+ENV MQTT_BROKER "test.mosquitto.org"
+ENV MQTT_PORT "1883"
+ENV MQTT_TOPIC "Store/Cameras/PeopleCount"
+ENV FOOTFALL_API  "http://localhost:5003/status"
+ENV SI_API "http://localhost:5002/status"
+
 # Expose the ports that the applications will use
 EXPOSE 5002
 

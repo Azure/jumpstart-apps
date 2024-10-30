@@ -8,11 +8,13 @@ image:
   # This sets the pull policy for images.
   pullPolicy: IfNotPresent
 
-service:
-  # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
-  type: LoadBalancer
-  # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
-  port: 8554
+services:
+  aisle:
+    type: LoadBalancer
+    port: 8554
+  zoom:
+    type: LoadBalancer
+    port: 8554
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
