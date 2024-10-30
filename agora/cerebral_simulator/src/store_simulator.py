@@ -1,12 +1,11 @@
+import os
 import json
 import random
-from datetime import timedelta, time, datetime
 import time
-import os
-from azure.eventhub import EventHubProducerClient, EventHubConsumerClient, EventData
-#from dotenv import load_dotenv
-from threading import Thread
 import logging
+from datetime import timedelta, datetime
+from azure.eventhub import EventHubProducerClient, EventData
+import paho.mqtt.client as mqtt
 
 class PriceRange:
     def __init__(self, min, max):
@@ -70,6 +69,13 @@ class StoreSimulator:
         self.ORDER_FREQUENCY = int(os.getenv('ORDER_FREQUENCY', 5))
         self.PRODUCTS_FILE = os.getenv('PRODUCTS_FILE', 'products.json')
 
+        # MQTT Settings
+        MQTT_BROKER = os.getenv("MQTT_BROKER", "localhost")
+        MQTT_PORT = int(os.getenv("MQTT_PORT", 1883))
+
+        self.mqtt_client = mqtt.Client()
+        self.mqtt_client.connect(MQTT_BROKER, MQTT_PORT)
+        
         # Initialize Event Hub clients
         self.orders_producer = EventHubProducerClient.from_connection_string(
             conn_str=self.EVENTHUB_CONNECTION_STRING, 
@@ -107,7 +113,23 @@ class StoreSimulator:
             products = json.load(file)
             self.products_list = [Product(**product) for product in products]
 
-    def generate_inventory_data(self, current_time):
+    def publish_data_to_mqtt(self, simulation_data, topic):
+        try:
+            staging_event = json.dumps({
+            "source": "simulator",
+            "subject": topic,
+            "event_data": json.loads(simulation_data)
+            })
+
+            self.mqtt_client.publish(f"{topic}", staging_event)
+
+            if os.getenv("VERBOSE", "False").lower() == "true":
+                self.logger.info(f"Data for {topic} published to MQTT: {staging_event}")
+
+        except Exception as e:
+            self.logger.error(f"Error publishing data to MQTT for {topic}: {str(e)}")
+
+    def generate_inventory_data(self, current_time, destination="EventHub"):
         for store in self.store_details:
             for product in self.products_list:
                 product_price = round(random.uniform(product.price_range.min, product.price_range.max), 2)
@@ -122,9 +144,15 @@ class StoreSimulator:
                 )
 
                 self.current_inventory[(product_inventory.store_id, product_inventory.product_id)] = product_inventory
-                self.send_inventory_to_event_hub(json.dumps(product_inventory.to_dict()))
 
-    def simulate_order_data(self, current_time):
+                # Send inventory data to event hub or MQTT
+                simulation_data = json.dumps(product_inventory.to_dict())
+                if (destination == "EventHub"):
+                    self.send_inventory_to_event_hub(simulation_data)
+                else:
+                    self.publish_data_to_mqtt(simulation_data, "topic/inventory")
+
+    def simulate_order_data(self, current_time, destination="EventHub"):
         # Convert time string
         day_name = current_time.strftime('%A')
         current_time_str = str(current_time)
@@ -181,8 +209,12 @@ class StoreSimulator:
                 product_inventory.date_time = current_time
                 self.current_inventory[(product_inventory.store_id, product_inventory.product_id)] = product_inventory
 
-                # Send updated inventory to event hub
-                self.send_inventory_to_event_hub(json.dumps(product_inventory.to_dict()))
+                # Send updated inventory to event hub or MQTT
+                simulation_data = json.dumps(product_inventory.to_dict())
+                if (destination == "EventHub"):
+                    self.send_inventory_to_event_hub(simulation_data)
+                else:
+                    self.publish_data_to_mqtt(simulation_data, "topic/inventory")
 
                 discount = random.choice(self.product_discount) / 100
                 line_item_total_price = round(product_inventory.retail_price * quantity_sold * (1 - discount), 2)
@@ -206,7 +238,10 @@ class StoreSimulator:
                 }
 
                 # Send sales data to event hub
-                self.send_orders_to_event_hub(json.dumps(line_item))
+                if (destination == "EventHub"):
+                    self.send_orders_to_event_hub(json.dumps(line_item))
+                else:
+                    self.publish_data_to_mqtt(json.dumps(line_item), "topic/sales")
 
     def send_inventory_to_event_hub(self, simulation_data):
         staging_event = {
@@ -255,7 +290,7 @@ class StoreSimulator:
             self.logger.info("Processing historical data...")
             while production_datetime <= datetime.now():
                 self.logger.info(f'Generating data for: {production_datetime}')
-                self.simulate_order_data(production_datetime)
+                self.simulate_order_data(production_datetime, destination="EventHub")
                 production_datetime += timedelta(minutes=self.ORDER_FREQUENCY)  # Increment by ORDER_FREQUENCY minutes
 
             # Generate live data
@@ -263,7 +298,7 @@ class StoreSimulator:
             while True:
                 current_time = datetime.now()
                 self.logger.info(f'Generating for: {current_time}')
-                self.simulate_order_data(current_time)
+                self.simulate_order_data(current_time, destination="MQTT")
                 time.sleep(60)  # Sleep for 1 minute for live data
 
         except KeyboardInterrupt:
@@ -280,3 +315,4 @@ def run_store_simulator():
 
 if __name__ == "__main__":
     run_store_simulator()
+
