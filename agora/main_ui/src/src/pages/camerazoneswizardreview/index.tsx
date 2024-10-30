@@ -30,6 +30,7 @@ import {  SearchBox, IconButton } from '@fluentui/react';
 import { useDropzone } from 'react-dropzone';
 import { useCallback } from 'react';
 import CerebralChatWithAudio from '../../components/CerebralChat';
+import WizardNavigation from '../../components/WizardNavigationStatus';
 const Main = (props: IStackProps) => (
     <Stack horizontal grow={1} disableShrink {...props} />
   );
@@ -404,18 +405,9 @@ const CamerasZonesWizardReview = () => {
             {/* Add the wizard status here */}
             <Stack horizontal>
             <Stack.Item>         
-            <div className={styles.container}>
-        <Card style={{backgroundColor: tokens.colorTransparentBackground}}>
-          <div className={styles.progressIndicator}>
-            {steps.map((step, index) => (
-              <div key={step} className={styles.progressStep}>
-                <div className={`${styles.progressDot} ${index === activeStep ? styles.activeDot : ''}`} />
-                <Text>{step}</Text>
-              </div>
-            ))}
-          </div>
-        </Card>
-      </div>            
+            <WizardNavigation 
+              activeIndex = {4}
+              />            
           </Stack.Item>
           <Stack.Item grow={3}>
           <Stack>
