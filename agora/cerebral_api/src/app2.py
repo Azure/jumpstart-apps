@@ -71,13 +71,13 @@ class RAGAssistant:
         }
 
         self.rag_template = """<|user|>
-Context information:
-{context}
+        Context information:
+        {context}
 
-Using the context information above, please answer the following question:
-{question}
-<|end|>
-<|assistant|>"""
+        Using the context information above, please answer the following question:
+        {question}
+        <|end|>
+        <|assistant|>"""
 
     def _retrieve_context(self, query: str, n_results: int = 3) -> str:
         """Retrieve relevant context from the document store."""
