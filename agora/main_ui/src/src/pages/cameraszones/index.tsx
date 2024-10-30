@@ -82,8 +82,8 @@ interface CameraPanelProps {
   onSave: () => void;
 } 
 const CamerasZones: React.FC<CameraPanelProps> = ({ isOpen, onDismiss, onSave }) => {
-    var storeAPI = process.env.REACT_APP_STORE_API_URL;
-    var footfallAIAPI = process.env.REACT_APP_FOOTFALL_API;
+    var storeAPI = process.env.REACT_APP_STORE_API_URL || "/store_api";
+    var footfallAIAPI = process.env.REACT_APP_FOOTFALL_API || "/footfall_api";
     const styles = useStyles();
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [isCerebralDrawerOpen, setIsCerebralDrawerOpen] = useState(false);

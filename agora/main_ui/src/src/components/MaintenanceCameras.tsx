@@ -110,8 +110,8 @@ import {
   });
 
   const MaintenanceCameras: React.FC<{ callParentFunction: () => void }>  = ({ callParentFunction }) => {
-    var storeAPI = process.env.REACT_APP_STORE_API_URL;
-    var footfallAIAPI = process.env.REACT_APP_FOOTFALL_API;
+    var storeAPI = process.env.REACT_APP_STORE_API_URL || "/store_api";
+    var footfallAIAPI = process.env.REACT_APP_FOOTFALL_API || "/footfall_api";
     const classes = useStyles();
     // API integration code
     type DataItem = {
