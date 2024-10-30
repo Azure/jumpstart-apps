@@ -20,8 +20,8 @@ from flasgger import Swagger, swag_from
 from store_simulator import run_store_simulator
 
 #dev mode
-from dotenv import load_dotenv
-load_dotenv()
+#from dotenv import load_dotenv
+#load_dotenv()
 
 # InfluxDB Settings
 INFLUXDB_URL = os.getenv("INFLUXDB_URL")
