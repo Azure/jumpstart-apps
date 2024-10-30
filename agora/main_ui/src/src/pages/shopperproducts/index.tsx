@@ -23,6 +23,7 @@ import ActiveCart from '../../components/ActiveCart';
 import { CopilotProvider } from "@fluentui-copilot/react-copilot";
 import { IDropdownOption, IImageProps, IStackProps, IStackTokens, Stack,   PrimaryButton, Image, Text, IStackStyles} from "@fluentui/react";
 import { Panel, PanelType, DefaultButton } from '@fluentui/react';
+import CerebralChatWithAudio from '../../components/CerebralChat';
 import {
   Card,
   CardFooter,
@@ -446,12 +447,43 @@ data.forEach(
 ) 
 const navigate = useNavigate();
 const productDetailsNavigation = (event: { currentTarget: { id: any; }; }) => {
-  navigate('/shopperproductdetail?productId=' + event.currentTarget.id);
+  navigate('/shopperproductdetail?productId=' + event.currentTarget.id);  
 }
+const [isCerebralDrawerOpen, setIsCerebralDrawerOpen] = useState(false);
+const toggleCerebralDrawer = () => {
+  setIsCerebralDrawerOpen(!isCerebralDrawerOpen);
+}; 
+const onRenderCerebralFooterContent = React.useCallback(
+  () => (
+    <Stack horizontal tokens={{ childrenGap: 10 }}>
+      {/* <PrimaryButton onClick={onSaveDrawer}>Save</PrimaryButton> */}
+      <DefaultButton onClick={onCancelCerebralDrawer}>Close</DefaultButton>
+    </Stack>
+  ),
+  []
+);
+const onCancelCerebralDrawer = () => {
+  setIsCerebralDrawerOpen(false);
+};   
+
           return (
               <FluentProvider theme={webLightTheme}>
                 <CopilotProvider mode='sidecar'>
                     <Stack>
+                    <Panel
+            isOpen={isCerebralDrawerOpen}
+            onDismiss={toggleCerebralDrawer}
+            type={PanelType.custom}
+            customWidth="25%"
+            headerText=""
+            onRenderFooterContent={onRenderCerebralFooterContent}
+            isFooterAtBottom={true}
+            hasCloseButton={true}
+            closeButtonAriaLabel="Close"
+            isLightDismiss={true}            
+            >
+              <CerebralChatWithAudio />
+          </Panel>                        
                     <Panel
                       isOpen={isDrawerOpen}
                       onDismiss={toggleDrawer}
@@ -604,7 +636,10 @@ const productDetailsNavigation = (event: { currentTarget: { id: any; }; }) => {
                           </Stack.Item>
                       </Stack>
                     </Panel>
-                        <Header callParentFunction={toggleDrawer}/>
+                    <Header 
+                          callParentFunction={toggleDrawer}
+                          callCerebralParentFunction={toggleCerebralDrawer} 
+                        />
                         <TopNav />
                         <Breadcrumb className={styles.breadcrumb}>
                             <BreadcrumbItem className={styles.breadcrumbitem}>Home
