@@ -528,6 +528,6 @@ if __name__ == "__main__":
             mqtt_client.disconnect()
             
             logger.info("Shutting down InfluxDB client...")
-            #client.close()
+            client.close()
             
             logger.info("Program terminated.")
