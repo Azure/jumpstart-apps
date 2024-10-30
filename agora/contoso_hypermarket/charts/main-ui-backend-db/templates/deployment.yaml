@@ -1,0 +1,36 @@
+Deployment:
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-db
+  labels:
+    app: backend-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend-db
+  template:
+    metadata:
+      labels:
+        app: backend-db
+    spec:
+      containers:
+      - name: backend-db
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        ports:
+        - containerPort: 5432
+        envFrom:
+        - configMapRef:
+            name: postgres-configuration
+        volumeMounts:
+        - mountPath: /var/lib/postgresql/data
+          name: postgres-storage
+          subPath: postgres
+      volumes:
+      - name: postgres-storage
+        persistentVolumeClaim:
+          claimName: postgres-pvc
+      - name: initdb-script
+        configMap:
+          name: initdb-configmap
