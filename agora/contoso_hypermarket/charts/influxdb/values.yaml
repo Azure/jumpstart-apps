@@ -1,0 +1,14 @@
+# Default values for InfluxDB
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+influxDBEndpoint: "http://influxdb.contoso-hypermarket.svc.cluster.local:8086"
+
+
+
+image:
+  repository: mcr.microsoft.com/azurelinux/base/influxdb
+  # This sets the pull policy for images.
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "2.7"
