@@ -432,9 +432,11 @@ useEffect(() => {
     .then()
     .catch(error => console.error(error));
 }, []);    
-
+const urlParams = new URLSearchParams(window.location.search);
+const categoryParameter = urlParams.get('Category');
 data.forEach(
   function(d){
+    if(d["category"] === categoryParameter) {
     var newDataItem: DataItem = {
       productId: d["product_id"] ,
       name: d["name"],
@@ -444,6 +446,7 @@ data.forEach(
     };
     dataItems.push(newDataItem);      
    }
+  }
 ) 
 const navigate = useNavigate();
 const productDetailsNavigation = (event: { currentTarget: { id: any; }; }) => {

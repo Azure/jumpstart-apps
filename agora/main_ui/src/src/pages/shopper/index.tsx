@@ -178,6 +178,9 @@ const useStyles = makeStyles({
         const productsNavigation = () => {
           navigate('/shopperproducts');
         }
+        const productsCategoryNavigation = (category: string) => {
+          navigate('/shopperproducts?Category='+ category);
+        }
         const onRenderFooterContent = React.useCallback(
         () => (
             <Stack horizontal tokens={{ childrenGap: 10 }}>
@@ -293,34 +296,34 @@ const useStyles = makeStyles({
                                 <Text className={styles.explorecategories}>Explore Categories</Text>
                               </Stack>                                                 
                             </Stack>
-                            <Stack horizontal id='ExploreCategories' onClick={productsNavigation}>
+                            <Stack horizontal id='ExploreCategories'>
                              <Stack horizontal id='Categories' className={styles.categories}>
-                                <Stack styles={childStackStyles}>
-                                  <img src="Rectangle 34655402.png" alt="Category 1" style={categoryStyles.root} />
+                                <Stack styles={childStackStyles} onClick={() => productsCategoryNavigation('Vegetables')}>
+                                  <img src="Getty-LandingPage-1-Vegetables.png" alt="Vegetables" style={categoryStyles.root} />
                                   <Text className={styles.categorytext}>Vegetables</Text>
                                 </Stack>
-                                <Stack styles={childStackStyles}>
-                                  <img src="Rectangle 34655403.png" alt="Category 1" style={categoryStyles.root} />
-                                  <Text className={styles.categorytext}>Seafood</Text>
+                                <Stack styles={childStackStyles} onClick={() => productsCategoryNavigation('Fruits')}>
+                                  <img src="Fruits.png" alt="Fruits" style={categoryStyles.root} />
+                                  <Text className={styles.categorytext}>Fruits</Text>
                                 </Stack>   
-                                <Stack styles={childStackStyles}>
-                                  <img src="Rectangle 34655404.png" alt="Category 1" style={categoryStyles.root} />
+                                <Stack styles={childStackStyles} onClick={() => productsCategoryNavigation('Subs')}>
+                                  <img src="Getty-LandingPage-3-Subs.png" alt="Subs and wraps" style={categoryStyles.root} />
                                   <Text className={styles.categorytext}>Subs and wraps</Text>
                                 </Stack>  
-                                <Stack styles={childStackStyles}>
-                                  <img src="Rectangle 34655405.png" alt="Category 1" style={categoryStyles.root} />
+                                <Stack styles={childStackStyles} onClick={() => productsCategoryNavigation('Cheese')}>
+                                  <img src="Getty-LandingPage-4-Cheese.png" alt="Imported Cheese" style={categoryStyles.root} />
                                   <Text className={styles.categorytext}>Imported Cheese</Text>
                                 </Stack>  
-                                <Stack styles={childStackStyles}>
-                                  <img src="Rectangle 34655406.png" alt="Category 1" style={categoryStyles.root} />
+                                <Stack styles={childStackStyles} onClick={() => productsCategoryNavigation('Wine')}>
+                                  <img src="Getty-LandingPage-5-Wine.png" alt="Natural wine" style={categoryStyles.root} />
                                   <Text className={styles.categorytext}>Natural wine</Text>
                                 </Stack>  
-                                <Stack styles={childStackStyles}>
-                                  <img src="Rectangle 34655407.png" alt="Category 1" style={categoryStyles.root} />
+                                <Stack styles={childStackStyles} onClick={() => productsCategoryNavigation('GlutenFree')}>
+                                  <img src="Getty-LandingPage-6-gluten-free.png" alt="Gluten-free" style={categoryStyles.root} />
                                   <Text className={styles.categorytext}>Gluten-free</Text>
                                 </Stack>  
-                                <Stack styles={childStackStyles}>
-                                  <img src="Rectangle 34655408.png" alt="Category 1" style={categoryStyles.root} />
+                                <Stack styles={childStackStyles} onClick={() => productsCategoryNavigation('Plantbased')}>
+                                  <img src="Getty-LandingPage-7-plant-based.png" alt="Plant based" style={categoryStyles.root} />
                                   <Text className={styles.categorytext}>Plant based</Text>
                                 </Stack>                                                                                                                                                                                               
                               </Stack>
