@@ -12,7 +12,6 @@ import CamerasZonesWizardAssignCameras from "./camerazoneswizardassigncameras";
 import CamerasZonesWizardSetupCamera from "./cameraszoneswizardsetupcamera";
 import CamerasZonesWizardFloor from "./camerazoneswizardfloor";
 import CamerasZonesWizardReview from "./camerazoneswizardreview";
-import Cerebral from "./cerebral";
 import ShopperProducts from "./shopperproducts";
 import ShopperProductDetail from "./shopperproductdetail";
 import ShopperReviewCart from "./shopperreviewcart";
@@ -97,11 +96,6 @@ const pagesData: routerType[] = [
     element: <ShopperReviewCart isOpen={false} onDismiss={() => {}} onSave={() => {}}/>,
     title: "Shopper Review Cart"
   },
-  {
-    path: "cerebral",
-    element: <Cerebral />,
-    title: "Cerebral"
-  }
 ];
 
 export default pagesData;

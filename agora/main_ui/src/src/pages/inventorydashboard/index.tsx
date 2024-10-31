@@ -84,7 +84,7 @@ const InventoryDashboard = () => {
             isOpen={isCerebralDrawerOpen}
             onDismiss={toggleCerebralDrawer}
             type={PanelType.custom}
-            customWidth="25%"
+            customWidth="30%"
             headerText=""
             onRenderFooterContent={onRenderCerebralFooterContent}
             isFooterAtBottom={true}
