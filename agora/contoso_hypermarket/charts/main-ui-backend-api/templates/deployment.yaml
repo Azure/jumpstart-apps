@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend-api
+  template:
+    metadata:
+      labels:
+        app: backend-api
+    spec:
+      containers:
+      - name: main-ui-backend-api
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        ports:
+        - containerPort: 5002
+        env:
+        - name: DATABASE_HOST
+          value: "backend-db"
+        - name: DATABASE_NAME
+          value: "contoso"
+        - name: DATABASE_USER
+          value: "postgres"
+        - name: DATABASE_PASSWORD
+          value: "password"
+        - name: FLASK_APP
+          value: "app.py"
+        - name: FLASK_ENV
+          value: "development"
+        - name: FLASK_RUN_HOST
+          value: ""
+        - name: MQTT_BROKER
+          value: "aio-broker-insecure.azure-iot-operations.svc.cluster.local"
+        - name: MQTT_PORT
+          value: "1883"
+        - name: MQTT_TOPIC
+          value: "Store/Cameras/PeopleCount"
+        - name: FOOTFALL_API
+          value: "http://footfall-ai-api.contoso-hypermarket.svc.cluster.local:5000/status"
+        - name: SI_API
+          value: "http://shopper-insights-api.contoso-hypermarket.svc.cluster.local:5001/status"
