@@ -48,7 +48,7 @@ const CerebralChatWithAudio = (props: CopilotChatProps) => {
   React.useEffect(() => {
     // Load RecordRTC script
     const script = document.createElement('script');
-    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/RecordRTC/5.6.2/RecordRTC.min.js';
+    script.src = `${process.env.PUBLIC_URL}/RecordRTC.min.js`;
     script.async = true;
     document.body.appendChild(script);
 
