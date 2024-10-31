@@ -21,6 +21,7 @@ import {
   RecordStopRegular,
 } from "@fluentui/react-icons";
 import { useCopilotMode } from "@fluentui-copilot/react-provider";
+import { CerebralChatInput } from "./CerebralChatInput";
 
 // Declare RecordRTC types
 declare const RecordRTC: any;
@@ -147,7 +148,8 @@ const CerebralChatWithAudio = (props: CopilotChatProps) => {
   }, []);
 
   // Handle message sending
-  const handleSend = async () => {
+  const handleSend = async (ev: React.FormEvent, data: { value: string }) => {
+    let inputMessage = data.value;
     if (!inputMessage.trim() || !isConnected) return;
 
     const userMessage: ChatMessage = {
@@ -332,25 +334,6 @@ const CerebralChatWithAudio = (props: CopilotChatProps) => {
         <UserMessage
           key={index}
           timestamp={msg.timestamp}
-          actionBar={
-            <>
-              <ToolbarButton
-                aria-label="Edit"
-                icon={<EditRegular />}
-                appearance="transparent"
-              />
-              <ToolbarButton
-                aria-label="Bookmark"
-                icon={<BookmarkRegular />}
-                appearance="transparent"
-              />
-              <ToolbarButton
-                aria-label="Share"
-                icon={<ShareRegular />}
-                appearance="transparent"
-              />
-            </>
-          }
         >
           {msg.isAudio ? (
             <audio controls src={msg.content} className="max-w-full" />
@@ -393,30 +376,14 @@ const CerebralChatWithAudio = (props: CopilotChatProps) => {
       <CopilotChat {...props} style={{ margin: '30px' }}>
         {messages.map((msg, index) => renderMessage(msg, index))}
 
+        <CerebralChatInput
+          onSubmit={handleSend}
+          disabled={!isConnected || isRecording || isProcessing}
+          maxLength={500}
+          charactersRemainingMessage={(remaining) => `${remaining} characters remaining`}
+        />
+
         <div style={{ marginTop: '20px', display: 'flex', gap: '10px', alignItems: 'center' }}>
-          <input
-            style={{
-              flexGrow: 1,
-              padding: '8px',
-              border: '1px solid #ccc',
-              borderRadius: '4px'
-            }}
-            value={inputMessage}
-            onChange={(e) => setInputMessage(e.target.value)}
-            placeholder="Type your question here..."
-            onKeyPress={(e) => {
-              if (e.key === 'Enter') {
-                handleSend();
-              }
-            }}
-            disabled={isRecording || isProcessing}
-          />
-          <Button
-            onClick={handleSend}
-            disabled={isRecording || isProcessing}
-          >
-            Send
-          </Button>
           <Button
             icon={isRecording ? <RecordStopRegular /> : <MicRegular />}
             onClick={isRecording ? stopRecording : startRecording}
