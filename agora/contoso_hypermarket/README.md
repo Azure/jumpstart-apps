@@ -21,6 +21,12 @@ kubectl apply -f ../cerebral_api/operations/cerebral-simulator.yaml
 kubectl apply -f ../cerebral_api/operations/cerebral-simulator-prometheus.yaml
 kubectl apply -f ../shopper_insights_api/operations/shopper-insights-prometheus.yaml
 
+## Re-installing
+
+If re-installing with Helm, the influxdb-pvc will not uninstall by itself without patching the finalizer (the default behavior protects against accidental deletion)
+kubectl patch pvc influxdb-pvc -p '{"metadata":{"finalizers":null}}'  
+kubectl delete pvc influxdb-pvc
+
 ### Deploy with yaml
 
 kubectl create ns contoso-hypermarket
