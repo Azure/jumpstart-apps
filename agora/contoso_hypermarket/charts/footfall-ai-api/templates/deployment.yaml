@@ -1,22 +1,7 @@
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: footfall-model-pvc
-  namespace: contoso-hypermarket
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 1Gi
-
----
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: footfall-ai-api
-  namespace: contoso-hypermarket
 spec:
   replicas: 1
   selector:
@@ -42,14 +27,14 @@ spec:
           mountPath: /tmp/models
       containers:
       - name: footfall-ai-api
-        image: mcr.microsoft.com/jumpstart/agora/footfall_ai_api:1.0.0
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         ports:
         - containerPort: 5000
         env:
         - name: MODEL_PATH
           value: "/tmp/models/yolov8n.pt"
         - name: RTSP_URL
-          value: "rtsp://rtsp-stream-aisle:8554/stream"
+          value: "rtsp://rtsp-stream-aisle.contoso-hypermarket.svc.cluster.local:8554/stream"
         volumeMounts:
         - mountPath: /tmp/models
           name: models-volume
@@ -57,19 +42,3 @@ spec:
       - name: models-volume
         persistentVolumeClaim:
           claimName: footfall-model-pvc
-
----
-
-apiVersion: v1
-kind: Service
-metadata:
-  name: footfall-ai-api
-  namespace: contoso-hypermarket
-spec:
-  selector:
-    app: footfall-ai-api
-  ports:
-    - protocol: TCP
-      port: 5000
-      targetPort: 5000
-  type: LoadBalancer

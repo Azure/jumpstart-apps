@@ -3,6 +3,8 @@ import {
   Avatar,
   Button,
   ToolbarButton,
+  FluentProvider,
+  webLightTheme,
 } from "@fluentui/react-components";
 import type { CopilotChatProps } from "@fluentui-copilot/react-copilot-chat";
 import {
@@ -19,6 +21,7 @@ import {
   RecordStopRegular,
 } from "@fluentui/react-icons";
 import { useCopilotMode } from "@fluentui-copilot/react-provider";
+import { CerebralChatInput } from "./CerebralChatInput";
 
 // Declare RecordRTC types
 declare const RecordRTC: any;
@@ -28,6 +31,7 @@ interface ChatMessage {
   isUser: boolean;
   timestamp: string;
   isAudio?: boolean;
+  isCompleted: boolean;
 }
 
 const CerebralChatWithAudio = (props: CopilotChatProps) => {
@@ -36,22 +40,143 @@ const CerebralChatWithAudio = (props: CopilotChatProps) => {
   const [isRecording, setIsRecording] = React.useState(false);
   const [isProcessing, setIsProcessing] = React.useState(false);
   const recorderRef = React.useRef<any>(null);
-  
-  const [messages, setMessages] = React.useState<ChatMessage[]>([
-    {
-      content: "Hi, I'm here to help! You can ask me questions using text or voice, and I'll do my best to provide helpful answers.",
-      isUser: false,
-      timestamp: "Now",
-    },
-  ]);
+  const wsRef = React.useRef<WebSocket | null>(null);
+  const [isConnected, setIsConnected] = React.useState(false);
+  const [messages, setMessages] = React.useState<ChatMessage[]>([]);
+
+  // WebSocket connection setup
+  const connectWebSocket = React.useCallback(() => {
+    const wsUrl = process.env.REACT_APP_CEREBRAL_WS_URL || "/CerebralWS";
+
+    try {
+      wsRef.current = new WebSocket(wsUrl);
+
+      wsRef.current.onopen = () => {
+        setIsConnected(true);
+        setMessages([{
+          content: "Hi, I'm here to help! You can ask me questions using text or voice, and I'll do my best to provide helpful answers.",
+          isUser: false,
+          isCompleted: true,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        }]);
+      };
+
+      wsRef.current.onclose = () => {
+        setIsConnected(false);
+        setMessages([{
+          content: "Connection with Cerebral was not successful. Please try again later.",
+          isUser: false,
+          isCompleted: true,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        }]);
+      };
+
+      wsRef.current.onerror = () => {
+        setIsConnected(false);
+        setMessages([{
+          content: "Connection with Cerebral was not successful. Please try again later.",
+          isUser: false,
+          isCompleted: true,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        }]);
+      };
+
+      wsRef.current.onmessage = (event) => {
+        try {
+          const response = event.data;
+          if (!response) return;
+
+          // Check if the response contains the word error
+          if (response.includes('error')) {
+            const errorMessage: ChatMessage = {
+              content: "An error occurred while processing your request",
+              isUser: false,
+              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+              isCompleted: true,
+            };
+            setMessages(prevMessages => [...prevMessages, errorMessage]);
+            return;
+          }
+
+          // Using the functional form of setMessages to avoid stale state
+          setMessages(prevMessages => {
+            const lastMessage = prevMessages.length > 0 ? prevMessages[prevMessages.length - 1] : null;
+            const isTerminationCharPresent = response.includes('\r');
+
+            if (lastMessage && !lastMessage.isCompleted) {
+              const updatedMessages = [...prevMessages];
+              updatedMessages[updatedMessages.length - 1] = {
+                ...lastMessage,
+                content: lastMessage.content + " " + response,
+                isCompleted: isTerminationCharPresent,
+              };
+              return updatedMessages;
+            } else {
+              const botMessage: ChatMessage = {
+                content: response,
+                isUser: false,
+                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                isCompleted: isTerminationCharPresent,
+              };
+              return [...prevMessages, botMessage];
+            }
+          });
+        } catch (error) {
+          console.error('Error processing WebSocket message:', error);
+        }
+      };
+    }
+    catch (error) {
+      console.error('WebSocket connection error:', error);
+      setIsConnected(false);
+      setMessages([{
+        content: "Connection with Cerebral was not successful. Please try again later.",
+        isUser: false,
+        isCompleted: true,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      }]);
+    }
+  }, []);
+
+  // Clean up WebSocket connection
+  const closeWebSocket = React.useCallback(() => {
+    if (wsRef.current) {
+      wsRef.current.close();
+      wsRef.current = null;
+      setIsConnected(false);
+    }
+  }, []);
+
+  // Handle message sending
+  const handleSend = async (ev: React.FormEvent, data: { value: string }) => {
+    let inputMessage = data.value;
+    if (!inputMessage.trim() || !isConnected) return;
+
+    const userMessage: ChatMessage = {
+      content: inputMessage,
+      isUser: true,
+      isCompleted: true,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    };
+    setMessages(prev => [...prev, userMessage]);
+
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({
+        type: 'message',
+        content: inputMessage
+      }));
+    }
+    setInputMessage("");
+  };
 
   React.useEffect(() => {
     // Load RecordRTC script
     const script = document.createElement('script');
-    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/RecordRTC/5.6.2/RecordRTC.min.js';
+    script.src = `${process.env.PUBLIC_URL}/RecordRTC.min.js`;
     script.async = true;
     document.body.appendChild(script);
 
+    connectWebSocket();
     return () => {
       document.body.removeChild(script);
     };
@@ -60,7 +185,7 @@ const CerebralChatWithAudio = (props: CopilotChatProps) => {
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      
+
       recorderRef.current = new RecordRTC(stream, {
         type: 'audio',
         mimeType: 'audio/wav',
@@ -69,7 +194,7 @@ const CerebralChatWithAudio = (props: CopilotChatProps) => {
         desiredSampRate: 16000, // 16khz sampling rate
         timeSlice: 1000, // Get blob every second (optional)
       });
-      
+
       recorderRef.current.startRecording();
       setIsRecording(true);
     } catch (error) {
@@ -82,13 +207,14 @@ const CerebralChatWithAudio = (props: CopilotChatProps) => {
       recorderRef.current.stopRecording(async () => {
         const blob = await recorderRef.current.getBlob();
         const audioUrl = URL.createObjectURL(blob);
-        
+
         // Add audio message to chat
         const audioMessage: ChatMessage = {
           content: audioUrl,
           isUser: true,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           isAudio: true,
+          isCompleted: true,
         };
         setMessages(prev => [...prev, audioMessage]);
 
@@ -116,7 +242,7 @@ const CerebralChatWithAudio = (props: CopilotChatProps) => {
       formData.append('model', model);
 
       const apiSttUrl = process.env.REACT_APP_CEREBRAL_STT_API_URL || 'http://localhost:5004/Cerebral/api/stt';
-      const response = await fetch(apiSttUrl, {       
+      const response = await fetch(apiSttUrl, {
         method: 'POST',
         body: formData,
       });
@@ -132,6 +258,7 @@ const CerebralChatWithAudio = (props: CopilotChatProps) => {
       const transcriptionMessage: ChatMessage = {
         content: `Transcription: ${transcription}`,
         isUser: true,
+        isCompleted: true,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
       setMessages(prev => [...prev, transcriptionMessage]);
@@ -143,6 +270,7 @@ const CerebralChatWithAudio = (props: CopilotChatProps) => {
       const errorMessage: ChatMessage = {
         content: "I apologize, but there was an error processing your audio message.",
         isUser: false,
+        isCompleted: true,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
       setMessages(prev => [...prev, errorMessage]);
@@ -163,7 +291,7 @@ const CerebralChatWithAudio = (props: CopilotChatProps) => {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           question: inputMessage,
           industry: industry,
           role: role
@@ -175,15 +303,16 @@ const CerebralChatWithAudio = (props: CopilotChatProps) => {
       if (!data) {
         formattedResponse = "I apologize, but I couldn't process that request.";
       } else {
-        formattedResponse = `Category: ${data.category}\n` + 
-        `Query: ${data.query || data.sql_query}\n` + 
-        `Query Result: ${data.query_result}\n` + 
-        `Recommendations: ${data.recommendations}`;
+        formattedResponse = `Category: ${data.category}\n` +
+          `Query: ${data.query || data.sql_query}\n` +
+          `Query Result: ${data.query_result}\n` +
+          `Recommendations: ${data.recommendations}`;
       }
- 
+
       const botMessage: ChatMessage = {
         content: formattedResponse,
         isUser: false,
+        isCompleted: true,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
       setMessages(prev => [...prev, botMessage]);
@@ -192,30 +321,7 @@ const CerebralChatWithAudio = (props: CopilotChatProps) => {
       const errorMessage: ChatMessage = {
         content: "I apologize, but there was an error processing your request.",
         isUser: false,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      };
-      setMessages(prev => [...prev, errorMessage]);
-    }
-  };
-
-  const handleSend = async () => {
-    if (!inputMessage.trim()) return;
-
-    const userMessage: ChatMessage = {
-      content: inputMessage,
-      isUser: true,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    };
-    setMessages(prev => [...prev, userMessage]);
-    setInputMessage("");
-
-    try {
-      await handleCerebralApiCall(inputMessage);
-    } catch (error) {
-      console.error('Error sending message:', error);
-      const errorMessage: ChatMessage = {
-        content: "I apologize, but there was an error processing your request.",
-        isUser: false,
+        isCompleted: true,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
       setMessages(prev => [...prev, errorMessage]);
@@ -228,25 +334,6 @@ const CerebralChatWithAudio = (props: CopilotChatProps) => {
         <UserMessage
           key={index}
           timestamp={msg.timestamp}
-          actionBar={
-            <>
-              <ToolbarButton
-                aria-label="Edit"
-                icon={<EditRegular />}
-                appearance="transparent"
-              />
-              <ToolbarButton
-                aria-label="Bookmark"
-                icon={<BookmarkRegular />}
-                appearance="transparent"
-              />
-              <ToolbarButton
-                aria-label="Share"
-                icon={<ShareRegular />}
-                appearance="transparent"
-              />
-            </>
-          }
         >
           {msg.isAudio ? (
             <audio controls src={msg.content} className="max-w-full" />
@@ -285,43 +372,29 @@ const CerebralChatWithAudio = (props: CopilotChatProps) => {
   };
 
   return (
-    <CopilotChat {...props} style={{ margin: '30px' }}>
-      {messages.map((msg, index) => renderMessage(msg, index))}
+    <FluentProvider theme={webLightTheme}>
+      <CopilotChat {...props} style={{ margin: '30px' }}>
+        {messages.map((msg, index) => renderMessage(msg, index))}
 
-      <div style={{ marginTop: '20px', display: 'flex', gap: '10px', alignItems: 'center' }}>
-        <input
-          style={{
-            flexGrow: 1,
-            padding: '8px',
-            border: '1px solid #ccc',
-            borderRadius: '4px'
-          }}
-          value={inputMessage}
-          onChange={(e) => setInputMessage(e.target.value)}
-          placeholder="Type your question here..."
-          onKeyPress={(e) => {
-            if (e.key === 'Enter') {
-              handleSend();
-            }
-          }}
-          disabled={isRecording || isProcessing}
+        <CerebralChatInput
+          onSubmit={handleSend}
+          disabled={!isConnected || isRecording || isProcessing}
+          maxLength={500}
+          charactersRemainingMessage={(remaining) => `${remaining} characters remaining`}
         />
-        <Button 
-          onClick={handleSend}
-          disabled={isRecording || isProcessing}
-        >
-          Send
-        </Button>
-        <Button 
-          icon={isRecording ? <RecordStopRegular /> : <MicRegular />}
-          onClick={isRecording ? stopRecording : startRecording}
-          appearance={isRecording ? "primary" : "secondary"}
-          disabled={isProcessing}
-        >
-          {isRecording ? "Stop" : isProcessing ? "Processing..." : "Record"}
-        </Button>
-      </div>
-    </CopilotChat>
+
+        <div style={{ marginTop: '20px', display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <Button
+            icon={isRecording ? <RecordStopRegular /> : <MicRegular />}
+            onClick={isRecording ? stopRecording : startRecording}
+            appearance={isRecording ? "primary" : "secondary"}
+            disabled={isProcessing}
+          >
+            {isRecording ? "Stop" : isProcessing ? "Processing..." : "Record"}
+          </Button>
+        </div>
+      </CopilotChat>
+    </FluentProvider>
   );
 };
 

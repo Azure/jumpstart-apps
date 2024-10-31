@@ -33,7 +33,7 @@ import SideMenu from "../../components/MaintenanceMenu";
 import { ITag, Pivot, PivotItem, PrimaryButton, TagPicker, TextField } from '@fluentui/react';
 import { IStackProps, IStackTokens, Stack } from "@fluentui/react";
 import { Panel, PanelType, DefaultButton, ProgressIndicator } from '@fluentui/react';
-
+import WizardNavigation from '../../components/WizardNavigationStatus';
 import { CopilotProvider } from "@fluentui-copilot/react-copilot";
 import logo from './logo.svg';
 import '../../App.css';
@@ -415,7 +415,7 @@ const CamerasZonesWizardSetupCamera = () => {
             isOpen={isCerebralDrawerOpen}
             onDismiss={toggleCerebralDrawer}
             type={PanelType.custom}
-            customWidth="25%"
+            customWidth="30%"
             headerText=""
             onRenderFooterContent={onRenderCerebralFooterContent}
             isFooterAtBottom={true}
@@ -437,18 +437,9 @@ const CamerasZonesWizardSetupCamera = () => {
             {/* Add the wizard status here */}
             <Stack horizontal>
             <Stack.Item>         
-            <div className={styles.container}>
-        <Card style={{backgroundColor: tokens.colorTransparentBackground}}>
-          <div className={styles.progressIndicator}>
-            {steps.map((step, index) => (
-              <div key={step} className={styles.progressStep}>
-                <div className={`${styles.progressDot} ${index === activeStep ? styles.activeDot : ''}`} />
-                <Text>{step}</Text>
-              </div>
-            ))}
-          </div>
-        </Card>
-      </div>            
+            <WizardNavigation 
+              activeIndex = {3}
+              />             
           </Stack.Item>
           <Stack.Item grow={3}>
           <Stack>
