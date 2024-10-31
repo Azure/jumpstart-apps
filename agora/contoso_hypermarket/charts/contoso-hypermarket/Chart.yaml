@@ -30,3 +30,12 @@ dependencies:
   - name: rtsp
     version: 0.1.0
     repository: "file://../rtsp"
+  - name: main-ui-backend-api
+    version: 0.1.0
+    repository: "file://../main-ui-backend-api"
+  - name: main-ui-backend-db
+    version: 0.1.0
+    repository: "file://../main-ui-backend-db"
+  - name: footfall-ai-api
+    version: 0.1.0
+    repository: "file://../footfall-ai-api"
