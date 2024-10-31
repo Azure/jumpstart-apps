@@ -44,7 +44,7 @@ spec:
     spec:
       containers:
       - name: cerebral-simulator
-        image: mcr.microsoft.com/jumpstart/agora/cerebral-simulator:1.0.0
+        image: mcr.microsoft.com/jumpstart/agora/cerebral_simulator:1.0.0
         envFrom: 
         - configMapRef:
             name: cerebral-simulator-config

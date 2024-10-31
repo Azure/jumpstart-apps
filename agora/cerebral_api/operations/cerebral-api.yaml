@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: cerebral-api
-        image: mcr.microsoft.com/jumpstart/agora/cerebral-api:1.0.0
+        image: mcr.microsoft.com/jumpstart/agora/cerebral_api:1.0.0
         ports:
         - containerPort: 5003
         env:
