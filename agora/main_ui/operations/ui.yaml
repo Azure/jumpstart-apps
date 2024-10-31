@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: main-ui
-        image: mcr.microsoft.com/jumpstart/agora/main-ui:1.0.0
+        image: mcr.microsoft.com/jumpstart/agora/main_ui:1.0.0
         ports:
         - containerPort: 8080
         env:

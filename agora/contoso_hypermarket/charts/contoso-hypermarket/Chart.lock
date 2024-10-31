@@ -1,9 +1,0 @@
-dependencies:
-- name: agora-ui
-  repository: file://../agora-ui
-  version: 0.1.0
-- name: rtsp
-  repository: file://../rtsp
-  version: 0.1.0
-digest: sha256:04d3a3d6883bff6c32d5149c85ea19d2b00a02e27c2cf9b8e3b6fa3160188c04
-generated: "2024-10-22T12:33:31.337988-05:00"

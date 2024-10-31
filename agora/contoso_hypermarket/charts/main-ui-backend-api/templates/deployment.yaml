@@ -2,7 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: backend-api
-  namespace: contoso-hypermarket
 spec:
   replicas: 1
   selector:
@@ -15,7 +14,7 @@ spec:
     spec:
       containers:
       - name: main-ui-backend-api
-        image: mcr.microsoft.com/jumpstart/agora/main_ui_backend_api:1.0.0
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         ports:
         - containerPort: 5002
         env:
@@ -40,24 +39,6 @@ spec:
         - name: MQTT_TOPIC
           value: "Store/Cameras/PeopleCount"
         - name: FOOTFALL_API
-          value: "http://footfall-ai-api:5000/status"
+          value: "http://footfall-ai-api.contoso-hypermarket.svc.cluster.local:5000/status"
         - name: SI_API
-          value: "http://shopper-insights-api:5001/status"
-      imagePullSecrets:
-      - name: acr-secret
-
----
-
-apiVersion: v1
-kind: Service
-metadata:
-  name: backend-api
-  namespace: contoso-hypermarket
-spec:
-  selector:
-    app: backend-api
-  ports:
-    - protocol: TCP
-      port: 5002
-      targetPort: 5002
-  type: LoadBalancer
+          value: "http://shopper-insights-api.contoso-hypermarket.svc.cluster.local:5001/status"
