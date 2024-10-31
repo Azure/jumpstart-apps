@@ -46,7 +46,7 @@ const CerebralChatWithAudio = (props: CopilotChatProps) => {
 
   // WebSocket connection setup
   const connectWebSocket = React.useCallback(() => {
-    const wsUrl = process.env.REACT_APP_CEREBRAL_WS || 'ws://localhost:8080';
+    const wsUrl = process.env.REACT_APP_CEREBRAL_WS_URL || "/CerebralWS";
 
     try {
       wsRef.current = new WebSocket(wsUrl);

@@ -19,4 +19,16 @@ server {
         proxy_pass ${REACT_APP_FOOTFALL_API};
         proxy_set_header Host ${REACT_APP_FOOTFALL_API};
     }
+
+    location /Cerebral {
+        rewrite ^/Cerebral/(.*)$ /$1 break;
+        proxy_pass ${REACT_APP_CEREBRAL_API_URL};
+        proxy_set_header Host ${REACT_APP_CEREBRAL_API_URL};
+    }
+
+    location /CerebralWS {
+        rewrite ^/CerebralWS/(.*)$ /$1 break;
+        proxy_pass ${REACT_APP_CEREBRAL_WS_URL};
+        proxy_set_header Host ${REACT_APP_CEREBRAL_WS_URL};
+    }
 }
