@@ -47,7 +47,7 @@ spec:
           mountPath: /tmp/models
       containers:
       - name: shopper-insights-api
-        image: agacrac434.azurecr.io/shopper-insights-api:latest
+        image: mcr.microsoft.com/jumpstart/agora/shopper-insights-api:1.0.0
         ports:
         - containerPort: 5001
         env:
