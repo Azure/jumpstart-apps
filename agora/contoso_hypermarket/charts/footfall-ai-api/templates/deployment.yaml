@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: footfall-ai-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: footfall-ai-api
+  template:
+    metadata:
+      labels:
+        app: footfall-ai-api
+    spec:
+      initContainers:
+      - name: init-download-model
+        image: mcr.microsoft.com/cbl-mariner/base/core:2.0   
+        command:
+          - sh
+          - -c
+          - |
+            tdnf update -y
+            tdnf install wget -y
+            wget -O /tmp/models/yolov8n.pt download.microsoft.com/download/ad457769-60e2-4e4b-8756-8d9fada0b60a/yolov8n.pt
+        volumeMounts:
+        - name: models-volume
+          mountPath: /tmp/models
+      containers:
+      - name: footfall-ai-api
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        ports:
+        - containerPort: 5000
+        env:
+        - name: MODEL_PATH
+          value: "/tmp/models/yolov8n.pt"
+        - name: RTSP_URL
+          value: "rtsp://rtsp-stream-aisle.contoso-hypermarket.svc.cluster.local:8554/stream"
+        volumeMounts:
+        - mountPath: /tmp/models
+          name: models-volume
+      volumes:
+      - name: models-volume
+        persistentVolumeClaim:
+          claimName: footfall-model-pvc
