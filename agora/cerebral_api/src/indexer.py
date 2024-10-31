@@ -14,7 +14,7 @@ logging.basicConfig(level=logging.INFO,
                    format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Load environment variables
-load_dotenv()
+# load_dotenv()
 
 class DocumentIndexer:
     def __init__(self):

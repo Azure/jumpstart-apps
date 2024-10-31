@@ -1,18 +1,47 @@
+# Web Framework and extensions
 Flask
 Flask-Session
+Flask-CORS
+Flask-RESTx
+Flask-SocketIO
+jsonify
+
+# WebSocket handler
+eventlet
+
+# Cache and Database
 redis
 influxdb-client
-plotly
-pandas
-openai
-python-dotenv
-kaleido
-flask-cors
-prometheus_client 
-fastapi 
-uvicorn
-flask_restx
 pyodbc
-whisper
+chromadb==0.4.22
+
+# Data Visualization and Processing
+plotly
+kaleido
+numpy==1.24.3
+pandas==2.1.4
+
+# Azure and OpenAI Integration
+openai
 azure-cognitiveservices-speech
-jsonify
+whisper
+
+# LangChain and Document Processing
+langchain-core
+langchain-community
+langchain
+python-magic==0.4.27
+pypdf==4.0.1
+
+# Machine Learning and AI Processing
+tensorflow-text==2.14.0
+tensorflow-hub==0.15.0
+onnxruntime-genai
+huggingface-hub[cli]
+
+# Utilities
+python-dotenv==1.0.0
+tqdm==4.66.3
+prometheus_client
+fastapi==0.109.0
+uvicorn
