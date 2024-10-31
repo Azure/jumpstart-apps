@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: main-ui-backend-api
-        image: mcr.microsoft.com/jumpstart/agora/main-ui-backend-api:1.0.0
+        image: mcr.microsoft.com/jumpstart/agora/main_ui_backend_api:1.0.0
         ports:
         - containerPort: 5002
         env:
