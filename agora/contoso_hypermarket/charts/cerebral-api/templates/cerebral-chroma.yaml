@@ -1,0 +1,38 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: chromadb-pv
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/data/chromadb"
+  storageClassName: local-storage
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: chromadb-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: local-storage
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: llm-edge-config
+data:
+  CHROMA_DB_IMPL: "duckdb+parquet"
+  CHROMA_DB_PATH: "/chromadb/data"
+  PHI_MODEL_PATH: "/models/phi-3"
+  EMBEDDING_MODEL: "sentence-transformers/all-MiniLM-L6-v2"
+  LOG_LEVEL: "INFO"
+  MAX_CONTEXT_LENGTH: "2048"
+  TEMPERATURE: "0.7"
