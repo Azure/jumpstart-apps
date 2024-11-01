@@ -273,6 +273,13 @@ const CamerasZonesWizardFloor: React.FC = () => {
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [isCerebralDrawerOpen, setIsCerebralDrawerOpen] = useState(false);
     const [cameraNameInputValue, setCameraNameInputValue] = React.useState('');
+    const [floorZoneX1, setfloorZoneX1] = useState(0);
+    const [floorZoneY1, setfloorZoneY1] = useState(0);
+    const [floorZoneX2, setfloorZoneX2] = useState(0);
+    const [floorZoneY2, setfloorZoneY2] = useState(0);
+    const saveAndNavigate= () => {
+      navigate("/camerazoneswizardsetupcamera");      
+    }
     const toggleCerebralDrawer = () => {
       setIsCerebralDrawerOpen(!isCerebralDrawerOpen);
     };  
@@ -336,7 +343,8 @@ const CamerasZonesWizardFloor: React.FC = () => {
       const navigate = useNavigate();
       const stackTokens: IStackTokens = { childrenGap: 10 };
       const handleCameraDropdownChange = (event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption, index?: number) =>{
-        //setCameraEndpointInputValue(newValue || '');
+        setCameraEndpointInputValue(option?.key.toString() || '');
+        document.getElementById('txtCameraStorage')?.setAttribute("value", option?.text.toString() || '');        
         //setDataForVideo(footfallAIAPI + "/video_feed?data={\"x\" : 0, \"y\" : 0,\"w\" : 0, \"h\" : 0, \"debug\" : true, \"cameraName\" : \"Nabeel\", \"video_url\": \"" + option?.key +"\" }");
       };
       const onRenderCerebralFooterContent = React.useCallback(
@@ -399,11 +407,16 @@ const CamerasZonesWizardFloor: React.FC = () => {
         [] // no dependencies means that it will be called once on mount.
       );
       const onSaveDrawer  = () => {
-        var zoneLabel = document.getElementById('txtZoneLabel')?.getAttribute('value');
+        var txtZoneLabel = document.getElementById('txtZoneLabel')?.getAttribute('value');
       // Send data to the backend via POST
-
         setIsDrawerOpen(false);
-        navigate("/camerazoneswizardsetupcamera");
+        var txtFloorZoneX1 = document.getElementById('txtFloorZoneX1')?.getAttribute('value');
+        var txtFloorZoneY1 = document.getElementById('txtFloorZoneY1')?.getAttribute('value');
+        var txtFloorZoneX2 = document.getElementById('txtFloorZoneX2')?.getAttribute('value');
+        var txtFloorZoneY2 = document.getElementById('txtFloorZoneY2')?.getAttribute('value');   
+        var txtselectedCamera = document.getElementById('txtCameraStorage')?.getAttribute('value');  
+        var txtZoneLabel = document.getElementById('txtZoneLabel')?.getAttribute('value'); 
+        navigate("/camerazoneswizardsetupcamera?zoneLabel=" + txtZoneLabel + "&floorZoneX1=" + txtFloorZoneX1 + "&floorZoneY1=" + txtFloorZoneY1 + "&floorZoneX2=" + txtFloorZoneX2 + "&floorZoneY2=" + txtFloorZoneY2 + "&selectedCamera=" + txtselectedCamera + "&zoneLabel=" + txtZoneLabel + "");
       }
       const onRenderFooterContent = React.useCallback(
         () => (
@@ -481,13 +494,19 @@ const CamerasZonesWizardFloor: React.FC = () => {
       >
         <Stack>
             <Stack.Item style={{ marginTop: '20px', marginBottom: '20px'}}>
+               
+                <input type='text' id='txtFloorZoneX1' value={floorZoneX1.toString()} style={{display: 'none'}}></input>
+                <input type='text' id='txtFloorZoneY1' value={floorZoneY1.toString()} style={{display: 'none'}}></input>
+                <input type='text' id='txtFloorZoneX2' value={floorZoneX2.toString()} style={{display: 'none'}}></input> 
+                <input type='text' id='txtFloorZoneY2' value={floorZoneY2.toString()} style={{display: 'none'}}></input>                                      
                 <TextField
                   label="Zone label"
                   value={cameraNameInputValue}
                   onChange={handleCameraNameInputChange}
                   placeholder="Name your zone"
                   id="txtZoneLabel"
-                />
+                />        
+                <input type='text' id='txtCameraStorage' style={{display: 'none'}}></input>
             </Stack.Item>
             <Stack.Item>
             <Stack>
@@ -595,8 +614,12 @@ const CamerasZonesWizardFloor: React.FC = () => {
                                   context.rect(Number(startX),Number(startY), end.x - Number(startX), end.y - Number(startY));
                                   context.fillRect(Number(startX),Number(startY), end.x - Number(startX), end.y - Number(startY));
                                   context.stroke();
+                                  setfloorZoneX1(Number(startX));
+                                  setfloorZoneY1(Number(startY));
+                                  setfloorZoneX2(end.x - Number(startX));
+                                  setfloorZoneY2(end.y - Number(startY));
                                 }
-                              }                              
+                              }                             
                               setIsDrawing(false);
                               setIsDrawerOpen(true);
                             }}
@@ -619,7 +642,7 @@ const CamerasZonesWizardFloor: React.FC = () => {
           <div className={styles.footer}>
             <Stack horizontal>
           <Button appearance="secondary" className={styles.footerpreviousbutton} onClick={() => navigate("/camerazoneswizard")}>Previous</Button>
-          <Button appearance="primary" className={styles.footernextbutton} onClick={() => navigate("/camerazoneswizardsetupcamera")}>Next</Button>
+          <Button appearance="primary" className={styles.footernextbutton} onClick={() => saveAndNavigate()}>Next</Button>
           </Stack>
           </div>
           </Stack.Item>
