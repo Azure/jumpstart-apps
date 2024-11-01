@@ -12,6 +12,10 @@ spec:
       labels:
         app: main-ui
     spec:
+      initContainers:
+      - name: init-backend-api-check
+        image: mcr.microsoft.com/azurelinux/busybox:1.36
+        command: ['sh', '-c', 'until nc -z -v -w30 backend-api.contoso-hypermarket.svc.cluster.local 5002 && nc -z -v -w30 footfall-ai-api.contoso-hypermarket.svc.cluster.local 5000; do echo "Waiting for the backend-api and footfall-ai-api to start" && sleep 5; done']
       containers:
       - name: main-ui
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
