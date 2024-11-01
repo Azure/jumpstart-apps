@@ -1,6 +1,6 @@
 apiVersion: v2
 name: shopper-insights
-description: A Helm chart for Kubernetes
+description: A Helm chart for shopper-insights
 
 # A chart can be either an 'application' or a 'library' chart.
 #
