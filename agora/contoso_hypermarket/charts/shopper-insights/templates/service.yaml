@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: shopper-insights-api
+  labels:
+    app: shopper-insights-service
+spec:
+  selector:
+    app: shopper-insights-api
+  ports:
+    - name: shopper-insights-metrics
+      protocol: TCP
+      port: {{ .Values.service.port }}
+      targetPort: 5001
+  type: {{ .Values.service.type }}
