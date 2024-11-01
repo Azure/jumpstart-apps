@@ -27,6 +27,9 @@ import MaintenanceZones from '../../components/MaintenanceZones';
 import {  SearchBox, IconButton } from '@fluentui/react';
 import { useDropzone } from 'react-dropzone';
 import { useCallback } from 'react';
+import CerebralChatWithAudio from '../../components/CerebralChat';
+import WizardNavigation from '../../components/WizardNavigationStatus';
+
 const Main = (props: IStackProps) => (
     <Stack horizontal grow={1} disableShrink {...props} />
   );
@@ -246,6 +249,7 @@ interface CameraPanelProps {
 const CamerasZonesWizard = () => {
     const styles = useStyles();
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+    const [isCerebralDrawerOpen, setIsCerebralDrawerOpen] = useState(false);
     const [cameraNameInputValue, setCameraNameInputValue] = React.useState('');
     const handleCameraNameInputChange = (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
       setCameraNameInputValue(newValue || '');
@@ -306,11 +310,40 @@ const CamerasZonesWizard = () => {
 
       const stackTokens: IStackTokens = { childrenGap: 10 };
       const navigate = useNavigate();
+      const onRenderCerebralFooterContent = React.useCallback(
+        () => (
+          <Stack horizontal tokens={{ childrenGap: 10 }}>
+            {/* <PrimaryButton onClick={onSaveDrawer}>Save</PrimaryButton> */}
+            <DefaultButton onClick={onCancelCerebralDrawer}>Close</DefaultButton>
+          </Stack>
+        ),
+        []
+      );
+      const onCancelCerebralDrawer = () => {
+        setIsCerebralDrawerOpen(false);
+      };            
+      const toggleCerebralDrawer = () => {
+        setIsCerebralDrawerOpen(!isCerebralDrawerOpen);
+      };      
     return (
         <FluentProvider theme={webLightTheme}>
         <CopilotProvider mode='sidecar'>
-          <Header />
+          <Header callParentFunction={toggleCerebralDrawer}/>
           <Main className={styles.main}>
+          <Panel
+            isOpen={isCerebralDrawerOpen}
+            onDismiss={toggleCerebralDrawer}
+            type={PanelType.custom}
+            customWidth="30%"
+            headerText=""
+            onRenderFooterContent={onRenderCerebralFooterContent}
+            isFooterAtBottom={true}
+            hasCloseButton={true}
+            closeButtonAriaLabel="Close"
+            isLightDismiss={true}            
+            >
+              <CerebralChatWithAudio />
+          </Panel>            
           <Stack.Item>
               <SideMenu />
           </Stack.Item>
@@ -323,18 +356,9 @@ const CamerasZonesWizard = () => {
             {/* Add the wizard status here */}
             <Stack horizontal>
             <Stack.Item>         
-            <div className={styles.container}>
-        <Card style={{backgroundColor: tokens.colorTransparentBackground}}>
-          <div className={styles.progressIndicator}>
-            {steps.map((step, index) => (
-              <div key={step} className={styles.progressStep}>
-                <div className={`${styles.progressDot} ${index === activeStep ? styles.activeDot : ''}`} />
-                <Text>{step}</Text>
-              </div>
-            ))}
-          </div>
-        </Card>
-      </div>            
+            <WizardNavigation 
+              activeIndex = {1}
+            />
           </Stack.Item>
           <Stack.Item grow={3}>
             <Stack>

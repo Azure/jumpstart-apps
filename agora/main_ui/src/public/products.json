@@ -1,98 +1,339 @@
 [
     {
       "product_id": 1,
-      "name": "Red Apple",
+      "name": "Apples",
       "price_range": {"min":0.2, "max":0.4},
       "stock": 8000,
-      "photo_path": "tomato-on-vine-image.png",
+      "photo_path": "products/shopper-fruits-1.png",
       "category": "Fruits"
     },
     {
       "product_id": 2,
-      "name": "Grape Tomatoes",
+      "name": "Grapes",
       "stock": 10000,
       "price_range": {"min":0.15, "max":0.3},
-      "photo_path": "Grapetomatoes.png",
+      "photo_path": "products/shopper-fruits-6.png",
       "category": "Fruits"
     },
     {
       "product_id": 3,
-      "name": "Vegetables",
-      "price_range": {"min":0.7, "max":2.0},
-      "stock": 5000,
-      "photo_path": "vegetables.png",
-      "category": "Vegetables"
+      "name": "Strawberry",
+      "price_range": {"min":2.0, "max":4.0},
+      "stock": 10000,
+      "photo_path": "products/shopper-fruits-4.png",
+      "category": "Fruits"
     },
     {
       "product_id": 4,
-      "name": "Bread",
-      "price_range": {"min":3.0, "max":5.0},
-      "stock": 2000,
-      "photo_path": "bread.png",
-      "category": "Bakery"
+      "name": "Bananas",
+      "price_range": {"min":2.0, "max":4.0},
+      "stock": 10000,
+      "photo_path": "products/shopper-fruits-2.png",
+      "category": "Fruits"
     },
     {
       "product_id": 5,
-      "name": "Milk",
-      "price_range": {"min":2.5, "max":4.5},
-      "stock": 1000,
-      "photo_path": "static/img/product5.jpg",
-      "category": "Dairy"
+      "name": "Oranges",
+      "price_range": {"min":2.0, "max":4.0},
+      "stock": 10000,
+      "photo_path": "products/shopper-fruits-3.png",
+      "category": "Fruits"
     },
     {
       "product_id": 6,
-      "name": "Orange Juice",
-      "price_range": {"min":3.25, "max":4.75},
-      "stock": 1000,
-      "photo_path": "static/img/product6.jpg",
-      "category": "Beverages"
+      "name": "Mangoes",
+      "price_range": {"min":2.0, "max":4.0},
+      "stock": 10000,
+      "photo_path": "products/shopper-fruits-5.png",
+      "category": "Fruits"
     },
     {
       "product_id": 7,
-      "name": "Chips",
-      "price_range": {"min":0.25, "max":0.75},
+      "name": "Broccoli",
+      "price_range": {"min":0.7, "max":2.0},
       "stock": 5000,
-      "photo_path": "static/img/product7.jpg",
-      "category": "Snacks"
+      "photo_path": "products/shopper-veg-1.png",
+      "category": "Vegetables"
     },
     {
       "product_id": 8,
       "name": "Red Pepper",
       "price_range": {"min":0.5, "max":1.5},
       "stock": 1000,
-      "photo_path": "static/img/product8.jpg",
+      "photo_path": "products/shopper-veg-3.png",
       "category": "Vegetables"
     },
     {
       "product_id": 9,
-      "name": "Lettuce",
+      "name": "Spinach",
       "price_range": {"min":0.2, "max":0.4},
       "stock": 10000,
-      "photo_path": "static/img/product9.jpg",
+      "photo_path": "products/shopper-veg-2.png",
       "category": "Vegetables"
     },
     {
       "product_id": 10,
-      "name": "Tomato",
+      "name": "Eggplants",
       "price_range": {"min":0.3, "max":0.6},
       "stock": 10000,
-      "photo_path": "tomato-on-vine-image.png",
+      "photo_path": "products/shopper-veg-4.png",
       "category": "Vegetables"
     },
     {
       "product_id": 11,
-      "name": "Strawberry",
-      "price_range": {"min":2.0, "max":4.0},
+      "name": "Sweet Potatoes",
+      "price_range": {"min":0.3, "max":0.6},
       "stock": 10000,
-      "photo_path": "static/img/product11.jpg",
-      "category": "Fruits"
+      "photo_path": "products/shopper-veg-5.png",
+      "category": "Vegetables"
     },
     {
       "product_id": 12,
-      "name": "Eggs",
-      "price_range": {"min":3.0, "max":6.0},
+      "name": "Beet",
+      "price_range": {"min":0.3, "max":0.6},
       "stock": 10000,
-      "photo_path": "static/img/product12.jpg",
-      "category": "Poultry"
+      "photo_path": "products/shopper-veg-6.png",
+      "category": "Vegetables"
+    },
+    {
+      "product_id": 13,
+      "name": "Sub 1",
+      "price_range": {"min":0.3, "max":0.6},
+      "stock": 10000,
+      "photo_path": "products/shopper-sub-1.png",
+      "category": "Subs"
+    },
+    {
+      "product_id": 14,
+      "name": "Sub 2",
+      "price_range": {"min":0.3, "max":0.6},
+      "stock": 10000,
+      "photo_path": "products/shopper-sub-2.png",
+      "category": "Subs"
+    },
+    {
+      "product_id": 15,
+      "name": "Sub 3",
+      "price_range": {"min":0.3, "max":0.6},
+      "stock": 10000,
+      "photo_path": "products/shopper-sub-3.png",
+      "category": "Subs"
+    },
+    {
+      "product_id": 16,
+      "name": "Sub 4",
+      "price_range": {"min":0.3, "max":0.6},
+      "stock": 10000,
+      "photo_path": "products/shopper-sub-4.png",
+      "category": "Subs"
+    },
+    {
+      "product_id": 17,
+      "name": "Sub 5",
+      "price_range": {"min":0.3, "max":0.6},
+      "stock": 10000,
+      "photo_path": "products/shopper-sub-5.png",
+      "category": "Subs"
+    },
+    {
+      "product_id": 18,
+      "name": "Sub 6",
+      "price_range": {"min":0.3, "max":0.6},
+      "stock": 10000,
+      "photo_path": "products/shopper-sub-6.png",
+      "category": "Subs"
+    },
+    {
+      "product_id": 19,
+      "name": "Cheese 1",
+      "price_range": {"min":0.3, "max":0.6},
+      "stock": 10000,
+      "photo_path": "products/shopper-cheese-1.png",
+      "category": "Cheese"
+    },
+    {
+      "product_id": 20,
+      "name": "Cheese 2",
+      "price_range": {"min":0.3, "max":0.6},
+      "stock": 10000,
+      "photo_path": "products/shopper-cheese-2.png",
+      "category": "Cheese"
+    },
+    {
+      "product_id": 21,
+      "name": "Cheese 3",
+      "price_range": {"min":0.3, "max":0.6},
+      "stock": 10000,
+      "photo_path": "products/shopper-cheese-3.png",
+      "category": "Cheese"
+    },
+    {
+      "product_id": 22,
+      "name": "Cheese 4",
+      "price_range": {"min":0.3, "max":0.6},
+      "stock": 10000,
+      "photo_path": "products/shopper-cheese-4.png",
+      "category": "Cheese"
+    },
+    {
+      "product_id": 23,
+      "name": "Cheese 5",
+      "price_range": {"min":0.3, "max":0.6},
+      "stock": 10000,
+      "photo_path": "products/shopper-cheese-5.png",
+      "category": "Cheese"
+    },
+    {
+      "product_id": 24,
+      "name": "Cheese 6",
+      "price_range": {"min":0.3, "max":0.6},
+      "stock": 10000,
+      "photo_path": "products/shopper-cheese-6.png",
+      "category": "Cheese"
+    },
+    {
+      "product_id": 25,
+      "name": "Wine 1",
+      "price_range": {"min":0.3, "max":0.6},
+      "stock": 10000,
+      "photo_path": "products/shopper-wine-1.png",
+      "category": "Wine"
+    },
+    {
+      "product_id": 26,
+      "name": "Wine 2",
+      "price_range": {"min":0.3, "max":0.6},
+      "stock": 10000,
+      "photo_path": "products/shopper-wine-2.png",
+      "category": "Wine"
+    },
+    {
+      "product_id": 27,
+      "name": "Wine 3",
+      "price_range": {"min":0.3, "max":0.6},
+      "stock": 10000,
+      "photo_path": "products/shopper-wine-3.png",
+      "category": "Wine"
+    },
+    {
+      "product_id": 28,
+      "name": "Wine 4",
+      "price_range": {"min":0.3, "max":0.6},
+      "stock": 10000,
+      "photo_path": "products/shopper-wine-4.png",
+      "category": "Wine"
+    },
+    {
+      "product_id": 29,
+      "name": "Wine 5",
+      "price_range": {"min":0.3, "max":0.6},
+      "stock": 10000,
+      "photo_path": "products/shopper-wine-5.png",
+      "category": "Wine"
+    },
+    {
+      "product_id": 30,
+      "name": "Wine 6",
+      "price_range": {"min":0.3, "max":0.6},
+      "stock": 10000,
+      "photo_path": "products/shopper-wine-6.png",
+      "category": "Wine"
+    },
+    {
+      "product_id": 31,
+      "name": "Gluten Free 1",
+      "price_range": {"min":0.3, "max":0.6},
+      "stock": 10000,
+      "photo_path": "products/shopper-glutenfree-1.png",
+      "category": "GlutenFree"
+    },
+    {
+      "product_id": 32,
+      "name": "Gluten Free 2",
+      "price_range": {"min":0.3, "max":0.6},
+      "stock": 10000,
+      "photo_path": "products/shopper-glutenfree-2.png",
+      "category": "GlutenFree"
+    },
+    {
+      "product_id": 33,
+      "name": "Gluten Free 3",
+      "price_range": {"min":0.3, "max":0.6},
+      "stock": 10000,
+      "photo_path": "products/shopper-glutenfree-3.png",
+      "category": "GlutenFree"
+    },
+    {
+      "product_id": 34,
+      "name": "Gluten Free 4",
+      "price_range": {"min":0.3, "max":0.6},
+      "stock": 10000,
+      "photo_path": "products/shopper-glutenfree-4.png",
+      "category": "GlutenFree"
+    },
+    {
+      "product_id": 35,
+      "name": "Gluten Free 5",
+      "price_range": {"min":0.3, "max":0.6},
+      "stock": 10000,
+      "photo_path": "products/shopper-glutenfree-5.png",
+      "category": "GlutenFree"
+    },
+    {
+      "product_id": 36,
+      "name": "GlutenFree 6",
+      "price_range": {"min":0.3, "max":0.6},
+      "stock": 10000,
+      "photo_path": "products/shopper-glutenfree-6.png",
+      "category": "Gluten Free"
+    }
+    ,
+    {
+      "product_id": 37,
+      "name": "Plant based 1",
+      "price_range": {"min":0.3, "max":0.6},
+      "stock": 10000,
+      "photo_path": "products/shopper-plantbased-1.png",
+      "category": "Plantbased"
+    },
+    {
+      "product_id": 38,
+      "name": "Plant based 2",
+      "price_range": {"min":0.3, "max":0.6},
+      "stock": 10000,
+      "photo_path": "products/shopper-plantbased-2.png",
+      "category": "Plantbased"
+    },
+    {
+      "product_id": 39,
+      "name": "Plant based 3",
+      "price_range": {"min":0.3, "max":0.6},
+      "stock": 10000,
+      "photo_path": "products/shopper-plantbased-3.png",
+      "category": "Plantbased"
+    },
+    {
+      "product_id": 40,
+      "name": "Plant based 4",
+      "price_range": {"min":0.3, "max":0.6},
+      "stock": 10000,
+      "photo_path": "products/shopper-plantbased-4.png",
+      "category": "Plantbased"
+    },
+    {
+      "product_id": 41,
+      "name": "Plant based 5",
+      "price_range": {"min":0.3, "max":0.6},
+      "stock": 10000,
+      "photo_path": "products/shopper-plantbased-5.png",
+      "category": "Plantbased"
+    },
+    {
+      "product_id": 42,
+      "name": "Plantbased 6",
+      "price_range": {"min":0.3, "max":0.6},
+      "stock": 10000,
+      "photo_path": "products/shopper-plantbased-6.png",
+      "category": "Plant based"
     }
   ]

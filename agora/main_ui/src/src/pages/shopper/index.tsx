@@ -15,7 +15,8 @@ import { CopilotProvider } from "@fluentui-copilot/react-copilot";
 import { useNavigate } from "react-router-dom";
 import { Panel, PanelType, DefaultButton } from '@fluentui/react';
 import { IDropdownOption, IImageProps, IStackProps, IStackTokens, Stack,   PrimaryButton, Image} from "@fluentui/react";
-
+import CerebralChatWithAudio from '../../components/CerebralChat';
+import ActiveCart from '../../components/ActiveCart';
 import {
   Card,
   CardFooter,
@@ -29,6 +30,21 @@ const useStyles = makeStyles({
         display: "flex",
         flexDirection: "column",
         flexWrap: "wrap",
+      },
+      checkoutbutton: {
+        display: 'flex',
+        width: '250px',
+        height: '30px',
+        flexShrink: 0,
+        color: '#FFF',
+        fontFamily: 'var(--Font-family-Base, "Segoe UI")',
+        fontSize: 'var(--Font-size-400, 16px)',
+        fontStyle: 'normal',
+        padding: 'var(--Vertical-S, 8px) var(--Horizontal-L, 16px)',
+        borderRadius: '4px',
+        background: '#085108',
+        fontweight: '600',
+        marginLeft: '10px',
       },
       card: {
         display: "flex",
@@ -178,44 +194,78 @@ const useStyles = makeStyles({
         const productsNavigation = () => {
           navigate('/shopperproducts');
         }
+        const productsCategoryNavigation = (category: string) => {
+          navigate('/shopperproducts?Category='+ category);
+        }
         const onRenderFooterContent = React.useCallback(
-        () => (
+          () => (
+              <Stack horizontal tokens={{ childrenGap: 10 }}>
+              <PrimaryButton className={styles.checkoutbutton} onClick={onCheckout}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <path d="M14.3557 2.59534C14.4445 2.48261 14.6098 2.46762 14.7175 2.56254L15.6385 3.37473L12.7383 7H14.6592L16.7648 4.36797L18.417 5.82489C18.5186 5.9145 18.5304 6.06873 18.4435 6.1727L17.7523 7H19.6965C20.1905 6.27893 20.0778 5.28948 19.4091 4.69984L15.7096 1.43749C14.9561 0.77305 13.7991 0.877958 13.1775 1.66709L8.9762 7H10.8858L14.3557 2.59534ZM16.25 14C15.8358 14 15.5 14.3358 15.5 14.75C15.5 15.1642 15.8358 15.5 16.25 15.5H18.25C18.6642 15.5 19 15.1642 19 14.75C19 14.3358 18.6642 14 18.25 14H16.25ZM4.5 7.25C4.5 6.83579 4.83579 6.5 5.25 6.5H8.37844L9.57 5H5.25C4.00736 5 3 6.00736 3 7.25V17.75C3 19.5449 4.45507 21 6.25 21H18.25C20.0449 21 21.5 19.5449 21.5 17.75V11.25C21.5 9.45507 20.0449 8 18.25 8L5.25 8C4.83579 8 4.5 7.66421 4.5 7.25ZM4.5 17.75V9.37197C4.73458 9.45488 4.98702 9.5 5.25 9.5H18.25C19.2165 9.5 20 10.2835 20 11.25V17.75C20 18.7165 19.2165 19.5 18.25 19.5H6.25C5.2835 19.5 4.5 18.7165 4.5 17.75Z" fill="white"/>
+                </svg>Go to checkout ($25.45)
+              </PrimaryButton>
+              <DefaultButton onClick={onClearCart}>Clear cart</DefaultButton>
+              </Stack>
+          ),
+          [onSave, onDismiss]
+          );  
+          const onCheckout = () => {
+            navigate('/shopperreviewcart');  
+          };
+          const onClearCart = () => {
+            setIsDrawerOpen(false);
+          };          
+        const [isCerebralDrawerOpen, setIsCerebralDrawerOpen] = useState(false);
+        const toggleCerebralDrawer = () => {
+          setIsCerebralDrawerOpen(!isCerebralDrawerOpen);
+        }; 
+        const onRenderCerebralFooterContent = React.useCallback(
+          () => (
             <Stack horizontal tokens={{ childrenGap: 10 }}>
-            <PrimaryButton onClick={onSave}>Save</PrimaryButton>
-            <DefaultButton onClick={onDismiss}>Cancel</DefaultButton>
+              {/* <PrimaryButton onClick={onSaveDrawer}>Save</PrimaryButton> */}
+              <DefaultButton onClick={onCancelCerebralDrawer}>Close</DefaultButton>
             </Stack>
-        ),
-        [onSave, onDismiss]
-        );          
+          ),
+          []
+        );
+        const onCancelCerebralDrawer = () => {
+          setIsCerebralDrawerOpen(false);
+        };   
+      
           return (
               <FluentProvider theme={webLightTheme}>
                 <CopilotProvider mode='sidecar'>
                     <Stack>
                     <Panel
-                        isOpen={isDrawerOpen}
-                        onDismiss={toggleDrawer}
-                        type={PanelType.custom}
-                        customWidth="25%"
-                        headerText="Add camera"
-                        onRenderFooterContent={onRenderFooterContent}
-                        isFooterAtBottom={true}
-                    >
-                        <Stack>
-                            <Stack.Item>
-                            </Stack.Item>
-                            <Stack.Item>
-                            </Stack.Item>
-                            <Stack.Item>
-                            </Stack.Item>
-                            <Stack.Item>
-                            </Stack.Item>
-                            <Stack.Item>
-                            </Stack.Item>
-                            <Stack.Item>
-                            </Stack.Item>
-                        </Stack>
-                        </Panel>                          
-                        <Header callParentFunction={toggleDrawer}/>
+            isOpen={isCerebralDrawerOpen}
+            onDismiss={toggleCerebralDrawer}
+            type={PanelType.custom}
+            customWidth="30%"
+            headerText=""
+            onRenderFooterContent={onRenderCerebralFooterContent}
+            isFooterAtBottom={true}
+            hasCloseButton={true}
+            closeButtonAriaLabel="Close"
+            isLightDismiss={true}            
+            >
+              <CerebralChatWithAudio />
+          </Panel>  
+          <Panel
+                isOpen={isDrawerOpen}
+                onDismiss={toggleDrawer}
+                type={PanelType.custom}
+                customWidth="35%"
+                headerText="Cart"
+                onRenderFooterContent={onRenderFooterContent}
+                isFooterAtBottom={true}
+            >
+              <ActiveCart />
+            </Panel>                          
+                        <Header 
+                          callParentFunction={toggleDrawer}
+                          callCerebralParentFunction={toggleCerebralDrawer} 
+                        />
                         <TopNav />
                         <Stack id='MainContent' style={{alignItems: 'center', marginTop: '21px'}}>
                             <Stack>
@@ -258,34 +308,34 @@ const useStyles = makeStyles({
                                 <Text className={styles.explorecategories}>Explore Categories</Text>
                               </Stack>                                                 
                             </Stack>
-                            <Stack horizontal id='ExploreCategories' onClick={productsNavigation}>
+                            <Stack horizontal id='ExploreCategories'>
                              <Stack horizontal id='Categories' className={styles.categories}>
-                                <Stack styles={childStackStyles}>
-                                  <img src="Rectangle 34655402.png" alt="Category 1" style={categoryStyles.root} />
+                                <Stack styles={childStackStyles} onClick={() => productsCategoryNavigation('Vegetables')}>
+                                  <img src="Getty-LandingPage-1-Vegetables.png" alt="Vegetables" style={categoryStyles.root} />
                                   <Text className={styles.categorytext}>Vegetables</Text>
                                 </Stack>
-                                <Stack styles={childStackStyles}>
-                                  <img src="Rectangle 34655403.png" alt="Category 1" style={categoryStyles.root} />
-                                  <Text className={styles.categorytext}>Seafood</Text>
+                                <Stack styles={childStackStyles} onClick={() => productsCategoryNavigation('Fruits')}>
+                                  <img src="Fruits.png" alt="Fruits" style={categoryStyles.root} />
+                                  <Text className={styles.categorytext}>Fruits</Text>
                                 </Stack>   
-                                <Stack styles={childStackStyles}>
-                                  <img src="Rectangle 34655404.png" alt="Category 1" style={categoryStyles.root} />
+                                <Stack styles={childStackStyles} onClick={() => productsCategoryNavigation('Subs')}>
+                                  <img src="Getty-LandingPage-3-Subs.png" alt="Subs and wraps" style={categoryStyles.root} />
                                   <Text className={styles.categorytext}>Subs and wraps</Text>
                                 </Stack>  
-                                <Stack styles={childStackStyles}>
-                                  <img src="Rectangle 34655405.png" alt="Category 1" style={categoryStyles.root} />
+                                <Stack styles={childStackStyles} onClick={() => productsCategoryNavigation('Cheese')}>
+                                  <img src="Getty-LandingPage-4-Cheese.png" alt="Imported Cheese" style={categoryStyles.root} />
                                   <Text className={styles.categorytext}>Imported Cheese</Text>
                                 </Stack>  
-                                <Stack styles={childStackStyles}>
-                                  <img src="Rectangle 34655406.png" alt="Category 1" style={categoryStyles.root} />
+                                <Stack styles={childStackStyles} onClick={() => productsCategoryNavigation('Wine')}>
+                                  <img src="Getty-LandingPage-5-Wine.png" alt="Natural wine" style={categoryStyles.root} />
                                   <Text className={styles.categorytext}>Natural wine</Text>
                                 </Stack>  
-                                <Stack styles={childStackStyles}>
-                                  <img src="Rectangle 34655407.png" alt="Category 1" style={categoryStyles.root} />
+                                <Stack styles={childStackStyles} onClick={() => productsCategoryNavigation('GlutenFree')}>
+                                  <img src="Getty-LandingPage-6-gluten-free.png" alt="Gluten-free" style={categoryStyles.root} />
                                   <Text className={styles.categorytext}>Gluten-free</Text>
                                 </Stack>  
-                                <Stack styles={childStackStyles}>
-                                  <img src="Rectangle 34655408.png" alt="Category 1" style={categoryStyles.root} />
+                                <Stack styles={childStackStyles} onClick={() => productsCategoryNavigation('Plantbased')}>
+                                  <img src="Getty-LandingPage-7-plant-based.png" alt="Plant based" style={categoryStyles.root} />
                                   <Text className={styles.categorytext}>Plant based</Text>
                                 </Stack>                                                                                                                                                                                               
                               </Stack>

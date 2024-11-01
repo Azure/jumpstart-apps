@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState }  from 'react';
 import {
   FluentProvider,
   webLightTheme,
@@ -28,6 +28,8 @@ import { CopilotProvider } from "@fluentui-copilot/react-copilot";
 import logo from './logo.svg';
 import '../../App.css';
 import Cameras from '../../components/Cameras';
+import CerebralChatWithAudio from '../../components/CerebralChat';
+import { Panel, PanelType, DefaultButton, ProgressIndicator } from '@fluentui/react';
 const Main = (props: IStackProps) => (
     <Stack horizontal grow={1} disableShrink {...props} />
   );
@@ -54,11 +56,41 @@ const useStyles = makeStyles({
 
 const MaintenanceWorkerDashboard = () => {
   const classes  = useStyles();
+  const [isCerebralDrawerOpen, setIsCerebralDrawerOpen] = useState(false);
+  const toggleCerebralDrawer = () => {
+    setIsCerebralDrawerOpen(!isCerebralDrawerOpen);
+  }; 
+  const onRenderCerebralFooterContent = React.useCallback(
+    () => (
+      <Stack horizontal tokens={{ childrenGap: 10 }}>
+        {/* <PrimaryButton onClick={onSaveDrawer}>Save</PrimaryButton> */}
+        <DefaultButton onClick={onCancelCerebralDrawer}>Close</DefaultButton>
+      </Stack>
+    ),
+    []
+  );
+  const onCancelCerebralDrawer = () => {
+    setIsCerebralDrawerOpen(false);
+  };   
     return (
         <FluentProvider theme={webLightTheme}>
         <CopilotProvider mode='sidecar'>
-          <SuiteHeader />
+          <SuiteHeader callParentFunction={toggleCerebralDrawer}/>
           <Main>
+          <Panel
+            isOpen={isCerebralDrawerOpen}
+            onDismiss={toggleCerebralDrawer}
+            type={PanelType.custom}
+            customWidth="25%"
+            headerText=""
+            onRenderFooterContent={onRenderCerebralFooterContent}
+            isFooterAtBottom={true}
+            hasCloseButton={true}
+            closeButtonAriaLabel="Close"
+            isLightDismiss={true}            
+            >
+              <CerebralChatWithAudio />
+          </Panel>              
           <Stack.Item>
               <SideMenu />
           </Stack.Item>

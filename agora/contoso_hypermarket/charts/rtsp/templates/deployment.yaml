@@ -18,7 +18,7 @@ spec:
           command:
           - wget 
           - "-O"
-          - "/samples/sample.mp4"
+          - "/samples/aisle.mp4"
           - https://download.microsoft.com/download/ad457769-60e2-4e4b-8756-8d9fada0b60a/supermarket-aisle.mp4
           volumeMounts:
           - name: video-storage
@@ -31,7 +31,7 @@ spec:
             - containerPort: 8554
           env:
           - name: SOURCE_URL
-            value: "file:///samples/sample.mp4"
+            value: "file:///samples/aisle.mp4"
           volumeMounts:
           - mountPath: /samples
             name: video-storage
@@ -65,7 +65,7 @@ spec:
           - |
             tdnf update -y
             tdnf install wget -y
-            wget -O /samples/sample.mp4 https://download.microsoft.com/download/ad457769-60e2-4e4b-8756-8d9fada0b60a/supermarket-zoom.mp4 --no-check-certificate
+            wget -O /samples/zoom.mp4 https://download.microsoft.com/download/ad457769-60e2-4e4b-8756-8d9fada0b60a/supermarket-zoom.mp4 --no-check-certificate
           volumeMounts:
           - name: video-storage
             mountPath: /samples
@@ -77,7 +77,7 @@ spec:
         - containerPort: 8554
         env:
         - name: SOURCE_URL
-          value: "file:///samples/sample.mp4"
+          value: "file:///samples/zoom.mp4"
         volumeMounts:
         - mountPath: /samples
           name: video-storage

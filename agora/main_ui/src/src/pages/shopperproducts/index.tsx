@@ -23,6 +23,8 @@ import ActiveCart from '../../components/ActiveCart';
 import { CopilotProvider } from "@fluentui-copilot/react-copilot";
 import { IDropdownOption, IImageProps, IStackProps, IStackTokens, Stack,   PrimaryButton, Image, Text, IStackStyles} from "@fluentui/react";
 import { Panel, PanelType, DefaultButton } from '@fluentui/react';
+import CerebralChatWithAudio from '../../components/CerebralChat';
+
 import {
   Card,
   CardFooter,
@@ -52,6 +54,21 @@ const useStyles = makeStyles({
         display: "flex",
         flexDirection: "column",
         flexWrap: "wrap",
+      },
+      checkoutbutton: {
+        display: 'flex',
+        width: '250px',
+        height: '30px',
+        flexShrink: 0,
+        color: '#FFF',
+        fontFamily: 'var(--Font-family-Base, "Segoe UI")',
+        fontSize: 'var(--Font-size-400, 16px)',
+        fontStyle: 'normal',
+        padding: 'var(--Vertical-S, 8px) var(--Horizontal-L, 16px)',
+        borderRadius: '4px',
+        background: '#085108',
+        fontweight: '600',
+        marginLeft: '10px',
       },
       cardnew: {
         width: "500px",
@@ -368,15 +385,26 @@ const useStyles = makeStyles({
             setIsDrawerOpen(!isDrawerOpen);
           };
 
-        const onRenderFooterContent = React.useCallback(
-        () => (
-            <Stack horizontal tokens={{ childrenGap: 10 }}>
-            <PrimaryButton onClick={onSave}>Save</PrimaryButton>
-            <DefaultButton onClick={onDismiss}>Cancel</DefaultButton>
-            </Stack>
-        ),
-        [onSave, onDismiss]
-        );  
+          const onRenderFooterContent = React.useCallback(
+            () => (
+                <Stack horizontal tokens={{ childrenGap: 10 }}>
+              <PrimaryButton className={styles.checkoutbutton} onClick={onCheckout}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <path d="M14.3557 2.59534C14.4445 2.48261 14.6098 2.46762 14.7175 2.56254L15.6385 3.37473L12.7383 7H14.6592L16.7648 4.36797L18.417 5.82489C18.5186 5.9145 18.5304 6.06873 18.4435 6.1727L17.7523 7H19.6965C20.1905 6.27893 20.0778 5.28948 19.4091 4.69984L15.7096 1.43749C14.9561 0.77305 13.7991 0.877958 13.1775 1.66709L8.9762 7H10.8858L14.3557 2.59534ZM16.25 14C15.8358 14 15.5 14.3358 15.5 14.75C15.5 15.1642 15.8358 15.5 16.25 15.5H18.25C18.6642 15.5 19 15.1642 19 14.75C19 14.3358 18.6642 14 18.25 14H16.25ZM4.5 7.25C4.5 6.83579 4.83579 6.5 5.25 6.5H8.37844L9.57 5H5.25C4.00736 5 3 6.00736 3 7.25V17.75C3 19.5449 4.45507 21 6.25 21H18.25C20.0449 21 21.5 19.5449 21.5 17.75V11.25C21.5 9.45507 20.0449 8 18.25 8L5.25 8C4.83579 8 4.5 7.66421 4.5 7.25ZM4.5 17.75V9.37197C4.73458 9.45488 4.98702 9.5 5.25 9.5H18.25C19.2165 9.5 20 10.2835 20 11.25V17.75C20 18.7165 19.2165 19.5 18.25 19.5H6.25C5.2835 19.5 4.5 18.7165 4.5 17.75Z" fill="white"/>
+                </svg>Go to checkout ($25.45)
+              </PrimaryButton>
+
+                <DefaultButton onClick={onClearCart}>Clear cart</DefaultButton>
+                </Stack>
+            ),
+            [onSave, onDismiss]
+            );  
+            const onCheckout = () => {
+              navigate('/shopperreviewcart');  
+            };
+            const onClearCart = () => {
+              setIsDrawerOpen(false);
+            }; 
         const containerStyles: IStackStyles = {
           root: {
             width: '100%',
@@ -431,9 +459,11 @@ useEffect(() => {
     .then()
     .catch(error => console.error(error));
 }, []);    
-
+const urlParams = new URLSearchParams(window.location.search);
+const categoryParameter = urlParams.get('Category');
 data.forEach(
   function(d){
+    if(d["category"] === categoryParameter) {
     var newDataItem: DataItem = {
       productId: d["product_id"] ,
       name: d["name"],
@@ -443,25 +473,58 @@ data.forEach(
     };
     dataItems.push(newDataItem);      
    }
+  }
 ) 
 const navigate = useNavigate();
 const productDetailsNavigation = (event: { currentTarget: { id: any; }; }) => {
-  navigate('/shopperproductdetail?productId=' + event.currentTarget.id);
+  navigate('/shopperproductdetail?productId=' + event.currentTarget.id);  
 }
+const [isCerebralDrawerOpen, setIsCerebralDrawerOpen] = useState(false);
+const toggleCerebralDrawer = () => {
+  setIsCerebralDrawerOpen(!isCerebralDrawerOpen);
+}; 
+const onRenderCerebralFooterContent = React.useCallback(
+  () => (
+    <Stack horizontal tokens={{ childrenGap: 10 }}>
+      {/* <PrimaryButton onClick={onSaveDrawer}>Save</PrimaryButton> */}
+      <DefaultButton onClick={onCancelCerebralDrawer}>Close</DefaultButton>
+    </Stack>
+  ),
+  []
+);
+const onCancelCerebralDrawer = () => {
+  setIsCerebralDrawerOpen(false);
+};   
+
           return (
               <FluentProvider theme={webLightTheme}>
                 <CopilotProvider mode='sidecar'>
                     <Stack>
                     <Panel
+            isOpen={isCerebralDrawerOpen}
+            onDismiss={toggleCerebralDrawer}
+            type={PanelType.custom}
+            customWidth="30%"
+            headerText=""
+            onRenderFooterContent={onRenderCerebralFooterContent}
+            isFooterAtBottom={true}
+            hasCloseButton={true}
+            closeButtonAriaLabel="Close"
+            isLightDismiss={true}            
+            >
+              <CerebralChatWithAudio />
+          </Panel>                        
+                    <Panel
                       isOpen={isDrawerOpen}
                       onDismiss={toggleDrawer}
                       type={PanelType.custom}
-                      customWidth="55%"
+                      customWidth="35%"
                       headerText="Cart"
                       onRenderFooterContent={onRenderFooterContent}
                       isFooterAtBottom={true}
                     >
-                      <Stack>
+                      <ActiveCart />
+                      {/* <Stack>
                           <Stack.Item>
                           <Stack horizontal styles={containerStyles} tokens={stackTokens}>
                             <Stack.Item grow styles={itemStyles}>
@@ -602,9 +665,12 @@ const productDetailsNavigation = (event: { currentTarget: { id: any; }; }) => {
                           </Stack.Item>
                           <Stack.Item>
                           </Stack.Item>
-                      </Stack>
+                      </Stack> */}
                     </Panel>
-                        <Header callParentFunction={toggleDrawer}/>
+                    <Header 
+                          callParentFunction={toggleDrawer}
+                          callCerebralParentFunction={toggleCerebralDrawer} 
+                        />
                         <TopNav />
                         <Breadcrumb className={styles.breadcrumb}>
                             <BreadcrumbItem className={styles.breadcrumbitem}>Home
@@ -622,7 +688,7 @@ const productDetailsNavigation = (event: { currentTarget: { id: any; }; }) => {
                                     <path d="M7.64582 4.14708C7.84073 3.95147 8.15731 3.9509 8.35292 4.14582L13.8374 9.6108C14.0531 9.82574 14.0531 10.1751 13.8374 10.39L8.35292 15.855C8.15731 16.0499 7.84073 16.0493 7.64582 15.8537C7.4509 15.6581 7.45147 15.3415 7.64708 15.1466L12.8117 10.0004L7.64708 4.85418C7.45147 4.65927 7.4509 4.34269 7.64582 4.14708Z" fill="#424242"/>
                                 </svg>
                             </BreadcrumbItem>
-                            <BreadcrumbItem className={styles.breadcrumbitem}> Vegetables</BreadcrumbItem>
+                            <BreadcrumbItem className={styles.breadcrumbitem}> {categoryParameter}</BreadcrumbItem>
                         </Breadcrumb>
                         <Stack id='MainContent' style={{alignItems: 'top', marginTop: '21px'}} horizontal>
                             <Stack.Item>
@@ -682,238 +748,7 @@ const productDetailsNavigation = (event: { currentTarget: { id: any; }; }) => {
                                               ))
                                             }
                                           </div>                                          
-                                        </Stack>
-
-                                        <Stack id='producefirstrow'>
-                                            <Stack horizontal id='firstrowhorizontalcontainer' style={{justifyContent: 'center', width:'100%', marginBottom:'30px'}}>
-                                                <Stack tokens={stackTokens} id='ProductDetails' className={styles.productdetails}>
-                                                    <Image {...imageProps} />
-                                                    <Text variant="large" block className={styles.productname}>
-                                                        Tomatoes, on vine
-                                                    </Text>
-                                                    <Text variant="large" block className={styles.productprice}>
-                                                    $4.99 / lb
-                                                    </Text>
-                                                    <Stack horizontal style={{alignItems: 'bottom'}}>
-                                                        <Stack horizontal>       
-                                                            <Stack>
-                                                                <label id={dropdownId}>Weight</label>
-                                                                <Dropdown
-                                                                aria-labelledby={dropdownId}
-                                                                className={styles.dropdown}
-                                                                placeholder="Select weight"
-                                                                {...props}
-                                                                >
-                                                                {options.map((option) => (
-                                                                <option key={option} value={option} disabled={option === "Ferret"}>
-                                                                    {option}
-                                                                </option>
-                                                                ))}                                                  
-                                                                </Dropdown> 
-                                                                
-                                                            </Stack>         
-                                                            <div  style={{
-                                                            display: 'flex',
-                                                            flexDirection: 'column',
-                                                            justifyContent: 'flex-end',
-                                                            height: '100%'
-                                                            }}>
-                                                            <PrimaryButton className={styles.addtocartbutton} text="Add to cart" iconProps={{ iconName: 'CustomIconName' }}></PrimaryButton>
-                                                            </div>
-                                                        </Stack>       
-                                                    </Stack>
-                                                </Stack>  
-                                                <Stack tokens={stackTokens} id='ProductDetails' className={styles.productdetails}>
-                                                    <Image {...grapetomatoesProps} />
-                                                    <Text variant="large" block className={styles.productname}>
-                                                    Grape tomatoes
-                                                    </Text>
-                                                    <Text variant="large" block className={styles.productprice}>
-                                                    $4.99 / 1 ct container
-                                                    </Text>
-                                                    <Stack horizontal style={{alignItems: 'bottom'}}>
-                                                        <Stack horizontal>       
-                                                            <Stack>
-                                                                <label id={dropdownId}>Weight</label>
-                                                                <Dropdown
-                                                                aria-labelledby={dropdownId}
-                                                                className={styles.dropdown}
-                                                                placeholder="Select weight"
-                                                                {...props}
-                                                                >
-                                                                {options.map((option) => (
-                                                                <option key={option} value={option} disabled={option === "Ferret"}>
-                                                                    {option}
-                                                                </option>
-                                                                ))}                                                  
-                                                                </Dropdown> 
-                                                                
-                                                            </Stack>         
-                                                            <div  style={{
-                                                            display: 'flex',
-                                                            flexDirection: 'column',
-                                                            justifyContent: 'flex-end',
-                                                            height: '100%'
-                                                            }}>
-                                                            <PrimaryButton className={styles.addtocartbutton} text="Add to cart" iconProps={{ iconName: 'CustomIconName' }}></PrimaryButton>
-                                                            </div>
-                                                        </Stack>       
-                                                    </Stack>
-                                                </Stack>  
-                                                <Stack tokens={stackTokens} id='ProductDetails' className={styles.productdetails}>
-                                                    <Image {...rotelFinelyChoppedTomatoesProps} />
-                                                    <Text variant="large" block className={styles.productname}>
-                                                    Rotel Finely Chopped Tomatoes, 284 mL, can
-                                                    </Text>
-                                                    <Text variant="large" block className={styles.productprice}>
-                                                    $5.99
-                                                    </Text>
-                                                    <Stack horizontal style={{alignItems: 'bottom'}}>
-                                                        <Stack horizontal>       
-                                                            <Stack>
-                                                                <label id={dropdownId}>Weight</label>
-                                                                <Dropdown
-                                                                aria-labelledby={dropdownId}
-                                                                className={styles.dropdown}
-                                                                placeholder="Select weight"
-                                                                {...props}
-                                                                >
-                                                                {options.map((option) => (
-                                                                <option key={option} value={option} disabled={option === "Ferret"}>
-                                                                    {option}
-                                                                </option>
-                                                                ))}                                                  
-                                                                </Dropdown> 
-                                                                
-                                                            </Stack>         
-                                                            <div  style={{
-                                                            display: 'flex',
-                                                            flexDirection: 'column',
-                                                            justifyContent: 'flex-end',
-                                                            height: '100%'
-                                                            }}>
-                                                            <PrimaryButton className={styles.addtocartbutton} text="Add to cart" iconProps={{ iconName: 'CustomIconName' }}></PrimaryButton>
-                                                            </div>
-                                                        </Stack>       
-                                                    </Stack>
-                                                </Stack>                                                  
-                                            </Stack>
-                                        </Stack>     
-                                        <Stack id='producesecondrow'>
-                                            <Stack horizontal id='secondrowhorizontalcontainer' style={{justifyContent: 'center', width:'100%', marginBottom:'30px'}}>
-                                            <Stack tokens={stackTokens} id='ProductDetails' className={styles.productdetails}>
-                                                    <Image {...tomatoesonvineProps} />
-                                                    <Text variant="large" block className={styles.productname}>
-                                                        Tomatoes, on vine
-                                                    </Text>
-                                                    <Text variant="large" block className={styles.productprice}>
-                                                    $4.99 / lb
-                                                    </Text>
-                                                    <Stack horizontal style={{alignItems: 'bottom'}}>
-                                                        <Stack horizontal>       
-                                                            <Stack>
-                                                                <label id={dropdownId}>Weight</label>
-                                                                <Dropdown
-                                                                aria-labelledby={dropdownId}
-                                                                className={styles.dropdown}
-                                                                placeholder="Select weight"
-                                                                {...props}
-                                                                >
-                                                                {options.map((option) => (
-                                                                <option key={option} value={option} disabled={option === "Ferret"}>
-                                                                    {option}
-                                                                </option>
-                                                                ))}                                                  
-                                                                </Dropdown> 
-                                                                
-                                                            </Stack>         
-                                                            <div  style={{
-                                                            display: 'flex',
-                                                            flexDirection: 'column',
-                                                            justifyContent: 'flex-end',
-                                                            height: '100%'
-                                                            }}>
-                                                            <PrimaryButton className={styles.addtocartbutton} text="Add to cart" iconProps={{ iconName: 'CustomIconName' }}></PrimaryButton>
-                                                            </div>
-                                                        </Stack>       
-                                                    </Stack>
-                                                </Stack>  
-                                                <Stack tokens={stackTokens} id='ProductDetails' className={styles.productdetails}>
-                                                    <Image {...HierloomProps} />
-                                                    <Text variant="large" block className={styles.productname}>
-                                                        Tomatoes, on vine
-                                                    </Text>
-                                                    <Text variant="large" block className={styles.productprice}>
-                                                    $4.99 / lb
-                                                    </Text>
-                                                    <Stack horizontal style={{alignItems: 'bottom'}}>
-                                                        <Stack horizontal>       
-                                                            <Stack>
-                                                                <label id={dropdownId}>Weight</label>
-                                                                <Dropdown
-                                                                aria-labelledby={dropdownId}
-                                                                className={styles.dropdown}
-                                                                placeholder="Select weight"
-                                                                {...props}
-                                                                >
-                                                                {options.map((option) => (
-                                                                <option key={option} value={option} disabled={option === "Ferret"}>
-                                                                    {option}
-                                                                </option>
-                                                                ))}                                                  
-                                                                </Dropdown> 
-                                                                
-                                                            </Stack>         
-                                                            <div  style={{
-                                                            display: 'flex',
-                                                            flexDirection: 'column',
-                                                            justifyContent: 'flex-end',
-                                                            height: '100%'
-                                                            }}>
-                                                            <PrimaryButton className={styles.addtocartbutton} text="Add to cart" iconProps={{ iconName: 'CustomIconName' }}></PrimaryButton>
-                                                            </div>
-                                                        </Stack>       
-                                                    </Stack>
-                                                </Stack>  
-                                                <Stack tokens={stackTokens} id='ProductDetails' className={styles.productdetails}>
-                                                    <Image {...californiaSundriedTomatoeProps} />
-                                                    <Text variant="large" block className={styles.productname}>
-                                                    California Sun-Dry Tomatoes, Sun-Dried, with Herbs
-                                                    </Text>
-                                                    <Text variant="large" block className={styles.productprice}>
-                                                    $5.99
-                                                    </Text>
-                                                    <Stack horizontal style={{alignItems: 'bottom'}}>
-                                                        <Stack horizontal>       
-                                                            <Stack>
-                                                                <label id={dropdownId}>Weight</label>
-                                                                <Dropdown
-                                                                aria-labelledby={dropdownId}
-                                                                className={styles.dropdown}
-                                                                placeholder="Select weight"
-                                                                {...props}
-                                                                >
-                                                                {options.map((option) => (
-                                                                <option key={option} value={option} disabled={option === "Ferret"}>
-                                                                    {option}
-                                                                </option>
-                                                                ))}                                                  
-                                                                </Dropdown> 
-                                                                
-                                                            </Stack>         
-                                                            <div  style={{
-                                                            display: 'flex',
-                                                            flexDirection: 'column',
-                                                            justifyContent: 'flex-end',
-                                                            height: '100%'
-                                                            }}>
-                                                            <PrimaryButton className={styles.addtocartbutton} text="Add to cart" iconProps={{ iconName: 'CustomIconName' }}></PrimaryButton>
-                                                            </div>
-                                                        </Stack>       
-                                                    </Stack>
-                                                </Stack>                                                                                              
-                                            </Stack>
-                                        </Stack>                                                                 
+                                        </Stack>                                                               
                                     </Stack>
                                 </Stack>
                             </Stack.Item>

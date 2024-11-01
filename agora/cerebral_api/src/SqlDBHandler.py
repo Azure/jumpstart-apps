@@ -5,7 +5,7 @@ import os
 
 class SqlDBHandler:
     def __init__(self):
-        load_dotenv()  # Load environment variables from .env file
+        # load_dotenv()  # Load environment variables from .env file
         self.server = os.getenv('SQL_SERVER')
         self.database = os.getenv('SQL_DATABASE')
         self.username = os.getenv('SQL_USERNAME')

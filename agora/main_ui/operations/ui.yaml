@@ -15,14 +15,12 @@ spec:
     spec:
       containers:
       - name: main-ui
-        image: agacrac434.azurecr.io/main-ui:latest
+        image: mcr.microsoft.com/jumpstart/agora/main_ui:1.0.0
         ports:
         - containerPort: 8080
         env:
         - name: REACT_APP_FOOTFALL_API
           value: "http://footfall-ai-api:5000"
-        - name: REACT_APP_INTRUSION_API
-          value: "http://shopper-insights-api:5001"
         - name: REACT_APP_CEREBRAL_API_URL
           value: "http://cerebral-api-service.contoso-hypermarket.svc.cluster.local:5003/Cerebral/api/process_question"
 

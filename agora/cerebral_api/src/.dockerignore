@@ -1,0 +1,41 @@
+# Python cache
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/*.pyd
+.Python
+*.py[cod]
+*$py.class
+
+# Cache directories
+.cache
+.pytest_cache
+.coverage
+.tox
+
+# Model directories
+cpu_and_mobile/
+
+# PDF files
+*.pdf
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Local development files
+.git
+.gitignore
+README.md

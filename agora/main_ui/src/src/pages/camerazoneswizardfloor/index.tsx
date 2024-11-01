@@ -44,6 +44,8 @@ import MaintenanceZones from '../../components/MaintenanceZones';
 import {  SearchBox, IconButton } from '@fluentui/react';
 import { useDropzone } from 'react-dropzone';
 import { useCallback } from 'react';
+import CerebralChatWithAudio from '../../components/CerebralChat';
+import WizardNavigation from '../../components/WizardNavigationStatus';
 const Main = (props: IStackProps) => (
     <Stack horizontal grow={1} disableShrink {...props} />
   );
@@ -265,11 +267,16 @@ interface CameraPanelProps {
   onSave: () => void;
 }
 const CamerasZonesWizardFloor: React.FC = () => {
-    var storeAPI = process.env.REACT_APP_STORE_API_URL;
-    var footfallAIAPI = process.env.REACT_APP_FOOTFALL_API;  
+    var storeAPI = process.env.REACT_APP_STORE_API_URL || "/store_api";
+    var footfallAIAPI = process.env.REACT_APP_FOOTFALL_API || "/footfall_api";
     const styles = useStyles();
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+    const [isCerebralDrawerOpen, setIsCerebralDrawerOpen] = useState(false);
     const [cameraNameInputValue, setCameraNameInputValue] = React.useState('');
+    const toggleCerebralDrawer = () => {
+      setIsCerebralDrawerOpen(!isCerebralDrawerOpen);
+    };  
+    
     const handleCameraNameInputChange = (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
       setCameraNameInputValue(newValue || '');
     };
@@ -332,7 +339,18 @@ const CamerasZonesWizardFloor: React.FC = () => {
         //setCameraEndpointInputValue(newValue || '');
         //setDataForVideo(footfallAIAPI + "/video_feed?data={\"x\" : 0, \"y\" : 0,\"w\" : 0, \"h\" : 0, \"debug\" : true, \"cameraName\" : \"Nabeel\", \"video_url\": \"" + option?.key +"\" }");
       };
-
+      const onRenderCerebralFooterContent = React.useCallback(
+        () => (
+          <Stack horizontal tokens={{ childrenGap: 10 }}>
+            {/* <PrimaryButton onClick={onSaveDrawer}>Save</PrimaryButton> */}
+            <DefaultButton onClick={onCancelCerebralDrawer}>Close</DefaultButton>
+          </Stack>
+        ),
+        []
+      );
+      const onCancelCerebralDrawer = () => {
+        setIsCerebralDrawerOpen(false);
+      };  
       ///TOP
       class MousePosition {
         public x: number = 0 ;
@@ -433,8 +451,22 @@ const CamerasZonesWizardFloor: React.FC = () => {
       return (
         <FluentProvider theme={webLightTheme}>
         <CopilotProvider mode='sidecar'>
-          <Header />
+          <Header callParentFunction={toggleCerebralDrawer}/>
           <Main className={styles.main}>
+          <Panel
+            isOpen={isCerebralDrawerOpen}
+            onDismiss={toggleCerebralDrawer}
+            type={PanelType.custom}
+            customWidth="30%"
+            headerText=""
+            onRenderFooterContent={onRenderCerebralFooterContent}
+            isFooterAtBottom={true}
+            hasCloseButton={true}
+            closeButtonAriaLabel="Close"
+            isLightDismiss={true}            
+            >
+              <CerebralChatWithAudio />
+          </Panel>               
           <Panel
             isOpen={isDrawerOpen}
             onDismiss={toggleDrawer}
@@ -483,18 +515,9 @@ const CamerasZonesWizardFloor: React.FC = () => {
             {/* Add the wizard status here */}
             <Stack horizontal>
             <Stack.Item>         
-            <div className={styles.container}>
-        <Card style={{backgroundColor: tokens.colorTransparentBackground}}>
-          <div className={styles.progressIndicator}>
-            {steps.map((step, index) => (
-              <div key={step} className={styles.progressStep}>
-                <div className={`${styles.progressDot} ${index === activeStep ? styles.activeDot : ''}`} />
-                <Text>{step}</Text>
-              </div>
-            ))}
-          </div>
-        </Card>
-      </div>            
+            <WizardNavigation 
+              activeIndex = {2}
+              />         
           </Stack.Item>
           <Stack.Item grow={3}>
             <Stack>

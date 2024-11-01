@@ -38,7 +38,7 @@ import {
 import SideMenu from '../../components/ShopperFilterbox';
 import { registerIcons } from '@fluentui/react/lib/Styling';
 import { MoreHorizontal20Regular } from "@fluentui/react-icons";
-
+import CerebralChatWithAudio from '../../components/CerebralChat';
 const resolveAsset = (asset: string) => {
   const ASSET_URL =
     "https://raw.githubusercontent.com/microsoft/fluentui/master/packages/react-components/react-card/stories/src/assets/";
@@ -530,11 +530,45 @@ const useStyles = makeStyles({
         "2 lb"
       ];      
         const styles = useStyles();
+        const [isCerebralDrawerOpen, setIsCerebralDrawerOpen] = useState(false);
+        const toggleCerebralDrawer = () => {
+          setIsCerebralDrawerOpen(!isCerebralDrawerOpen);
+        }; 
+        const onRenderCerebralFooterContent = React.useCallback(
+          () => (
+            <Stack horizontal tokens={{ childrenGap: 10 }}>
+              {/* <PrimaryButton onClick={onSaveDrawer}>Save</PrimaryButton> */}
+              <DefaultButton onClick={onCancelCerebralDrawer}>Close</DefaultButton>
+            </Stack>
+          ),
+          []
+        );
+        const onCancelCerebralDrawer = () => {
+          setIsCerebralDrawerOpen(false);
+        };   
+      
           return (
               <FluentProvider theme={webLightTheme}>
                 <CopilotProvider mode='sidecar'>
                     <Stack>
-                        <Header callParentFunction={toggleDrawer}/>
+                    <Header 
+                          callParentFunction={toggleDrawer}
+                          callCerebralParentFunction={toggleCerebralDrawer} 
+                        />
+                        <Panel
+            isOpen={isCerebralDrawerOpen}
+            onDismiss={toggleCerebralDrawer}
+            type={PanelType.custom}
+            customWidth="30%"
+            headerText=""
+            onRenderFooterContent={onRenderCerebralFooterContent}
+            isFooterAtBottom={true}
+            hasCloseButton={true}
+            closeButtonAriaLabel="Close"
+            isLightDismiss={true}            
+            >
+              <CerebralChatWithAudio />
+          </Panel>                          
                         <TopNav />
                         <Stack id='body' style={{marginLeft: '90px'}}>
                             <Breadcrumb className={styles.breadcrumb}>
