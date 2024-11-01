@@ -121,13 +121,14 @@ class StoreSimulator:
             "event_data": json.loads(simulation_data)
             })
 
-            self.mqtt_client.publish(f"{topic}", staging_event)
+            mqtt_topic = "topic/commercial"
+            self.mqtt_client.publish(f"{mqtt_topic}", staging_event)
 
             if os.getenv("VERBOSE", "False").lower() == "true":
-                self.logger.info(f"Data for {topic} published to MQTT: {staging_event}")
+                self.logger.info(f"Data for {mqtt_topic} published to MQTT: {staging_event}")
 
         except Exception as e:
-            self.logger.error(f"Error publishing data to MQTT for {topic}: {str(e)}")
+            self.logger.error(f"Error publishing data to MQTT for {mqtt_topic}: {str(e)}")
 
     def generate_inventory_data(self, current_time, destination="EventHub"):
         for store in self.store_details:
@@ -191,7 +192,7 @@ class StoreSimulator:
 
             for product_index in product_indexes:
                 product = self.products_list[product_index]
-                quantity_sold = random.randint(1, 100)
+                quantity_sold = random.randint(1, 10)
 
                 # Update inventory with sold quantity
                 product_inventory = self.current_inventory[
