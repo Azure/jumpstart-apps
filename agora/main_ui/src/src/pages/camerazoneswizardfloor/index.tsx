@@ -416,7 +416,7 @@ const CamerasZonesWizardFloor: React.FC = () => {
         var txtFloorZoneY2 = document.getElementById('txtFloorZoneY2')?.getAttribute('value');   
         var txtselectedCamera = document.getElementById('txtCameraStorage')?.getAttribute('value');  
         var txtZoneLabel = document.getElementById('txtZoneLabel')?.getAttribute('value'); 
-        navigate("/camerazoneswizardsetupcamera?zoneLabel=" + txtZoneLabel + "&floorZoneX1=" + txtFloorZoneX1 + "&floorZoneY1=" + txtFloorZoneY1 + "&floorZoneX2=" + txtFloorZoneX2 + "&floorZoneY2=" + txtFloorZoneY2 + "&selectedCamera=" + txtselectedCamera + "&zoneLabel=" + txtZoneLabel + "");
+        navigate("/camerazoneswizardsetupcamera?zoneLabel=" + txtZoneLabel + "&floorZoneX1=" + txtFloorZoneX1 + "&floorZoneY1=" + txtFloorZoneY1 + "&floorZoneX2=" + txtFloorZoneX2 + "&floorZoneY2=" + txtFloorZoneY2 + "&selectedCamera=" + txtselectedCamera + "");
       }
       const onRenderFooterContent = React.useCallback(
         () => (
