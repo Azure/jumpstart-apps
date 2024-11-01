@@ -7,3 +7,4 @@ paho-mqtt
 azure-eventhub
 python-dotenv
 flasgger
+pyodbc
