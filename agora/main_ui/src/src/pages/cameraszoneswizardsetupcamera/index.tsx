@@ -407,7 +407,7 @@ const CamerasZonesWizardSetupCamera = () => {
         const selectedCameraParameter = urlParams.get('selectedCamera');
 
         //Local variables
-        navigate("/camerazoneswizardreview?zoneLabel=" + zoneLabelParameter + "selectedCameraForSetup=" + selectedCamera + "&threshold=" + sliderValue + "&floorZoneX1=" + floorZoneX1Parameter + "&floorZoneY1=" + floorZoneY1Parameter + "&floorZoneX2=" + floorZoneX2Parameter + "&floorZoneY2=" + floorZoneY2Parameter + "&CameraSetupX1=" + txtCameraSetupX1 + "&CameraSetupY1=" + txtCameraSetupY1 + "&CameraSetupX2=" + txtCameraSetupX2 + "&CameraSetupY2=" + txtCameraSetupY2 + "&selectedCamera=" + selectedCameraParameter + "");
+        navigate("/camerazoneswizardreview?zoneLabel=" + zoneLabelParameter + "&selectedCameraForSetup=" + selectedCamera + "&threshold=" + sliderValue + "&floorZoneX1=" + floorZoneX1Parameter + "&floorZoneY1=" + floorZoneY1Parameter + "&floorZoneX2=" + floorZoneX2Parameter + "&floorZoneY2=" + floorZoneY2Parameter + "&CameraSetupX1=" + txtCameraSetupX1 + "&CameraSetupY1=" + txtCameraSetupY1 + "&CameraSetupX2=" + txtCameraSetupX2 + "&CameraSetupY2=" + txtCameraSetupY2 + "&selectedCamera=" + selectedCameraParameter + "");
 
     }
       ///TOP

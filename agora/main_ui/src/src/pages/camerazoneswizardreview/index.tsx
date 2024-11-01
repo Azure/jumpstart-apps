@@ -374,6 +374,21 @@ const CamerasZonesWizardReview = () => {
       const onCancelCerebralDrawer = () => {
         setIsCerebralDrawerOpen(false);
       };       
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const zoneLabelParameter = urlParams.get('zoneLabel');
+      const floorZoneX1Parameter = urlParams.get('floorZoneX1');
+      const floorZoneY1Parameter = urlParams.get('floorZoneY1');
+      const floorZoneX2Parameter = urlParams.get('floorZoneX2');
+      const floorZoneY2Parameter = urlParams.get('floorZoneY2');
+      const selectedCameraForSetupParameter = urlParams.get('selectedCameraForSetup');
+      const thresholdParameter = urlParams.get('threshold');
+      const CameraSetupX1Parameter = urlParams.get('CameraSetupX1');
+      const CameraSetupY1Parameter = urlParams.get('CameraSetupY1');
+      const CameraSetupX2Parameter = urlParams.get('CameraSetupX2');
+      const CameraSetupY2Parameter = urlParams.get('CameraSetupY2');
+      const selectedCameraParameter = urlParams.get('selectedCamera');
+      
     return (
         <FluentProvider theme={webLightTheme}>
         <CopilotProvider mode='sidecar'>
@@ -430,10 +445,10 @@ const CamerasZonesWizardReview = () => {
                           <Stack>
                             <Stack horizontal className={styles.reviewitem}>
                               <Text className={styles.reviewitemname}> Zone 1</Text>
-                              <Text className={styles.reviewitemvalue}> Produce</Text>
+                              <Text className={styles.reviewitemvalue}> {zoneLabelParameter}</Text>
                             </Stack>
                           </Stack>
-                          <Stack>
+                          {/* <Stack>
                             <Stack horizontal className={styles.reviewitem}>
                               <Text className={styles.reviewitemname}> Zone 2</Text>
                               <Text className={styles.reviewitemvalue}> Seafood</Text>
@@ -456,7 +471,7 @@ const CamerasZonesWizardReview = () => {
                               <Text className={styles.reviewitemname}> Zone 5</Text>
                               <Text className={styles.reviewitemvalue}> Enterance</Text>
                             </Stack>
-                          </Stack>                                                                                                                               
+                          </Stack>                                                                                                                                */}
                         </Stack.Item>
                       </Stack>
                       <Stack id='cameras'>
@@ -465,21 +480,21 @@ const CamerasZonesWizardReview = () => {
                           <Stack>
                             <Stack horizontal className={styles.reviewitem}>
                               <Text className={styles.reviewitemname}> Camera 1</Text>
-                              <Text className={styles.reviewitemvalue}> Cam-001-north-enterance</Text>
+                              <Text className={styles.reviewitemvalue}> {selectedCameraParameter}</Text>
                             </Stack>
                           </Stack>                          
                           <Stack>
                             <Stack horizontal className={styles.reviewitem}>
                               <Text className={styles.reviewitemname}> Camera 2</Text>
-                              <Text className={styles.reviewitemvalue}> Cam-002-north-enterance</Text>
+                              <Text className={styles.reviewitemvalue}> {selectedCameraForSetupParameter}</Text>
                             </Stack>
                           </Stack>
-                          <Stack>
+                          {/* <Stack>
                             <Stack horizontal className={styles.reviewitem}>
                               <Text className={styles.reviewitemname}> Camera 3</Text>
                               <Text className={styles.reviewitemvalue}> Cam-003-north-enterance</Text>
                             </Stack>
-                          </Stack>                                                                              
+                          </Stack>                                                                               */}
                         </Stack.Item>
                       </Stack>                      
                       {/* Footer */}
