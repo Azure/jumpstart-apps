@@ -1,6 +1,6 @@
 apiVersion: v2
-name: contoso-hypermarket
-description: A Helm chart to deploy the components for the Contoso Hypermarket scenario
+name: shopper-insights
+description: A Helm chart for shopper-insights
 
 # A chart can be either an 'application' or a 'library' chart.
 #
@@ -22,26 +22,3 @@ version: 0.1.0
 # follow Semantic Versioning. They should reflect the version the application is using.
 # It is recommended to use it with quotes.
 appVersion: "1.16.0"
-
-dependencies:
-  - name: agora-ui
-    version: 0.1.0
-    repository: "file://../agora-ui"
-  - name: rtsp
-    version: 0.1.0
-    repository: "file://../rtsp"
-  - name: main-ui-backend-api
-    version: 0.1.0
-    repository: "file://../main-ui-backend-api"
-  - name: main-ui-backend-db
-    version: 0.1.0
-    repository: "file://../main-ui-backend-db"
-  - name: footfall-ai-api
-    version: 0.1.0
-    repository: "file://../footfall-ai-api"
-  - name: cerebral-api
-    version: 0.1.0
-    repository: "file://../cerebral-api"
-  - name: influxdb
-    version: 0.1.0
-    repository: "file://../influxdb"
