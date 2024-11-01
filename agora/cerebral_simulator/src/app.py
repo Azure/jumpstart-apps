@@ -37,6 +37,14 @@ MQTT_BROKER = os.getenv("MQTT_BROKER", "localhost")
 MQTT_PORT = int(os.getenv("MQTT_PORT", 1883))
 MQTT_TOPIC = os.getenv("MQTT_TOPIC", "iot/devices")
 
+ENABLE_MQTT = os.getenv("ENABLE_MQTT", "True").lower() == "true"
+ENABLE_INFLUXDB = os.getenv("ENABLE_INFLUXDB", "True").lower() == "true"
+ENABLE_HISTORICAL = os.getenv("ENABLE_HISTORICAL", "True").lower() == "true"
+ENABLE_PROMETHEUS = os.getenv("ENABLE_PROMETHEUS", "True").lower() == "true"
+ENABLE_API = os.getenv("ENABLE_API", "True").lower() == "true"
+ENABLE_STORE_SIMULATOR = os.getenv("ENABLE_STORE_SIMULATOR", "True").lower() == "true"
+
+
 # Device Simulation Settings
 DEVICE_COUNTS = {
     "Refrigerator": int(os.getenv("REFRIGERATOR_COUNT", 2)),
@@ -194,6 +202,9 @@ def generate_equipment_data(equipment_type, device_id, pk):
     return data
 
 def write_data_to_influxdb(equipment_type, device_id, measurement_name, timestamp, data):
+    if not ENABLE_INFLUXDB:
+        return
+    
     try:
         point = Point(measurement_name).time(timestamp, WritePrecision.NS)
         for key, value in data.items():
@@ -215,6 +226,8 @@ def write_data_to_influxdb(equipment_type, device_id, measurement_name, timestam
         logger.error(f"Error writing data to InfluxDB for {device_id}: {str(e)}")
 
 def publish_data_to_mqtt(equipment_type, device_id, timestamp, data):
+    if not ENABLE_MQTT:
+        return
     try:
         mqtt_payload = json.dumps({
             "timestamp": timestamp,
@@ -240,6 +253,8 @@ def update_system_metrics():
             time.sleep(5)
 
 def update_prometheus_metrics(equipment_type, device_id, data):
+    if not ENABLE_PROMETHEUS:
+        return
     try:
         # Update in-memory metrics first
         update_device_metrics(equipment_type, device_id, data)
@@ -301,16 +316,20 @@ def simulate_device(pk, equipment_type, device_id):
             measurement_name = f"{device_id}_{equipment_type.lower()}_data"
             
             # Write to InfluxDB
-            write_data_to_influxdb(equipment_type, device_id, measurement_name, timestamp, data)
+            if ENABLE_INFLUXDB:
+                write_data_to_influxdb(equipment_type, device_id, measurement_name, timestamp, data)
             
             # Publish to MQTT
-            publish_data_to_mqtt(equipment_type, device_id, timestamp, data)
+            if ENABLE_MQTT:
+                publish_data_to_mqtt(equipment_type, device_id, timestamp, data)
 
             # Update Prometheus metrics
-            update_prometheus_metrics(equipment_type, device_id, data)
+            if ENABLE_PROMETHEUS:
+                update_prometheus_metrics(equipment_type, device_id, data)
 
             # Update backend API
-            update_backend_api(equipment_type, pk, data)
+            if ENABLE_API:
+                update_backend_api(equipment_type, pk, data)
 
             # Increment the data points counter
             increment_data_points(equipment_type, device_id)
@@ -480,23 +499,27 @@ if __name__ == "__main__":
     from threading import Thread
     
     # Start Flask app with Swagger UI
-    Thread(target=lambda: app.run(host="0.0.0.0", port=PORT, use_reloader=False)).start()
-    logger.info(f"API documentation available at http://localhost:{PORT}/apidocs")
+    if ENABLE_API:
+        Thread(target=lambda: app.run(host="0.0.0.0", port=PORT, use_reloader=False)).start()
+        logger.info(f"API documentation available at http://localhost:{PORT}/apidocs")
     
     # Start system metrics update in a separate thread
-    Thread(target=update_system_metrics, daemon=True).start()
-    logger.info("System metrics update thread started")
+    if ENABLE_PROMETHEUS:
+        Thread(target=update_system_metrics, daemon=True).start()
+        logger.info("System metrics update thread started")
 
     # Start store simulator in a separate thread
-    store_simulator_thread = Thread(target=run_store_simulator, daemon=True)
-    store_simulator_thread.start()
-    logger.info("Store simulator started")
+    if ENABLE_STORE_SIMULATOR:
+        store_simulator_thread = Thread(target=run_store_simulator, daemon=True)
+        store_simulator_thread.start()
+        logger.info("Store simulator started")
 
-    try:
-        mqtt_client.connect(MQTT_BROKER, MQTT_PORT)
-        mqtt_client.loop_start()
-    except Exception as e:
-        logger.error(f"An unexpected error occurred: {str(e)}")
+    if ENABLE_MQTT:
+        try:
+            mqtt_client.connect(MQTT_BROKER, MQTT_PORT)
+            mqtt_client.loop_start()
+        except Exception as e:
+            logger.error(f"An unexpected error occurred: {str(e)}")
 
     # Create a list of all devices to simulate
     devices_to_simulate = []
