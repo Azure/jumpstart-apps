@@ -32,22 +32,31 @@ mqtt_client = mqtt.Client()
 
 async def generate_cameras_data():
     try:
-        # Call external API and get results
-        message = await fetch_external_api()
-        if message:
-            mqtt_client.publish(MQTT_TOPIC, payload=json.dumps(message), qos=0, retain=False)
+        # Call footfall API and publish results
+        msg_footfall = await fetch_external_api(FOOTFALL_API)
+        MQTT_TOPIC = "Store/Cameras/Footfall"
+        if msg_footfall:
+            print(f"Footfall: {msg_footfall}")
+            mqtt_client.publish(MQTT_TOPIC, payload=json.dumps(msg_footfall), qos=0, retain=False)
+
+        # Call footfall API and publish results
+        msg_si = await fetch_external_api(SI_API)
+        MQTT_TOPIC = "Store/Cameras/ShopperInsights"
+        if msg_si:
+            print(f"Shopper Insights: {msg_si}")
+            mqtt_client.publish(MQTT_TOPIC, payload=json.dumps(msg_si), qos=0, retain=False)
     except Exception as e:
         print(f"Error in generate_cameras_data: {e}")
 
-async def fetch_external_api():
+async def fetch_external_api(API):
     async with aiohttp.ClientSession() as session:
-        async with session.get(FOOTFALL_API) as response:
+        async with session.get(API) as response:
             return await response.json()
 
 async def footfall_task():
     while True:
         await generate_cameras_data()
-        await asyncio.sleep(20)
+        await asyncio.sleep(10)
 
 @app.on_event("startup")
 async def startup_event():
