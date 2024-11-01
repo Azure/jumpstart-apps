@@ -190,3 +190,9 @@ agora/cerebral_rag/src/cpu_and_mobile/cpu-int4-rtn-block-32-acc-level-4/*.onnx
 .cache
 __pycache__
 *.pdf
+
+agora/cerebral_api/src/websocket-client/node_modules
+agora/cerebral_api/src/cpu_and_mobile
+agora/cerebral_api/src/__pycache__
+agora/cerebral_api/src/.cache
+
