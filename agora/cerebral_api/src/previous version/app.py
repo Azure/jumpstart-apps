@@ -1,45 +1,19 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify
 from flask_restx import Api, Resource, Namespace, fields
-from flask_socketio import SocketIO, emit
 from werkzeug.exceptions import BadRequest
-from flask_cors import CORS
 import random
-import logging
-import threading
-import os
-from datetime import datetime
-import azure.cognitiveservices.speech as speechsdk
-
-# Import custom modules
+from flask_cors import CORS
 from llm import LLM
 from InfluxDBHandler import InfluxDBHandler
+import logging
 from SqlDBHandler import SqlDBHandler
+from datetime import datetime
+import os
 from SpeechToText import STT
-from indexer import DocumentIndexer
-import onnxruntime_genai as og
+import azure.cognitiveservices.speech as speechsdk 
 
-USE_LOCAL_LLM = os.getenv('USE_LOCAL_LLM', 'false').lower() == 'true'
-MODEL_PATH = os.getenv('MODEL_PATH', './cpu_and_mobile/cpu-int4-rtn-block-32-acc-level-4')
-
-# Configure logging
-logging.basicConfig(level=logging.INFO,
-                   format='%(asctime)s - %(levelname)s - %(message)s')
-
-# Initialize Flask and SocketIO
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your-secret-key'
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 
-# Initialize REST API
-api = Api(app, version='1.0', title='Cerebral API',
-          description='Manage industries and roles in the Cerebral application.')
-
-ns = api.namespace('Cerebral', description='Cerebral Operations')
-
-# Enable CORS
-CORS(app, resources={r"/*": {"origins": "*", "methods": ["GET", "POST", "PUT"]}})
-
-# Initialize handlers
 llm = LLM()
 influx_handler = InfluxDBHandler()
 sql_handler = SqlDBHandler()
@@ -47,243 +21,21 @@ stt = STT()
 
 logger = logging.getLogger(__name__)
 
-# RAG Assistant Class
-class RAGAssistant:
-    def __init__(self, model_path: str):
-        """Initialize RAG components: document indexer and language model."""
-        self.model_path = model_path
-        if not os.path.exists(self.model_path):
-            raise ValueError(f"Model path does not exist: {self.model_path}")
+api = Api(app, version='1.0', title='Cerebral API',
+          description='Manage industries and roles in the Cerebral application.')
 
-        # Initialize document indexer
-        self.indexer = DocumentIndexer()
-        
-        # Initialize language model and tokenizer
-        self.model = og.Model(self.model_path)
-        self.tokenizer = og.Tokenizer(self.model)
-        self.tokenizer_stream = self.tokenizer.create_stream()
+ns = api.namespace('Cerebral', description='Cerebral Operations')
 
-        self.search_options = {
-            'max_length': 2048,
-            'temperature': 0.7,
-            'top_p': 0.9,
-            'top_k': 50,
-            'do_sample': True,
-            'repetition_penalty': 1.1,
-            'min_length': 1
-        }
+CORS(app, resources={r"/*": {"origins": "*", "methods": ["GET", "POST", "PUT"]}})
 
-        self.rag_template = """<|user|>
-        Context information:
-        {context}
-
-        Using the context information above, please answer the following question:
-        {question}
-        <|end|>
-        <|assistant|>"""
-
-    def _retrieve_context(self, query: str, n_results: int = 3) -> str:
-        """Retrieve relevant context from the document store."""
-        try:
-            results = self.indexer.search_documents(query, n_results=n_results)
-            if not results or not results.get('documents'):
-                return "No relevant context found."
-            
-            contexts = []
-            for doc, metadata in zip(results['documents'][0], results['metadatas'][0]):
-                source = metadata.get('source', 'Unknown source')
-                contexts.append(f"From {source}:\n{doc}")
-            
-            return "\n\n".join(contexts)
-        except Exception as e:
-            logging.error(f"Error retrieving context: {str(e)}")
-            return "Error retrieving context information."
-
-    def generate_response(self, question: str, industry: str, role: str, sid: str = None) -> str:
-        """
-        Generate a response using RAG with optional Socket.IO streaming.
-        Returns the complete response if sid is None, otherwise streams via websocket.
-        """
-        try:
-            context = self._retrieve_context(question)
-            if sid:
-                socketio.emit('context', {'context': context}, room=sid)
-
-            prompt = self.rag_template.format(
-                context=context,
-                question=question
-            )
-
-            input_tokens = self.tokenizer.encode(prompt)
-            params = og.GeneratorParams(self.model)
-            params.set_search_options(**self.search_options)
-            params.input_ids = input_tokens
-            generator = og.Generator(self.model, params)
-
-            generated_text = ""
-            while not generator.is_done():
-                generator.compute_logits()
-                generator.generate_next_token()
-                
-                new_token = generator.get_next_tokens()[0]
-                token_text = self.tokenizer_stream.decode(new_token)
-                generated_text += token_text
-                
-                if sid:
-                    socketio.emit('token', {'token': token_text}, room=sid)
-                    socketio.sleep(0)
-
-            if sid:
-                socketio.emit('complete', room=sid)
-            
-            del generator
-            return generated_text
-
-        except Exception as e:
-            error_msg = f"Error generating response: {str(e)}"
-            logging.error(error_msg)
-            if sid:
-                socketio.emit('error', {'error': error_msg}, room=sid)
-            return error_msg
-        
-    def generate_response_general(self, question: str, sid: str) -> None:
-        """Generate a response using RAG with Socket.IO streaming."""
-        try:
-            context = self._retrieve_context(question)
-            socketio.emit('context', {'context': context}, room=sid)
-
-            prompt = self.rag_template.format(
-                context=context,
-                question=question
-            )
-
-            input_tokens = self.tokenizer.encode(prompt)
-            params = og.GeneratorParams(self.model)
-            params.set_search_options(**self.search_options)
-            params.input_ids = input_tokens
-            generator = og.Generator(self.model, params)
-
-            generated_text = ""
-            while not generator.is_done():
-                generator.compute_logits()
-                generator.generate_next_token()
-                
-                new_token = generator.get_next_tokens()[0]
-                token_text = self.tokenizer_stream.decode(new_token)
-                generated_text += token_text
-                
-                socketio.emit('token', {'token': token_text}, room=sid)
-                socketio.sleep(0)
-
-            socketio.emit('complete', room=sid)
-            del generator
-
-        except Exception as e:
-            logging.error(f"Error generating response: {str(e)}")
-            socketio.emit('error', {'error': str(e)}, room=sid)
-
-# Global RAG assistant instance
-rag_assistant = RAGAssistant(MODEL_PATH) if USE_LOCAL_LLM else None
-
-# Sample data
+# Sample data for demonstration purposes
 industries = [
-    {
-        "manufacturing": ["maintenance engineer", "shift supervisor"],
-        "retail": ["store manager", "buyer"],
-        "hypermarket": ["store manager", "shopper", "maintenance worker"]
-    }
-]
-
-# WebSocket routes
-@socketio.on('connect')
-def handle_connect():
-    """Handle WebSocket connection"""
-    logging.info("Client connected")
-    emit('connected', {'status': 'connected'})
-
-@socketio.on('disconnect')
-def handle_disconnect():
-    """Handle WebSocket disconnection"""
-    logging.info("Client disconnected")
-
-@socketio.on('question')
-def handle_question(data):
-    """Handle incoming questions via WebSocket"""
-    question = data.get('question', '').strip()
-    if not question:
-        emit('error', {'error': 'Question cannot be empty'})
-        return
-
-    logging.info(f"Received question: {question}")
-    sid = request.sid
-    
-    thread = threading.Thread(
-        target=rag_assistant.generate_response,
-        args=(question, sid)
-    )
-    thread.daemon = True
-    thread.start()
-
-# WebSocket process_question handler
-@socketio.on('process_question')
-def handle_process_question(data):
-    """Handle process_question via WebSocket with streaming response"""
-    try:
-        question = data.get('question')
-        industry = data.get('industry')
-        role = data.get('role')
-        
-        if not all([question, industry, role]):
-            emit('error', {'error': 'Question, industry, and role parameters are required'})
-            return
-        
-        # Step 1: Classify the question
-        category = llm.classify_question(question, industry, role)
-        emit('classification', {'category': category})
-        
-        if category == 'documentation':
-            if USE_LOCAL_LLM:
-                # Use local RAG Assistant
-                thread = threading.Thread(
-                    target=rag_assistant.generate_response,
-                    args=(question, industry, role, request.sid)
-                )
-                thread.daemon = True
-                thread.start()
-            else:
-                # Use remote LLM
-                response = llm.chat_llm(question, industry, role)
-                emit('result', {'result': response})
-                emit('complete')
-        else:
-            # Handle data or relational queries as before
-            if category == 'data':
-                influx_query = llm.convert_question_query_influx(question, industry, role)
-                emit('query', {'query': influx_query})
-                query_result = influx_handler.execute_query_and_return_data(influx_query)
-                emit('result', {'result': query_result})
-                recommendations = llm.generate_recommendations(question, influx_query, query_result, industry, role)
-                emit('recommendations', {'recommendations': recommendations})
-            
-            elif category == 'relational':
-                sql_query = llm.convert_question_query_sql(question, industry, role)
-                emit('query', {'query': sql_query})
-                query_result = sql_handler.test_data(sql_query)
-                emit('result', {'result': query_result})
-                recommendations = llm.generate_recommendations(question, sql_query, query_result, industry, role)
-                emit('recommendations', {'recommendations': recommendations})
-            
-            emit('complete')
-        
-    except Exception as e:
-        logging.error(f"Error in process_question: {str(e)}")
-        emit('error', {'error': str(e)})
-
-# REST API routes
-@app.route('/')
-def index():
-    """Serve the main page"""
-    return render_template('index.html')
+        {
+            "manufacturing": ["maintenance engineer", "shift supervisor"],
+            "retail": ["store manager", "buyer"],
+            "hypermarket": ["store manager", "shopper", "maintenance worker"]
+        }
+    ]
 
 @ns.route('/api/get_industries' , methods=['GET'])
 class Industries(Resource):
@@ -612,13 +364,10 @@ integrated_query_model = ns.model('IntegratedQuery', {
 @ns.route('/api/process_question')
 class ProcessQuestion(Resource):
     @api.doc(responses={200: 'Success', 400: 'Missing required parameters', 500: 'Server error'})
-    @api.expect(api.model('IntegratedQuery', {
-        'question': fields.String(required=True, description='The question to process'),
-        'industry': fields.String(required=True, description='The industry context'),
-        'role': fields.String(required=True, description='The role context')
-    }))
+    @api.expect(integrated_query_model)
     def post(self):
         """Process question based on classification and generate appropriate response"""
+        print("****Process question based on classification and generate appropriate response***\n")
         if request.content_type != 'application/json':
             raise BadRequest('Content-Type must be application/json')
         
@@ -628,33 +377,21 @@ class ProcessQuestion(Resource):
             industry = data.get('industry')
             role = data.get('role')
             
-            if not all([question, industry, role]):
+            if not question or not industry or not role:
                 return jsonify({'error': 'Question, industry, and role parameters are required'}), 400
             
             # Step 1: Classify the question
             category = llm.classify_question(question, industry, role)
+            print("Step 1: Classify the question :" + category + "\n")
             
-            if category == 'documentation':
-                if USE_LOCAL_LLM:
-                    # Use local RAG Assistant
-                    response = rag_assistant.generate_response(question, industry, role)
-                    return jsonify({
-                        'question': question,
-                        'category': category,
-                        'response': response
-                    })
-                else:
-                    # Use remote LLM
-                    response = llm.chat_llm(question, industry, role)
-                    return jsonify({
-                        'question': question,
-                        'category': category,
-                        'response': response
-                    })
-            
-            elif category == 'data':
+            if category == 'data':
+                # Step 2a: Handle data query (InfluxDB)
                 influx_query = llm.convert_question_query_influx(question, industry, role)
+                print("Step 2a: Handle data query (InfluxDB)" + influx_query + "\n")
+
                 query_result = influx_handler.execute_query_and_return_data(influx_query)
+                print("Step 2a: execute_query_and_return_data (InfluxDB)" + query_result + "\n")
+
                 recommendations = llm.generate_recommendations(question, influx_query, query_result, industry, role)
                 
                 return jsonify({
@@ -666,8 +403,10 @@ class ProcessQuestion(Resource):
                 })
                 
             elif category == 'relational':
+                # Step 2b: Handle relational query (SQL)
+                print("Step 2b: Handle relational query (SQL)\n")
                 sql_query = llm.convert_question_query_sql(question, industry, role)
-                query_result = sql_handler.test_data(sql_query)
+                query_result = sql_handler.test_data(sql_query) 
                 recommendations = llm.generate_recommendations(question, sql_query, query_result, industry, role)
                 
                 return jsonify({
@@ -677,13 +416,24 @@ class ProcessQuestion(Resource):
                     'query_result': query_result,
                     'recommendations': recommendations
                 })
+                
+            elif category == 'documentation':
+                # Step 2c: Handle documentation query
+                response = llm.chat_llm(question, industry, role)  # You need to implement this method in your LLM class
+                
+                return jsonify({
+                    'question': question,
+                    'category': category,
+                    'recommendations': response
+                })
             
             else:
                 return jsonify({'error': 'Unknown question category'}), 400
             
         except Exception as e:
-            logging.error(f"Error in process_question route: {str(e)}")
+            print(f"Error in process_question route: {str(e)}")
             return jsonify({'error': 'An unexpected error occurred'}), 500
+
 
 @ns.route('/api/stt', methods=['POST'])
 class SttDecode(Resource):
@@ -743,31 +493,5 @@ class SttDecode(Resource):
             if audio_file_path and os.path.exists(audio_file_path):
                 os.remove(audio_file_path)
 
-def main():
-    """Initialize and run the application"""
-    try:
-        global rag_assistant
-        #model_path = os.getenv('MODEL_PATH', 'cpu_and_mobile/cpu-int4-rtn-block-32-acc-level-4')  # Set your default model path
-        #rag_assistant = RAGAssistant(MODEL_PATH)
-        logging.info("RAG Assistant initialized successfully")
-        
-        port = int(os.getenv('PORT', 5000))
-        debug = os.getenv('DEBUG', 'False').lower() == 'true'
-        
-        logging.info(f"Starting server with USE_LOCAL_LLM={USE_LOCAL_LLM}")
-        if USE_LOCAL_LLM:
-            logging.info(f"Using local LLM with model path: {MODEL_PATH}")
-        
-        
-        socketio.run(app, 
-                    host='0.0.0.0',
-                    port=port,
-                    debug=debug,
-                    allow_unsafe_werkzeug=True)
-
-    except Exception as e:
-        logging.error(f"Application error: {str(e)}")
-        raise
-
 if __name__ == '__main__':
-    main()
+    app.run(debug=True, host='0.0.0.0', port=5004)

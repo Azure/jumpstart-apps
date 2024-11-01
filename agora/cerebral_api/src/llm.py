@@ -61,7 +61,10 @@ class LLM:
                 presence_penalty=0,
                 stop=["\n"]
             )
-            return response.choices[0].text.strip()
+            raw_response = response.choices[0].text.strip()
+            cleaned_response = raw_response.replace('<|im_end|>', '').strip().lower()
+
+            return cleaned_response
         except Exception as e:
             print(f"Error in classify_question: {str(e)}")
             return "unknown"
