@@ -389,6 +389,50 @@ const CamerasZonesWizardReview = () => {
       const CameraSetupY2Parameter = urlParams.get('CameraSetupY2');
       const selectedCameraParameter = urlParams.get('selectedCamera');
       
+      const saveDataAndNavigate   = () => {
+        var storeAPI = process.env.REACT_APP_STORE_API_URL || "/store_api";
+        
+        // Send data to the backend via POST - Create Zone
+        fetch(storeAPI + '/zones', {
+          method: 'POST',
+          headers: {
+            'accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          // body: '{\n  "name": "Camera3",\n  "description": "Camera3",\n  "rtspuri": "rtsp://rtsp_stream_container:8554/stream"\n}',
+          body: JSON.stringify({
+            "name": zoneLabelParameter,
+            "description": "",
+            "x1": Number(floorZoneX1Parameter),
+            "y1": Number(floorZoneY1Parameter),
+            "x2": Number(floorZoneX2Parameter),
+            "y2": Number(floorZoneY2Parameter)
+          })
+        });
+
+        // Send data to the backend via POST - Create Zone
+        fetch(storeAPI + '/regions', {
+          method: 'POST',
+          headers: {
+            'accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          // body: '{\n  "name": "Camera3",\n  "description": "Camera3",\n  "rtspuri": "rtsp://rtsp_stream_container:8554/stream"\n}',
+          body: JSON.stringify({
+            "name": zoneLabelParameter,
+            "description": "",
+            "camera_id": 1,
+            "x1": Number(CameraSetupX1Parameter),
+            "y1": Number(CameraSetupY1Parameter),
+            "x2": Number(CameraSetupX2Parameter),
+            "y2": Number(selectedCameraParameter),
+            "threshold": Number(thresholdParameter)
+          })
+        });
+
+        navigate("/cameraszones");
+
+      }
     return (
         <FluentProvider theme={webLightTheme}>
         <CopilotProvider mode='sidecar'>
@@ -512,7 +556,7 @@ const CamerasZonesWizardReview = () => {
           <div className={styles.footer}>
             <Stack horizontal>
             <Button appearance="secondary" className={styles.footerpreviousbutton}onClick={() => navigate("/camerazoneswizardsetupcamera")}>Previous</Button>
-            <Button appearance="primary" className={styles.footernextbutton} onClick={() => alert('save')}>Save</Button>
+            <Button appearance="primary" className={styles.footernextbutton} onClick={() => saveDataAndNavigate()}>Save</Button>
           </Stack>
           </div>
           </Stack.Item>
