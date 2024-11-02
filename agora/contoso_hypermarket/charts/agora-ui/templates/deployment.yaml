@@ -12,6 +12,10 @@ spec:
       labels:
         app: main-ui
     spec:
+      initContainers:
+      - name: init-backend-api-check
+        image: mcr.microsoft.com/azurelinux/busybox:1.36
+        command: ['sh', '-c', 'until nc -z -v -w30 backend-api.contoso-hypermarket.svc.cluster.local 5002 && nc -z -v -w30 footfall-ai-api.contoso-hypermarket.svc.cluster.local 5000; do echo "Waiting for the backend-api and footfall-ai-api to start" && sleep 5; done']
       containers:
       - name: main-ui
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -19,9 +23,7 @@ spec:
         - containerPort: 8080
         env:
         - name: REACT_APP_FOOTFALL_API
-          value: "http://footfall-ai-api:5000"
-        - name: REACT_APP_INTRUSION_API
-          value: "http://shopper-experience-api:5001"
+          value: "http://footfall-ai-api.contoso-hypermarket.svc.cluster.local:5000"
         - name: REACT_APP_CEREBRAL_API_URL
           value: "http://cerebral-api-service.contoso-hypermarket.svc.cluster.local:5003/Cerebral/api/process_question"
         - name: REACT_APP_STORE_API_URL

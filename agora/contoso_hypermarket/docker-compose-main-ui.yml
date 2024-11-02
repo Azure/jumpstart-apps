@@ -7,6 +7,7 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - REACT_APP_FOOTFALL_API=http://footfall_ai_api_container:5000
-      - REACT_APP_INTRUSION_API=http://shopper_insights_api:5001
+      - REACT_APP_FOOTFALL_API=http://footfall_ai_api_container:5003
       - REACT_APP_CEREBRAL_API_URL=http://cerebral_api:5002
+      - REACT_APP_STORE_API_URL=http://store_api_container:5002
+      - REACT_APP_CEREBRAL_WS_URL=http://192.168.50.35:8080

@@ -88,7 +88,7 @@ import {
         background: "SubtleBackground.Rest",
     },
     card: {
-        width: "468px",
+        width: "537px",
         maxWidth: "100%",
         marginTop: "15px",
       },
@@ -110,8 +110,8 @@ import {
   });
 
   const MaintenanceCameras: React.FC<{ callParentFunction: () => void }>  = ({ callParentFunction }) => {
-    var storeAPI = process.env.REACT_APP_STORE_API_URL;
-    var footfallAIAPI = process.env.REACT_APP_FOOTFALL_API;
+    var storeAPI = process.env.REACT_APP_STORE_API_URL || "/store_api";
+    var footfallAIAPI = process.env.REACT_APP_FOOTFALL_API || "/footfall_api";
     const classes = useStyles();
     // API integration code
     type DataItem = {
@@ -119,10 +119,18 @@ import {
         name: string;
         description: string;
         rtspuri: string;
+        currentCount: number;
+        x1: number;
+        y1: number;
+        x2: number;
+        y2: number;
       };    
       const dataItems: DataItem[] = [
       ];
-
+      const footfallStatuses: FootfallStatus[] = [
+    ];
+    const cameraRegions: RegionItem[] = [
+    ];    
       type RegionItem = {
         id: number;
         name: string;
@@ -135,6 +143,14 @@ import {
         threshold: number;
       };   
 
+      type FootfallStatus = {
+        currentCount: number,
+        debug: boolean,
+        fps: string,
+        name:string,
+        videoUrl: string
+      }
+
       const [data, setData] = useState([]);
       useEffect(() => {
         fetch(storeAPI + '/cameras')
@@ -143,61 +159,104 @@ import {
           .then()
           .catch(error => console.error(error));
       }, []);    
+      const [statuses, setStatusData] = useState();
+      const [regions, setRegions] = useState([]);
+      useEffect(() => {
+        var cameraRegionURL = storeAPI + "/regions";
+        fetch(cameraRegionURL)
+        .then(response => response.json())
+        .then(json => setRegions(json))
+        .then()
+        .catch(error => console.error(error));
+        }, []);  
+        if(regions) {
+            regions.forEach( region => {
+                var newRegionItem: RegionItem = {
+                    id: region["id"],
+                    camerId: region["camera_id"],
+                    name: region["name"],
+                    description: region["description"],
+                    x1: region["x1"],
+                    y1: region["y1"],
+                    x2: region["x2"],
+                    y2: region["y2"],
+                    threshold: region["threshold"]
+                }
+                cameraRegions.push(newRegionItem);
+            })
+        }
+
+      useEffect(() => {
+        fetch(footfallAIAPI + '/status')
+          .then(response => response.json())
+          .then(json => setStatusData(json))
+          .then()
+          .catch(error => console.error(error));
+      }, []);  
+      if(statuses) {
+        if(Array.isArray(statuses["statuses"])) {
+            var arrayedObject = Object.entries(statuses["statuses"]);
+            arrayedObject.forEach(element => 
+            {
+                var objectFiedStatus = JSON.parse(JSON.stringify(element[1]));
+                var newFootfallStatus: FootfallStatus = {
+                    currentCount: objectFiedStatus.current_count,
+                    videoUrl: objectFiedStatus.video_url,
+                    fps: objectFiedStatus.fps,
+                    name: objectFiedStatus.name,
+                    debug: objectFiedStatus.debug
+                }
+                footfallStatuses.push(newFootfallStatus);
+            }
+            );
+        }
+      }
       if(data) {
         data.forEach(
             function(d){
+            var currentCount = 0;
+            var x1 = 0;
+            var y1 = 0;
+            var x2 = 0;
+            var y2 = 0;
+            if(footfallStatuses) {
+                footfallStatuses.forEach(footFallStatus => {
+                    if(d["rtspuri"] === footFallStatus.videoUrl) {
+                        currentCount = footFallStatus.currentCount;
+                    }
+                });
+            }
+            if(cameraRegions) {
+                cameraRegions.forEach(cameraRegion => {
+                    if(cameraRegion.camerId === d["id"]) {
+                        x1 = cameraRegion.x1;
+                        x2 = cameraRegion.x2;
+                        y1 = cameraRegion.y1;
+                        y2 = cameraRegion.y2;
+                    }
+                })
+            }
+
             var newDataItem: DataItem = {
                 id: d["id"] ,
                 name: d["name"],
                 description: d["description"],
                 rtspuri: d["rtspuri"],
+                currentCount: currentCount,
+                x1: x1,
+                y1: y1,
+                x2: x2,
+                y2: y2
             };
-            dataItems.push(newDataItem);      
+            dataItems.push(newDataItem);     
             }
         )  
     }
 
-      function generateDataForVideo(cameraId: number, rtspurl: string, cameraName: string) {
-        var dataforVideo = footfallAIAPI +  "/video_feed?data={\"x\" : " + "0" + ", \"y\" : " + "0" + ",\"w\" : " + "400" + ", \"h\" : " + "400" + ", \"debug\" : true, \"cameraName\" : \"" + cameraName +  "\", \"video_url\": \"" + rtspurl + "\" }";           
-
-        //RegionItem
-        const regionItems: RegionItem[] = [
-        ];
-        var x1 = 0;
-        var y1 = 0;
-        var x2 = 0;
-        var y2 = 0;
-        var cameraRegionURL = storeAPI + "/regions/camera/" + cameraId.toString();
-        fetch(cameraRegionURL)
-        .then(response => response.json())
-        .then(json => {
-            if(json && json[0]) {
-            var newRegionItem: RegionItem = {
-                id: json[0]["id"],
-                camerId: json[0]["camera_id"],
-                name: json[0]["name"],
-                description: json[0]["description"],
-                x1: json[0]["x1"],
-                y1: json[0]["y1"],
-                x2: json[0]["x2"],
-                y2: json[0]["y2"],
-                threshold: json[0]["threshold"]
-            }
-            x1 = json[0]["x1"];
-            x1 = json[0]["x1"];
-            x2 = json[0]["x2"];
-            y2 = json[0]["y2"];
-            regionItems.push(newRegionItem);
-            var dataforVideo = footfallAIAPI + "/video_feed?data={\"x\" : " + regionItems[0].x1 + ", \"y\" : " + regionItems[0].y1 + ",\"w\" : " + regionItems[0].x2 + ", \"h\" : " + regionItems[0].y2 + ", \"debug\" : true, \"cameraName\" : \"Nabeel\", \"video_url\": \"" + rtspurl + "" + " }";           
-            console.log('dataforVideo');
-            console.log(dataforVideo);
-            return dataforVideo;
-        }
-        else {
-            return "";
-        }
-        })
-        .catch(error => console.error(error));
+      function generateDataForVideo(cameraId: number, rtspurl: string, cameraName: string, x1: number, y1: number, x2: number, y2: number) {
+        var dataforVideo = footfallAIAPI +  "/video_feed?data={\"x\" : " + x1.toString() + ", \"y\" : " + y1.toString() + ",\"w\" : " + x2.toString() + ", \"h\" : " + y2.toString() + ", \"debug\" : true, \"cameraName\" : \"" + cameraName +  "\", \"video_url\": \"" + rtspurl + "\" }";           
+        console.log('dataforVideo');
+        console.log(dataforVideo);
         return dataforVideo
       }    
     return (
@@ -236,14 +295,16 @@ import {
                             <CardPreview>
                                 <VideoStream 
                                     title="" 
-                                    videoUrl={generateDataForVideo(item.id, item.rtspuri, item.name)} />
+                                    videoUrl={generateDataForVideo(item.id, item.rtspuri, item.name, item.x1,item.y1, item.x2, item.y2)} />
                             </CardPreview>
                             <CardFooter>
                                 <Stack>
                                 <Text><b>{item.name}</b></Text>
-                                <Text>Zone label</Text>
-                                <Text className={classes.text}>Status: Active</Text>
-                                <Text>People count: 10</Text>
+                                <Stack horizontal>
+                                <Text>Zone label </Text>
+                                <Text>&nbsp; | Status: Active | </Text>
+                                <Text>&nbsp;People count: {item.currentCount}</Text>
+                                </Stack>
                                 </Stack>
                             </CardFooter>
                         </Card>     

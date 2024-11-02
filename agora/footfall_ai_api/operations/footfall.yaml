@@ -42,7 +42,7 @@ spec:
           mountPath: /tmp/models
       containers:
       - name: footfall-ai-api
-        image: agacrac434.azurecr.io/footfall-ai-api:latest
+        image: mcr.microsoft.com/jumpstart/agora/footfall_ai_api:1.0.0
         ports:
         - containerPort: 5000
         env:

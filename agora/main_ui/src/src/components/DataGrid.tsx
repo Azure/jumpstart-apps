@@ -134,8 +134,9 @@ const columns: TableColumnDefinition<DataItem>[] = [
 export const SingleSelect = () => {
   const defaultSelectedItems = React.useMemo(() => new Set([1]), []);
   const [data, setData] = useState([]);
+  const baseApiUrl = process.env.REACT_APP_CEREBRAL_API_URL || '/Cerebral';
   useEffect(() => {
-    fetch('http://74.249.31.17:5003/Cerebral/api/get_applications')
+    fetch(`${baseApiUrl}/api/get_applications`)
       .then(response => response.json())
       .then(json => setData(json))
       .then()

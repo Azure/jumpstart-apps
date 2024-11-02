@@ -10,22 +10,18 @@ import paho.mqtt.client as mqtt
 import json
 import concurrent.futures
 
-
 import psutil
-#from prometheus_client import start_http_server, Gauge, Counter
-
-import logging
 from prometheus_client import start_http_server, Gauge, Counter, Summary
 from prometheus_client.exposition import generate_latest
 from prometheus_client.core import CollectorRegistry
-from flask import Flask, Response
+from flask import Flask, Response, jsonify
+from flasgger import Swagger, swag_from
 
 from store_simulator import run_store_simulator
 
 #dev mode
 #from dotenv import load_dotenv
 #load_dotenv()
-
 
 # InfluxDB Settings
 INFLUXDB_URL = os.getenv("INFLUXDB_URL")
@@ -49,14 +45,12 @@ DEVICE_COUNTS = {
     "SmartShelf": int(os.getenv("SMARTSHELF_COUNT", 2)),
     "HVAC": int(os.getenv("HVAC_COUNT", 2)),
     "LightingSystem": int(os.getenv("LIGHTINGSYSTEM_COUNT", 2)),
-    "AutomatedCheckout": int(os.getenv("AUTOMATEDCHECKOUT_COUNT", 2))
+    "AutomatedCheckout": int(os.getenv("AUTOMATEDCHECKOUT_COUNT", 10))
 }
 
 # Connect to MQTT Broker
 client_id1 = f'python-mqtt-{random.randint(0, 1000)}'
-#mqtt_client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1, client_id1)
 mqtt_client = mqtt.Client()
-
 
 MAX_CONSECUTIVE_ERRORS = 30
 consecutive_errors = 0
@@ -105,12 +99,15 @@ AUTO_CHECKOUT_ERRORS = Counter('auto_checkout_errors', 'Number of errors at auto
 
 EQUIPMENT_TYPES = ["Refrigerator", "Scale", "POS", "SmartShelf", "HVAC", "LightingSystem", "AutomatedCheckout"]
 
+# Flask app and Swagger initialization
+app = Flask(__name__)
+swagger = Swagger(app)
 
-# Function to increment the data points counter
-def increment_data_points(equipment_type, device_id):
-    DATA_POINTS_GENERATED.labels(equipment_type=equipment_type, device_id=device_id).inc()
+# Store metrics data in memory
+devices_metrics = {}
 
 # Set up logging
+import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -121,17 +118,19 @@ class PrometheusLogHandler(logging.Handler):
 
 logger.addHandler(PrometheusLogHandler())
 
-# Flask app for metrics endpoint
-app = Flask(__name__)
+# Function to increment the data points counter
+def increment_data_points(equipment_type, device_id):
+    DATA_POINTS_GENERATED.labels(equipment_type=equipment_type, device_id=device_id).inc()
 
-@app.route('/metrics')
-def metrics():
-    return Response(generate_latest(REGISTRY), mimetype="text/plain")
-
-
-# Connect to InfluxDB
-client = InfluxDBClient(url=INFLUXDB_URL, token=INFLUXDB_TOKEN, org=INFLUXDB_ORG)
-write_api = client.write_api(write_options=SYNCHRONOUS)
+def update_device_metrics(equipment_type, device_id, data):
+    """Helper function to store latest metrics in memory"""
+    key = f"{equipment_type}_{device_id}"
+    devices_metrics[key] = {
+        "equipment_type": equipment_type,
+        "device_id": device_id,
+        "last_updated": datetime.utcnow().isoformat(),
+        "metrics": data
+    }
 
 def generate_equipment_data(equipment_type, device_id, pk):
     data = {"id": pk, "device_id": device_id}
@@ -152,7 +151,7 @@ def generate_equipment_data(equipment_type, device_id, pk):
     elif equipment_type == "POS":
         data.update({
             "transaction_id": f"txn_{random.randint(1000, 9999)}",
-            "items_sold": float(random.randint(1, 10)),  # Convert to float
+            "items_sold": float(random.randint(1, 10)),
             "total_amount_usd": round(random.uniform(10, 500), 2),
             "payment_method": random.choice(["credit_card", "cash", "mobile_payment"]),
         })
@@ -160,8 +159,8 @@ def generate_equipment_data(equipment_type, device_id, pk):
     elif equipment_type == "SmartShelf":
         data.update({
             "product_id": f"prod_{random.randint(1000, 9999)}",
-            "stock_level": float(random.randint(0, 100)),  # Convert to float
-            "threshold_stock_level": float(random.randint(10, 20)),  # Convert to float
+            "stock_level": float(random.randint(0, 100)),
+            "threshold_stock_level": float(random.randint(10, 20)),
             "last_restocked": (datetime.utcnow() - timedelta(hours=random.randint(0, 48))).isoformat(),
         })
     
@@ -183,17 +182,13 @@ def generate_equipment_data(equipment_type, device_id, pk):
     elif equipment_type == "AutomatedCheckout":
         data.update({
             "transaction_id": f"txn_{random.randint(1000, 9999)}",
-            "items_scanned": float(random.randint(1, 10)),  # Convert to float
+            "items_scanned": float(random.randint(1, 10)),
             "total_amount_usd": round(random.uniform(10, 500), 2),
             "payment_method": random.choice(["credit_card", "cash", "mobile_payment"]),
-            "errors": float(random.randint(0, 5)),  # Convert to float
-        })
-    
-    else:
-        # Default case for unknown equipment types
-        data.update({
-            "status": random.choice(["active", "inactive", "maintenance"]),
-            "last_maintenance": (datetime.utcnow() - timedelta(days=random.randint(0, 30))).isoformat(),
+            "errors": float(random.randint(0, 5)),
+            "status": random.choice(["open", "closed"]),
+            "avgWaitTime": float(random.randint(0, 3)),
+            "queueLength": float(random.randint(0, 3))
         })
     
     return data
@@ -201,16 +196,13 @@ def generate_equipment_data(equipment_type, device_id, pk):
 def write_data_to_influxdb(equipment_type, device_id, measurement_name, timestamp, data):
     try:
         point = Point(measurement_name).time(timestamp, WritePrecision.NS)
-        #for key, value in data.items():
-        #    point.field(key, value)
-        point = Point(measurement_name).time(timestamp, WritePrecision.NS)
         for key, value in data.items():
             if isinstance(value, (int, float)):
-                point.field(key, float(value))  # Ensure all numbers are float
+                point.field(key, float(value))
             elif isinstance(value, bool):
                 point.field(key, value)
             elif isinstance(value, str):
-                point.tag(key, value)  # Use strings as tags instead of fields
+                point.tag(key, value)
             else:
                 logger.warning(f"Skipping field {key} with unsupported type {type(value)}")
                 
@@ -219,11 +211,8 @@ def write_data_to_influxdb(equipment_type, device_id, measurement_name, timestam
         if VERBOSE:
             logger.info(f"Data for {device_id} written to InfluxDB: {data}")
     
-        # Increment Prometheus counter for data points generated
-        #DATA_POINTS_GENERATED.labels(equipment_type=equipment_type, device_id=device_id).inc()
     except Exception as e:
         logger.error(f"Error writing data to InfluxDB for {device_id}: {str(e)}")
-
 
 def publish_data_to_mqtt(equipment_type, device_id, timestamp, data):
     try:
@@ -240,19 +229,21 @@ def publish_data_to_mqtt(equipment_type, device_id, timestamp, data):
     except Exception as e:
         logger.error(f"Error publishing data to MQTT for {device_id}: {str(e)}")
 
-
 def update_system_metrics():
     while True:
         try:
             CPU_USAGE.set(psutil.cpu_percent())
             MEMORY_USAGE.set(psutil.virtual_memory().percent)
-            time.sleep(5)  # Update system metrics every 5 seconds
+            time.sleep(5)
         except Exception as e:
             logger.error(f"Error updating system metrics: {str(e)}")
-            time.sleep(5)  # Wait a bit before retrying
+            time.sleep(5)
 
 def update_prometheus_metrics(equipment_type, device_id, data):
     try:
+        # Update in-memory metrics first
+        update_device_metrics(equipment_type, device_id, data)
+        
         if equipment_type == "Refrigerator":
             FRIDGE_TEMP.labels(device_id=device_id).set(data["temperature_celsius"])
             FRIDGE_DOOR_OPEN.labels(device_id=device_id).set(1 if data["door_open"] else 0)
@@ -283,11 +274,8 @@ def update_prometheus_metrics(equipment_type, device_id, data):
             AUTO_CHECKOUT_ERRORS.labels(device_id=device_id).inc(data["errors"])
         
         DATA_POINTS_GENERATED.labels(equipment_type=equipment_type, device_id=device_id).inc()
-    except KeyError as e:
-        logger.error(f"Error updating Prometheus metrics for {device_id}: Missing key {str(e)}")
-        LOG_MESSAGES.labels(level="error").inc()
     except Exception as e:
-        logger.error(f"Error updating Prometheus metrics for {device_id}: {str(e)}")
+        logger.error(f"Error updating metrics for {device_id}: {str(e)}")
         LOG_MESSAGES.labels(level="error").inc()
 
 def update_backend_api(equipment_type, pk, data):
@@ -332,12 +320,169 @@ def simulate_device(pk, equipment_type, device_id):
             logger.error(f"Error in {device_id} simulation: {str(e)}")
             time.sleep(5)  # Wait a bit before retrying
 
-if __name__ == "__main__":
-    
-    from threading import Thread
-    Thread(target=lambda: app.run(host="0.0.0.0", port=PORT, use_reloader=False)).start()
-    #logger.info("Metrics available at http://localhost:{0}}/metrics",PORT)
+def get_open_automated_checkouts():
+    devices = get_devices().json
+    open_automated_checkouts = 0
+    total_checkouts = 0
+    avg_wait_time = 0
+    queue_length = 0
+    for device in devices:
+        device_id = device.get('device_id')
+        equipment_type = device.get('equipment_type')
+        key = f"{equipment_type}_{device_id}"
+        metrics = devices_metrics[key].get('metrics', {})
+        if device.get('equipment_type') == 'AutomatedCheckout':
+            total_checkouts += 1
+            queue_length = queue_length + metrics.get('queueLength')
+            avg_wait_time = avg_wait_time + metrics.get('avgWaitTime')
+            if metrics.get('status') == 'open':
+                open_automated_checkouts += 1
+    closed_automated_checkouts = total_checkouts - open_automated_checkouts
+    avg_wait_time = avg_wait_time / total_checkouts
 
+    return jsonify({'open_automated_checkouts': open_automated_checkouts, 'closed_automated_checkouts': closed_automated_checkouts, 'total_checkouts': total_checkouts, 'avg_wait_time': avg_wait_time, 'queue_length': queue_length})
+
+# REST API Endpoints
+@app.route('/api/v1/automated_checkouts/open', methods=['GET'])
+@swag_from({
+    'responses': {
+        200: {
+            'description': 'Number of open AutomatedCheckouts and total checkouts',
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'open_automated_checkouts': {'type': 'integer'},
+                    'total_checkouts': {'type': 'integer'}
+                }
+            }
+        }
+    },
+    'summary': 'Returns the number of open AutomatedCheckouts and total checkouts',
+    'tags': ['AutomatedCheckouts']
+})
+def get_open_automated_checkouts_endpoint():
+    return get_open_automated_checkouts()
+
+@app.route('/api/v1/devices', methods=['GET'])
+@swag_from({
+    'responses': {
+        200: {
+            'description': 'List of all available devices',
+            'schema': {
+                'type': 'array',
+                'items': {
+                    'type': 'object',
+                    'properties': {
+                        'equipment_type': {'type': 'string'},
+                        'device_id': {'type': 'string'},
+                        'last_updated': {'type': 'string', 'format': 'date-time'}
+                    }
+                }
+            }
+        }
+    },
+    'summary': 'Returns a list of all devices being monitored',
+    'tags': ['Devices']
+})
+def get_devices():
+    devices = []
+    for device_data in devices_metrics.values():
+        devices.append({
+            'equipment_type': device_data['equipment_type'],
+            'device_id': device_data['device_id'],
+            'last_updated': device_data['last_updated']
+        })
+    return jsonify(devices)
+
+@app.route('/api/v1/devices/<equipment_type>/<device_id>/metrics', methods=['GET'])
+@swag_from({
+    'parameters': [
+        {
+            'name': 'equipment_type',
+            'in': 'path',
+            'type': 'string',
+            'required': True,
+            'description': 'Type of equipment (e.g., Refrigerator, HVAC)'
+        },
+        {
+            'name': 'device_id',
+            'in': 'path',
+            'type': 'string',
+            'required': True,
+            'description': 'Device identifier'
+        }
+    ],
+    'responses': {
+        200: {
+            'description': 'Device metrics',
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'equipment_type': {'type': 'string'},
+                    'device_id': {'type': 'string'},
+                    'last_updated': {'type': 'string', 'format': 'date-time'},
+                    'metrics': {'type': 'object'}
+                }
+            }
+        },
+        404: {
+            'description': 'Device not found'
+        }
+    },
+    'summary': 'Get metrics for a specific device',
+    'tags': ['Metrics']
+})
+def get_device_metrics(equipment_type, device_id):
+    key = f"{equipment_type}_{device_id}"
+    if key not in devices_metrics:
+        return jsonify({'error': 'Device not found'}), 404
+    
+    return jsonify(devices_metrics[key])
+
+@app.route('/metrics')
+def metrics():
+    return Response(generate_latest(REGISTRY), mimetype="text/plain")
+
+# Configure Swagger
+app.config['SWAGGER'] = {
+    'title': 'IoT Device Simulator API',
+    'description': 'API for accessing IoT device metrics and status',
+    'version': '1.0.0',
+    'uiversion': 3,
+    'tags': [
+        {
+            'name': 'Devices',
+            'description': 'Operations related to devices'
+        },
+        {
+            'name': 'Metrics',
+            'description': 'Operations related to device metrics'
+        }
+    ],
+    'specs': [
+        {
+            'endpoint': 'apispec',
+            'route': '/apispec.json',
+            'rule_filter': lambda rule: True,  # all in
+            'model_filter': lambda tag: True,  # all in
+        }
+    ],
+    'static_url_path': '/flasgger_static',
+    'swagger_ui': True,
+    'specs_route': '/apidocs/'
+}
+
+# Connect to InfluxDB
+client = InfluxDBClient(url=INFLUXDB_URL, token=INFLUXDB_TOKEN, org=INFLUXDB_ORG)
+write_api = client.write_api(write_options=SYNCHRONOUS)
+
+if __name__ == "__main__":
+    from threading import Thread
+    
+    # Start Flask app with Swagger UI
+    Thread(target=lambda: app.run(host="0.0.0.0", port=PORT, use_reloader=False)).start()
+    logger.info(f"API documentation available at http://localhost:{PORT}/apidocs")
+    
     # Start system metrics update in a separate thread
     Thread(target=update_system_metrics, daemon=True).start()
     logger.info("System metrics update thread started")
@@ -353,7 +498,6 @@ if __name__ == "__main__":
     except Exception as e:
         logger.error(f"An unexpected error occurred: {str(e)}")
 
-
     # Create a list of all devices to simulate
     devices_to_simulate = []
     pk = 1
@@ -367,14 +511,12 @@ if __name__ == "__main__":
 
     # Use a ThreadPoolExecutor to run device simulations in parallel
     with concurrent.futures.ThreadPoolExecutor(max_workers=len(devices_to_simulate)) as executor:
-        # Submit a task for each device
         futures = [executor.submit(simulate_device, pk, equipment_type, device_id) 
                    for pk, equipment_type, device_id in devices_to_simulate]
         
         logger.info("All device simulation threads started")
         
         try:
-            # Wait for all tasks to complete (which they never will in this case)
             concurrent.futures.wait(futures)
         except KeyboardInterrupt:
             logger.info("Keyboard interrupt received. Shutting down...")
