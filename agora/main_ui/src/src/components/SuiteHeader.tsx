@@ -37,11 +37,10 @@ const useStyles = makeStyles({
     },
     frame7WaffleProd: {
       "display": "flex",
-      "align-items": "flex-start",
-      paddingInlineStart: "14px",
-      paddingInlineEnd: "14px",
-      paddingBlockStart: "14px",
-      paddingBlockEnd: "14px",
+      "padding": "14px",
+      "alignItems": "flex-start",
+      "background": "var(--Neutral-Background-Subtle-Rest, rgba(255, 255, 255, 0.00))",
+
     },
     instance1Wafflemenu: {
       //backgroundColor: tokens.colorStrokeFocus1,
@@ -334,7 +333,7 @@ const SuiteHeader: React.FC<{ callParentFunction: () => void }> = ({ callParentF
               </div>
               <div id='AppnameAndPreviewLabel' className={classes.appnameandpreviewlabel}>
                 <div id='JumpstartBanner' className={classes.jumpstartbanner}>
-                  <img src="Group 1321317568.svg" alt="Jumpstart Banner v2 White"/>
+                  <img src="Product name.svg" alt="Jumpstart Banner v2 White"/>
                 </div>
               </div>
             </div>
@@ -356,9 +355,22 @@ const SuiteHeader: React.FC<{ callParentFunction: () => void }> = ({ callParentF
         </Stack.Item>
         <Stack.Item align="end">
           <div className={classes.frame7WaffleProd} onClick={callParentFunction}> 
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <path fill-rule="evenodd" clip-rule="evenodd" d="M10 18C14.4183 18 18 14.4183 18 10C18 5.58172 14.4183 2 10 2C5.58172 2 2 5.58172 2 10C2 14.4183 5.58172 18 10 18ZM10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10C17 13.866 13.866 17 10 17Z" fill="white" fill-opacity="0.9"/>
-          </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 26 26" fill="none">
+              <path d="M17.7923 26C15.542 26 13.7113 24.0297 13.7113 21.6078V14.3833H15.2369V21.6078C15.2369 23.1246 16.383 24.3581 17.7923 24.3581C19.2016 24.3581 20.3477 23.1246 20.3477 21.6078H21.8733C21.8733 24.0297 20.0425 26 17.7923 26ZM8.20772 26C5.95746 26 4.12674 24.0297 4.12674 21.6078H5.65234C5.65234 23.1246 6.79845 24.3581 8.20772 24.3581C9.61699 24.3581 10.7631 23.1246 10.7631 21.6078V14.3833H12.2887V21.6078C12.2887 24.0297 10.458 26 8.20772 26ZM21.1124 21.2589C18.4159 21.2589 16.2228 18.8986 16.2228 15.9965V12.959H17.7484V15.9965C17.7484 17.9935 19.2588 19.617 21.1124 19.617C22.966 19.617 24.4763 17.9915 24.4763 15.9965C24.4763 15.2659 24.2761 14.5619 23.8947 13.9605C23.2673 12.9672 22.2261 12.374 21.1105 12.374V10.7321C22.7295 10.7321 24.2418 11.5941 25.1552 13.0369C25.7082 13.9113 26 14.9354 26 15.9965C26 18.8986 23.807 21.2589 21.1105 21.2589H21.1124ZM4.88954 21.2589C2.19305 21.2589 0 18.8986 0 15.9965C0 14.9416 0.289864 13.9236 0.835265 13.0534C1.74681 11.6003 3.26287 10.7341 4.88954 10.7341V12.3761C3.77013 12.3761 2.72701 12.9733 2.0996 13.9728C1.72393 14.5722 1.5256 15.272 1.5256 15.9965C1.5256 17.9935 3.03594 19.617 4.88954 19.617C6.74314 19.617 8.25348 17.9915 8.25348 15.9965V12.959H9.77908V15.9965C9.77908 18.8986 7.58604 21.2589 4.88954 21.2589ZM20.1818 15.9965H18.6562V7.61241C18.6562 4.32033 16.1675 1.64193 13.1087 1.64193C10.0499 1.64193 7.56124 4.32033 7.56124 7.61241V15.9965H6.03565V7.61241C6.03565 3.41522 9.20889 0 13.1087 0C17.0085 0 20.1818 3.41522 20.1818 7.61241V15.9965Z" fill="url(#paint0_linear_1439_20141)"/>
+              <path d="M11.791 7.52393C11.791 8.34694 11.1712 9.01603 10.4046 9.01603C9.63796 9.01603 9.01819 8.349 9.01819 7.52393H11.791ZM14.2415 7.52393C14.2415 8.34694 14.8612 9.01603 15.6278 9.01603C16.3945 9.01603 17.0142 8.349 17.0142 7.52393H14.2415Z" fill="white"/>
+              <defs>
+              <linearGradient id="paint0_linear_1439_20141" x1="4.69121" y1="5.91096" x2="22.6465" y2="22.5941" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#CC3EF4"/>
+              <stop offset="0.06" stop-color="#C243F2"/>
+              <stop offset="0.17" stop-color="#A950EE"/>
+              <stop offset="0.31" stop-color="#7F67E7"/>
+              <stop offset="0.46" stop-color="#4686DD"/>
+              <stop offset="0.57" stop-color="#1E9CD7"/>
+              <stop offset="0.87" stop-color="#0075BE"/>
+              <stop offset="0.99" stop-color="#005B97"/>
+              </linearGradient>
+              </defs>
+            </svg>            
         </div>
         </Stack.Item>
         <Stack.Item align="end" className={classes.accountmanager}>
