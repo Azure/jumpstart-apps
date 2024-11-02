@@ -65,4 +65,4 @@ ENV SQL_PASSWORD=your_password
 EXPOSE 8001
 
 # Run main.py when the container launches
-CMD ["/usr/bin/python3", "app.py"]
+CMD ["python", "app.py"]

@@ -71,14 +71,14 @@ ENV AZURE_OPENAI_API_KEY=<your_azure_openai_api_key> \
     ENV DOCUMENTS_PATH=docs
     ENV MODEL_PATH=cpu_and_mobile/cpu-int4-rtn-block-32-acc-level-4
     ENV USE_LOCAL_LLM=false
-    ENV PORT=5030
+    ENV PORT=5003
 
 # Copy the Supervisor configuration
 COPY supervisor.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Expose the ports that the applications will use
 #EXPOSE 5004 8000
-EXPOSE 5030
+EXPOSE 5003
 
 # Start Supervisor
 # CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
