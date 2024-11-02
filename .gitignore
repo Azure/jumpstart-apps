@@ -195,4 +195,4 @@ agora/cerebral_api/src/websocket-client/node_modules
 agora/cerebral_api/src/cpu_and_mobile
 agora/cerebral_api/src/__pycache__
 agora/cerebral_api/src/.cache
-
+*.idea
