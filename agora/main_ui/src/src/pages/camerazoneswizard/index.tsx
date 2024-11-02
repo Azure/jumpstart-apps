@@ -15,6 +15,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import Header from '../../components/SuiteHeader';
 import SideMenu from "../../components/MaintenanceMenu";
+import Footer from '../../components/SuiteFooter';
 import { ITag, Pivot, PivotItem, PrimaryButton, TagPicker, TextField } from '@fluentui/react';
 import { IStackProps, IStackTokens, Stack } from "@fluentui/react";
 import { Panel, PanelType, DefaultButton, ProgressIndicator } from '@fluentui/react';
@@ -101,9 +102,8 @@ const Main = (props: IStackProps) => (
       footer: {
         width: '100%', 
         height: '32px', 
-        marginBottom: '32px', 
         position: 'fixed', 
-        bottom: 0,
+        bottom: '73px',
         padding: '16px 24px',
         alignItems: 'flex-start',
         gap: '8px',
@@ -416,6 +416,7 @@ const CamerasZonesWizard = () => {
           </div>
           </Stack.Item>
           </Main>
+          <Footer />
         </CopilotProvider>
       </FluentProvider>
     );

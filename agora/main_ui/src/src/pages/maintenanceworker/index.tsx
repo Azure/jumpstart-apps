@@ -5,6 +5,7 @@ import {
   Text,
 } from "@fluentui/react-components";
 import Header from '../../components/SuiteHeader';
+import Footer from '../../components/SuiteFooter';
 import SideMenu from "../../components/MaintenanceMenu";
 import { Default as Banner } from "../../components/Banner";
 import Cards from "../../components/Cards";
@@ -82,6 +83,7 @@ const MaintenanceWorker = () => {
             </Stack>
           </Stack.Item>
           </Main>
+          <Footer />
         </CopilotProvider>
       </FluentProvider>
     );
