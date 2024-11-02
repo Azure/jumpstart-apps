@@ -27,20 +27,72 @@ import {
 const useStyles = makeStyles({
     card: {
       margin: "auto",
-      width: "350px",
+      width: "471px",
       maxWidth: "100%",
-      paddingLeft: "40px"
+      padding: " 10px 16px 20px 16px",
+      borderRadius: "8px",
+      background: "var(--Surfaces-Surface, #FFF)",
+      marginRight: "8px"
+    },
+    singlecard: {
+        margin: "auto",
+        width: "220px",
+        maxWidth: "100%",
+        padding: " 10px 16px 20px 16px",
+        borderRadius: "8px",
+        background: "var(--Surfaces-Surface, #FFF)",
+        marginRight: "8px",
+        height: "127px"
+      },
+    cardDividerContainer : {
+        display: "flex",
+        padding: "0px 12px 0px 41px",
+        alignItems: "center",
+        gap: "12px",        
+        width: "82px",
+        height: "80px",
+        justifyContent: "center"
+    },
+    cardDivider : {
+        width: "1px",
+        height: "60px",
+        background: "#A19F9D",
+        alignContent: "center"
     },
     cardpreviewtext: {
         color: "var(--Text-Primary, #323130)",
         textAlign: "center",
-        fontfeaturesettings: "'liga' off, 'clig' off",
-        fontfamily: tokens.fontFamilyBase,
-        fontsize: tokens.fontSizeHero800,
-        fontstyle: "normal",
-        fontweight: tokens.fontWeightRegular,
-        lineHeight: tokens.lineHeightHero900
+        fontFeaturesettings: "'liga' off, 'clig' off",
+        fontFamily: "Segoe UI",
+        fontSize: "36px",
+        fontStyle: "normal",
+        fontWeight: "400",
+        lineHeight: "52px",
+        marginLeft: "16px"
     },
+    cardpreviewsubtext: {
+        color: "var(--Text-Primary, #323130)",
+        textAlign: "center",
+        fontFamily: "Segoe UI",
+        fontSize: "14px",
+        fontStyle: "normal",
+        fontWeight: "400",
+        lineHeight: "20px",
+        marginLeft: "16px",
+        width: "145px"
+    },
+    cardpreviewsubtextextended: {
+        color: "var(--Text-Primary, #323130)",
+        textAlign: "center",
+        fontFamily: "Segoe UI",
+        fontSize: "14px",
+        fontStyle: "normal",
+        fontWeight: "400",
+        lineHeight: "20px",
+        marginLeft: "16px",
+        width: "175px"        
+    }
+
   });
 
 const Cards = () => {
@@ -66,13 +118,25 @@ const Cards = () => {
                     />
 
                     <CardPreview>
-                        <Text className={styles.cardpreviewtext}>5,050</Text>
+                        <Stack>
+                            <Stack horizontal>
+                                <Stack>
+                                <Text className={styles.cardpreviewtext}>5,050</Text>
+                                <Text className={styles.cardpreviewsubtext}>Shoppers per day</Text>
+                                </Stack>
+                                <Stack>
+                                <div id="cameraHeaderDividerContainer" className={styles.cardDividerContainer}>
+                                    <Stack id="cameraHeaderDivider" className={styles.cardDivider}>
+                                    </Stack>
+                                </div>
+                                </Stack>
+                                <Stack>
+                                <Text className={styles.cardpreviewtext}>25,689</Text>
+                                <Text className={styles.cardpreviewsubtext}>Customers per week</Text>
+                                </Stack>
+                            </Stack>
+                        </Stack>
                     </CardPreview>
-
-                    <CardFooter>
-                    <Text>Shoppers per day</Text>
-                    <Text>Customers per week</Text>                        
-                    </CardFooter>
                 </Card>
                 <Card className={styles.card}>
                     <CardHeader
@@ -90,15 +154,27 @@ const Cards = () => {
                     />
 
                     <CardPreview>
-                        <Text className={styles.cardpreviewtext}>5,050</Text>
+                        <Stack>
+                            <Stack horizontal>
+                                <Stack>
+                                <Text className={styles.cardpreviewtext}>4 of 10</Text>
+                                <Text className={styles.cardpreviewsubtext}>Open and active</Text>
+                                </Stack>
+                                <Stack>
+                                <div id="cameraHeaderDividerContainer" className={styles.cardDividerContainer}>
+                                    <Stack id="cameraHeaderDivider" className={styles.cardDivider}>
+                                    </Stack>
+                                </div>
+                                </Stack>
+                                <Stack>
+                                <Text className={styles.cardpreviewtext}>6 of 10</Text>
+                                <Text className={styles.cardpreviewsubtext}>Closed, staffing needed</Text>
+                                </Stack>
+                            </Stack>
+                        </Stack>
                     </CardPreview>
-
-                    <CardFooter>
-                    <Text>Shoppers per day</Text>
-                    <Text>Customers per week</Text>                        
-                    </CardFooter>
                 </Card>       
-                <Card className={styles.card}>
+                <Card id="singleCard" className={styles.singlecard}>
                     <CardHeader
                         image={
 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -114,14 +190,18 @@ const Cards = () => {
                     />
 
                     <CardPreview>
-                        <Text className={styles.cardpreviewtext}>7.5</Text>
+                        <Stack>
+                            <Stack horizontal>
+                                <Stack>
+                                <Text className={styles.cardpreviewtext}>7.5</Text>
+                                <Text className={styles.cardpreviewsubtext}>Minutes</Text>
+                                </Stack>
+                            </Stack>
+                        </Stack>
                     </CardPreview>
 
-                    <CardFooter>
-                    <Text>Minutes</Text>                        
-                    </CardFooter>
                 </Card>       
-                <Card className={styles.card}>
+                <Card id="queueReport" className={styles.card} style={{width: '220px'}}>
                     <CardHeader
                         image={
 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -136,12 +216,15 @@ const Cards = () => {
                         description={<Caption1></Caption1>}
                     />
                     <CardPreview>
-                        <Text className={styles.cardpreviewtext}>7.5</Text>
+                        <Stack>
+                            <Stack horizontal>
+                                <Stack>
+                                <Text className={styles.cardpreviewtext}>7.5</Text>
+                                <Text className={styles.cardpreviewsubtextextended}>Customers in checkout line</Text>
+                                </Stack>
+                            </Stack>
+                        </Stack>
                     </CardPreview>
-
-                    <CardFooter>
-                    <Text>Customers in checkout line</Text>                        
-                    </CardFooter>
                 </Card>                                     
                 </Stack> 
             </Stack.Item>

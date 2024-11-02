@@ -171,7 +171,6 @@ const StoreManager = () => {
           <Stack.Item grow={3}>
             <Stack tokens={themedMediumStackTokens}>
               <Greetings />
-              <Banner></Banner>
               <Cards />
               <Stack horizontal>
                 <Cameras />
