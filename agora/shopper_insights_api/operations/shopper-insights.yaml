@@ -60,10 +60,15 @@ spec:
         volumeMounts:
         - mountPath: /tmp/models
           name: models-volume
+        - mountPath: "/app/detected_persons"
+              name: blob
       volumes:
       - name: models-volume
         persistentVolumeClaim:
           claimName: shopper-model-pvc
+      - name: blob
+          persistentVolumeClaim:
+            claimName: acsa-pvc
 
 ---
 
