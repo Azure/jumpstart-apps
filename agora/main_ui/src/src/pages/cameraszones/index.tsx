@@ -12,7 +12,7 @@ import SideMenu from "../../components/MaintenanceMenu";
 import { ITag, Pivot, PivotItem, PrimaryButton, TagPicker, TextField } from '@fluentui/react';
 import { IStackProps, IStackTokens, Stack } from "@fluentui/react";
 import { Panel, PanelType, DefaultButton } from '@fluentui/react';
-
+import Footer from '../../components/SuiteFooter';
 import { CopilotProvider } from "@fluentui-copilot/react-copilot";
 import logo from './logo.svg';
 import '../../App.css';
@@ -290,6 +290,7 @@ const CamerasZones: React.FC<CameraPanelProps> = ({ isOpen, onDismiss, onSave })
           </Pivot>
           </Stack.Item>
           </Main>
+          <Footer />
         </CopilotProvider>
       </FluentProvider>
     );

@@ -7,6 +7,7 @@ import {
   tokens
 } from "@fluentui/react-components";
 import Header from '../../components/SuiteHeader';
+import Footer from '../../components/SuiteFooter';
 import SideMenu from "../../components/SideMenu";
 import { Default as Banner } from "../../components/Banner";
 import Cards from "../../components/Cards";
@@ -182,6 +183,7 @@ const StoreManager = () => {
             </Stack>
           </Stack.Item>
           </Main>
+          <Footer />
         </CopilotProvider>
       </FluentProvider>
     );
