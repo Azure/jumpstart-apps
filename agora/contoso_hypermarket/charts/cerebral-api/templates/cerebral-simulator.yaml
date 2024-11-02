@@ -54,6 +54,8 @@ spec:
     spec:
       containers:
       - name: cerebral-simulator
+        ports:
+        - containerPort: 8001
         image: {{ .Values.images.cerebral.repository }}:{{ .Values.images.cerebral.tag }}
         imagePullPolicy: {{ .Values.images.cerebral.pullPolicy }}
         envFrom: 

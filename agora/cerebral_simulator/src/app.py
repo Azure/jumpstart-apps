@@ -29,7 +29,7 @@ INFLUXDB_TOKEN = os.getenv("INFLUXDB_TOKEN")
 INFLUXDB_ORG = os.getenv("INFLUXDB_ORG")
 INFLUXDB_BUCKET = os.getenv("INFLUXDB_BUCKET")
 VERBOSE = bool(os.getenv("VERBOSE", "False"))
-PORT = int(os.getenv("PORT", "8000"))
+PORT = int(os.getenv("PORT", "8001"))
 UI_API_URL = os.getenv("UI_API_URL", "http://0.0.0.0:5002")
 
 # MQTT Settings
