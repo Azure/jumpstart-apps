@@ -36,6 +36,7 @@ data:
   SQL_DATABASE: "RetailStore"
   SQL_USERNAME: "sa"
   SQL_PASSWORD: "ArcPassword123!!"
+
 ---
 
 apiVersion: apps/v1
