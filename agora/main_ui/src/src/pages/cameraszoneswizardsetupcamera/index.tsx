@@ -44,6 +44,7 @@ import { useDropzone } from 'react-dropzone';
 import { useCallback } from 'react';
 import { text } from 'stream/consumers';
 import CerebralChatWithAudio from '../../components/CerebralChat';
+import type { SliderProps } from "@fluentui/react-components";
 const Main = (props: IStackProps) => (
     <Stack horizontal grow={1} disableShrink {...props} />
   );
@@ -271,6 +272,10 @@ const CamerasZonesWizardSetupCamera = () => {
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [isCerebralDrawerOpen, setIsCerebralDrawerOpen] = useState(false);
     const [cameraNameInputValue, setCameraNameInputValue] = React.useState('');
+    const [CameraSetupX1, setCameraSetupX1] = useState(0);
+    const [CameraSetupY1, setCameraSetupY1] = useState(0);
+    const [CameraSetupX2, setCameraSetupX2] = useState(0);
+    const [CameraSetupY2, setCameraSetupY2] = useState(0);    
     const handleCameraNameInputChange = (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
       setCameraNameInputValue(newValue || '');
     };
@@ -297,6 +302,10 @@ const CamerasZonesWizardSetupCamera = () => {
           )
         : [];
     };
+    const [sliderValue, setSliderValue] = useState(80);
+
+    const handleSliderChange: SliderProps["onChange"] = (_, data) =>
+      setSliderValue(data.value);
 
     const onFilterChanged = (filterText: string, tag: ITag) => {
       return tag.name.toLowerCase().startsWith(filterText.toLowerCase());
@@ -362,10 +371,11 @@ const CamerasZonesWizardSetupCamera = () => {
        }
     )  
     const [dataForVideo, setDataForVideo] = React.useState('');
-
+    const [selectedCamera, setSelectedCamera] = React.useState('');
     const handleCameraDropdownChange = (event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption, index?: number) =>{
       //setCameraEndpointInputValue(newValue || '');
       setDataForVideo(footfallAIAPI + "/video_feed?data={\"x\" : 0, \"y\" : 0,\"w\" : 0, \"h\" : 0, \"debug\" : true, \"cameraName\" : \"Nabeel\", \"video_url\": \"" + option?.key +"\" }");
+      setSelectedCamera(option?.text || '');
     };
     const toggleCerebralDrawer = () => {
       setIsCerebralDrawerOpen(!isCerebralDrawerOpen);
@@ -382,6 +392,24 @@ const CamerasZonesWizardSetupCamera = () => {
     const onCancelCerebralDrawer = () => {
       setIsCerebralDrawerOpen(false);
     }; 
+    const onSaveAndNavigate  = () => {
+        var txtCameraSetupX1 = document.getElementById('txtCameraSetupX1')?.getAttribute('value');
+        var txtCameraSetupY1 = document.getElementById('txtCameraSetupY1')?.getAttribute('value');
+        var txtCameraSetupX2 = document.getElementById('txtCameraSetupX2')?.getAttribute('value');
+        var txtCameraSetupY2 = document.getElementById('txtCameraSetupY2')?.getAttribute('value');   
+        var txtselectedCamera = document.getElementById('txtCameraStorage')?.getAttribute('value');  
+        const urlParams = new URLSearchParams(window.location.search);
+        const zoneLabelParameter = urlParams.get('zoneLabel');
+        const floorZoneX1Parameter = urlParams.get('floorZoneX1');
+        const floorZoneY1Parameter = urlParams.get('floorZoneY1');
+        const floorZoneX2Parameter = urlParams.get('floorZoneX2');
+        const floorZoneY2Parameter = urlParams.get('floorZoneY2');
+        const selectedCameraParameter = urlParams.get('selectedCamera');
+
+        //Local variables
+        navigate("/camerazoneswizardreview?zoneLabel=" + zoneLabelParameter + "&selectedCameraForSetup=" + selectedCamera + "&threshold=" + sliderValue + "&floorZoneX1=" + floorZoneX1Parameter + "&floorZoneY1=" + floorZoneY1Parameter + "&floorZoneX2=" + floorZoneX2Parameter + "&floorZoneY2=" + floorZoneY2Parameter + "&CameraSetupX1=" + txtCameraSetupX1 + "&CameraSetupY1=" + txtCameraSetupY1 + "&CameraSetupX2=" + txtCameraSetupX2 + "&CameraSetupY2=" + txtCameraSetupY2 + "&selectedCamera=" + selectedCameraParameter + "");
+
+    }
       ///TOP
       class MousePosition {
         public x: number = 0 ;
@@ -536,6 +564,10 @@ const CamerasZonesWizardSetupCamera = () => {
                                   context.rect(Number(startX),Number(startY), end.x - Number(startX), end.y - Number(startY));
                                   context.fillRect(Number(startX),Number(startY), end.x - Number(startX), end.y - Number(startY));
                                   context.stroke();
+                                  setCameraSetupX1(Number(startX));
+                                  setCameraSetupY1(Number(startY));
+                                  setCameraSetupX2(end.x - Number(startX));
+                                  setCameraSetupY2(end.y - Number(startY));                                  
                                 }
                               }                              
                               setIsDrawing(false);
@@ -544,10 +576,14 @@ const CamerasZonesWizardSetupCamera = () => {
                           </div>
                           <Stack horizontal style={{width:'100%'}}>
                             <Text style={{marginRight:'20px'}}>Confidence threshold </Text>
-                            <Slider defaultValue={80} step={25} min={0} max={100} style={{marginRight:'20px'}}></Slider>
-                            <Label aria-hidden style={{marginRight:'20px', fontStyle: 'bold'}}><strong>80%</strong></Label>
+                            <Slider defaultValue={80} step={20} min={0} max={100} style={{marginRight:'20px'}} onChange={handleSliderChange}></Slider>
+                            <Label aria-hidden style={{marginRight:'20px', fontStyle: 'bold'}}><strong>{sliderValue}%</strong></Label>
                             <Text style={{marginRight:'120px'}}>Inference level explanation </Text>
                             <Button style={{right: '0'}}>Back to default</Button>
+                            <input type='text' id='txtCameraSetupX1' value={CameraSetupX1.toString()} style={{display: 'none'}}></input>
+                            <input type='text' id='txtCameraSetupY1' value={CameraSetupY1.toString()} style={{display: 'none'}}></input>
+                            <input type='text' id='txtCameraSetupX2' value={CameraSetupX2.toString()} style={{display: 'none'}}></input> 
+                            <input type='text' id='txtCameraSetupY2' value={CameraSetupY2.toString()} style={{display: 'none'}}></input>                               
                           </Stack>
                    
                       </Stack.Item>
@@ -572,7 +608,7 @@ const CamerasZonesWizardSetupCamera = () => {
           <div className={styles.footer}>
             <Stack horizontal>
             <Button appearance="secondary" className={styles.footerpreviousbutton}onClick={() => navigate("/camerazoneswizardfloor")}>Previous</Button>
-            <Button appearance="primary" className={styles.footernextbutton} onClick={() => navigate("/camerazoneswizardreview")}>Next</Button>
+            <Button appearance="primary" className={styles.footernextbutton} onClick={() => onSaveAndNavigate()}>Next</Button>
           </Stack>
           </div>
           </Stack.Item>
