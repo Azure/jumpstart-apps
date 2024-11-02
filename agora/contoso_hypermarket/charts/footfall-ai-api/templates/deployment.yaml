@@ -28,6 +28,7 @@ spec:
       containers:
       - name: footfall-ai-api
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
         ports:
         - containerPort: 5000
         env:

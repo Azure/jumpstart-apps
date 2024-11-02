@@ -1,5 +1,5 @@
 # Use a base Python image
-FROM mcr.microsoft.com/cbl-mariner/base/python:3
+FROM python:3.9-slim
 
 RUN apt-get update && apt-get upgrade -y \
     && apt-get install -y curl apt-transport-https gnupg2 \
@@ -65,4 +65,4 @@ ENV SQL_PASSWORD=your_password
 EXPOSE 8001
 
 # Run main.py when the container launches
-CMD ["/usr/bin/python3", "app.py"]
+CMD ["python", "app.py"]
