@@ -60,6 +60,10 @@ class VideoProcessor:
         self.age_compiled_model = self.ie.read_model(os.path.join(MODEL_PATH, "age-gender-recognition-retail-0013.xml"))
         self.age_compiled_model = self.ie.compile_model(model=self.age_compiled_model, device_name="GPU" if "GPU" in self.ie.available_devices else "CPU")
 
+        # Print model loading information
+        device_used = "GPU" if "GPU" in self.ie.available_devices else "CPU"
+        print(f"Model loaded in: {device_used}")
+
        # Get input and output layers
         self.det_input_layer = self.det_compiled_model.input(0)
         self.det_output_layer = self.det_compiled_model.output(0)
