@@ -21,14 +21,7 @@ WORKDIR /app
 COPY requirements.txt /app/
 
 # Install Python dependencies
-#RUN pip install --no-cache-dir -r requirements.txt && \
-#    pip install --no-cache-dir huggingface-hub[cli]
-# Update pip and install dependencies in specific order to avoid conflicts
 RUN pip install --no-cache-dir --upgrade pip && \
-    # Install core dependencies first to manage version conflicts
-    #pip install --no-cache-dir langchain-core>=0.2.22,<0.3.0 && \
-    #pip install --no-cache-dir langchain-community==0.2.9 && \
-    #pip install --no-cache-dir langchain==0.3.0 && \
     # Install remaining dependencies
     pip install --no-cache-dir -r requirements.txt
 
