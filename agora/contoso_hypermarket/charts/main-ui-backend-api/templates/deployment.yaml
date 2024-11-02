@@ -15,6 +15,7 @@ spec:
       containers:
       - name: main-ui-backend-api
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
         ports:
         - containerPort: 5002
         env:

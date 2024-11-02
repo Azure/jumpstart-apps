@@ -15,6 +15,7 @@ spec:
       containers:
       - name: cerebral-api
         image: {{ .Values.images.cerebral.repository }}:{{ .Values.images.cerebral.tag }}
+        imagePullPolicy: {{ .Values.images.cerebral.pullPolicy }}
         ports:
         - containerPort: 5003
         env:
