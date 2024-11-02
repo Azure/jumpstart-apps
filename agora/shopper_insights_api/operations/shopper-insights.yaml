@@ -1,3 +1,29 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: acsa-pvc
+  namespace: default
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: cloud-backed-sc
+---
+apiVersion: "arccontainerstorage.azure.net/v1"
+kind: EdgeSubvolume
+metadata:
+  name: videos
+spec:
+  edgevolume: acsa-pvc
+  path: videos #Don't use a preceding slash.
+  auth:
+    authType: MANAGED_IDENTITY
+  storageaccountendpoint: "https://{STORAGEACCOUNT}.blob.core.windows.net/"
+  container: shopper-videos
+  ingestPolicy: edgeingestpolicy-default
+---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
