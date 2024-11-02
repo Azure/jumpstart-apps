@@ -45,3 +45,6 @@ dependencies:
   - name: influxdb
     version: 0.1.0
     repository: "file://../influxdb"
+  - name: shopper-insights
+    version: 0.1.0
+    repository: "file://../shopper-insights"
