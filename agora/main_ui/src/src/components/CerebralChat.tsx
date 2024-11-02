@@ -58,15 +58,13 @@ const CerebralChatWithAudio = (props: CopilotChatProps) => {
   };
 
   const flushBufferedMessages = (isCompleted : Boolean) => {
-    debugger;
     const formattedMessage = `
-      ${messageBuffer.classification ? `Category: ${messageBuffer.classification.trim()}\n` : ''}
-      ${messageBuffer.message ? `Message: ${messageBuffer.message.trim()}\n` : ''}
-      ${messageBuffer.query ? `Generated Query: ${messageBuffer.query.trim()}\n` : ''}
-      ${messageBuffer.result ? `Query Result: ${messageBuffer.result.trim()}\n` : ''}
-      ${messageBuffer.recommendations ? `Recommendations: ${messageBuffer.recommendations.trim()}\n` : ''}
+      ${messageBuffer.classification ? `<strong>Category:</strong> ${messageBuffer.classification.trim()}<br/>` : ''}
+      ${messageBuffer.message ? `<strong>Message:</strong> ${messageBuffer.message.trim()}<br/>` : ''}
+      ${messageBuffer.query ? `<strong>Generated Query:</strong> ${messageBuffer.query.trim()}<br/>` : ''}
+      ${messageBuffer.result ? `${messageBuffer.result.trim()}<br/>` : ''}
+      ${messageBuffer.recommendations ? `<strong>Recommendations:</strong> ${messageBuffer.recommendations.trim()}<br/>` : ''}
     `.trim();
-  
     setMessages(prevMessages => {
       if (isCompleted) {
         // If complete, modify the last message and set isCompleted to true
@@ -78,7 +76,6 @@ const CerebralChatWithAudio = (props: CopilotChatProps) => {
         return updatedMessages;
       } 
       else {
-        debugger;
         // If not complete, modify the last message
         const updatedMessages = [...prevMessages];
         const lastMessage = updatedMessages[updatedMessages.length - 1];
@@ -353,6 +350,7 @@ const CerebralChatWithAudio = (props: CopilotChatProps) => {
         }
       >
         {msg.content}
+      <div dangerouslySetInnerHTML={{ __html: msg.content }} />
       </CopilotMessage>
     );
   };
