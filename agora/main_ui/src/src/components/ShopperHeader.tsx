@@ -259,11 +259,12 @@ const useStyles = makeStyles({
     productname: {
       "display": "flex",
       "align-items": "center",
+      marginLeft: "45px",
+      marginBottom: "11px"
     },
     contosohypermarketdark: {
       "width": "79.127px",
       "height": "35px",
-      "background-image": "url('Green.svg')"
     },
     appnameandpreviewlabel: {
       "display": "flex",
@@ -338,18 +339,8 @@ const ShopperHeader: React.FC<{ callParentFunction: () => void; callCerebralPare
 
               </div>
               <div id='AppnameAndPreviewLabel' className={classes.appnameandpreviewlabel}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="17" height="16" viewBox="0 0 17 16" fill="none">
-                  <path d="M7.62646 1C7.90261 1 8.12646 1.22386 8.12646 1.5V14.5C8.12646 14.7761 7.90261 15 7.62646 15C7.35032 15 7.12646 14.7761 7.12646 14.5V1.5C7.12646 1.22386 7.35032 1 7.62646 1Z" fill="#FAFAFA"/>
-                  <path d="M7.62646 1C7.90261 1 8.12646 1.22386 8.12646 1.5V14.5C8.12646 14.7761 7.90261 15 7.62646 15C7.35032 15 7.12646 14.7761 7.12646 14.5V1.5C7.12646 1.22386 7.35032 1 7.62646 1Z" fill="url(#paint0_radial_797_23925)"/>
-                  <defs>
-                  <radialGradient id="paint0_radial_797_23925" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(7.62646 8) rotate(90) scale(9.79724 0.699803)">
-                  <stop stop-color="#FAFAFA" stop-opacity="0"/>
-                  <stop offset="1" stop-color="#F5F5F5"/>
-                  </radialGradient>
-                  </defs>
-                </svg>
                 <div id='JumpstartBanner' className={classes.jumpstartbanner}>
-                  <img src="JumpstartBannerV2White.svg" alt="Jumpstart Banner v2 White"/>
+                  <img src="Group 1321317568.svg" alt="Jumpstart Banner v2 White"/>
                 </div>
               </div>
             </div>

@@ -69,6 +69,9 @@ const useStyles = makeStyles({
         width: '224px',
         height: '32px',
     },
+    footerArcJumpstart: {
+
+    },
     footerSocial: {
         width: '237px',
         padding: '6px',
@@ -139,22 +142,22 @@ const ShopperFooter: React.FC = () => {
             <Stack.Item grow styles={itemStyles} id='CopyRight'>
                 <Text className={classes.footerText}>© 2024, All rights reserved Arc JumpStart</Text>
             </Stack.Item>
-            {/* <Stack.Item grow styles={itemStyles} id='visamastercard'>
-                <img src='Payment.png' alt='Visa' className={classes.footerPayment}/>
-            </Stack.Item> */}
             <Stack.Item grow styles={itemStyles} id='socialmedia'>
                 <div className={classes.footerSocial}>
                     <div className={classes.footerSocialIcon}>
                         <img src='Facebook.svg' alt='Facebook'/>
                     </div>
                     <div className={classes.footerSocialIcon}>
-                        <img src='Instagram.svg' alt='Instagram'/>
+                        <img src='LinkedIn.svg' alt='LinkedIn'/>
                     </div>
                     <div className={classes.footerSocialIcon}>
-                        <img src='LinkedIn.svg' alt='LinkedIn'/>
+                        <img src='Instagram.svg' alt='Instagram'/>
                     </div>
                 </div>
             </Stack.Item>
+            <Stack.Item grow styles={itemStyles} id='arcjumpstart'>
+                <img src='Jumpstart Banner v2 White 1.svg' alt='Jumpstart Banner ' className={classes.footerArcJumpstart}/>
+            </Stack.Item>            
       </Stack>
     </Stack>
     );
