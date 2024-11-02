@@ -6,7 +6,7 @@ image:
   repository: docker.io/kerberos/virtual-rtsp
   tag: latest
   # This sets the pull policy for images.
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
 
 services:
   aisle:
