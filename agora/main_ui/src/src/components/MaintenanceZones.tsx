@@ -144,8 +144,8 @@ import { useNavigate } from "react-router-dom";
             </Stack> 
             <Stack id='emptyspace' className={classes.emptyspace}>
                 <Stack style={{height:'100%', width:'100%', marginTop:'258px'}}>
-                    <Text align="center" size={500}>No floor plan or zones to display</Text>
-                    <Text align="center" size={300}>Click 'Upload Floor Plan' to get started</Text>
+                    <Text align="center" size={500}>No floor zones to display</Text>
+                    <Text align="center" size={300}>Click 'Upload floorplan' to get started</Text>
                     <div className={classes.addcameracontainer}>
                         <Button appearance="primary" className={classes.uploadfloorplanbuttoncenter} onClick={navigotteToWizard}>
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -153,9 +153,6 @@ import { useNavigate } from "react-router-dom";
                             </svg>
                             Upload floorplan</Button>
                     </div>
-                </Stack>
-                <Stack id='zonesgrid' style={{width:'100%'}}>
-                    <MaintenanceZonesGrid/>
                 </Stack>
             </Stack>
             <Stack id='camerascollection'>

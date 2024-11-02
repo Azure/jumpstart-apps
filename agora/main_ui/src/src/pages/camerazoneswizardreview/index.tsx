@@ -374,6 +374,65 @@ const CamerasZonesWizardReview = () => {
       const onCancelCerebralDrawer = () => {
         setIsCerebralDrawerOpen(false);
       };       
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const zoneLabelParameter = urlParams.get('zoneLabel');
+      const floorZoneX1Parameter = urlParams.get('floorZoneX1');
+      const floorZoneY1Parameter = urlParams.get('floorZoneY1');
+      const floorZoneX2Parameter = urlParams.get('floorZoneX2');
+      const floorZoneY2Parameter = urlParams.get('floorZoneY2');
+      const selectedCameraForSetupParameter = urlParams.get('selectedCameraForSetup');
+      const thresholdParameter = urlParams.get('threshold');
+      const CameraSetupX1Parameter = urlParams.get('CameraSetupX1');
+      const CameraSetupY1Parameter = urlParams.get('CameraSetupY1');
+      const CameraSetupX2Parameter = urlParams.get('CameraSetupX2');
+      const CameraSetupY2Parameter = urlParams.get('CameraSetupY2');
+      const selectedCameraParameter = urlParams.get('selectedCamera');
+      
+      const saveDataAndNavigate   = () => {
+        var storeAPI = process.env.REACT_APP_STORE_API_URL || "/store_api";
+        
+        // Send data to the backend via POST - Create Zone
+        fetch(storeAPI + '/zones', {
+          method: 'POST',
+          headers: {
+            'accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          // body: '{\n  "name": "Camera3",\n  "description": "Camera3",\n  "rtspuri": "rtsp://rtsp_stream_container:8554/stream"\n}',
+          body: JSON.stringify({
+            "name": zoneLabelParameter,
+            "description": "",
+            "x1": Number(floorZoneX1Parameter),
+            "y1": Number(floorZoneY1Parameter),
+            "x2": Number(floorZoneX2Parameter),
+            "y2": Number(floorZoneY2Parameter)
+          })
+        });
+
+        // Send data to the backend via POST - Create Zone
+        fetch(storeAPI + '/regions', {
+          method: 'POST',
+          headers: {
+            'accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          // body: '{\n  "name": "Camera3",\n  "description": "Camera3",\n  "rtspuri": "rtsp://rtsp_stream_container:8554/stream"\n}',
+          body: JSON.stringify({
+            "name": zoneLabelParameter,
+            "description": "",
+            "camera_id": 1,
+            "x1": Number(CameraSetupX1Parameter),
+            "y1": Number(CameraSetupY1Parameter),
+            "x2": Number(CameraSetupX2Parameter),
+            "y2": Number(selectedCameraParameter),
+            "threshold": Number(thresholdParameter)
+          })
+        });
+
+        navigate("/cameraszones");
+
+      }
     return (
         <FluentProvider theme={webLightTheme}>
         <CopilotProvider mode='sidecar'>
@@ -430,10 +489,10 @@ const CamerasZonesWizardReview = () => {
                           <Stack>
                             <Stack horizontal className={styles.reviewitem}>
                               <Text className={styles.reviewitemname}> Zone 1</Text>
-                              <Text className={styles.reviewitemvalue}> Produce</Text>
+                              <Text className={styles.reviewitemvalue}> {zoneLabelParameter}</Text>
                             </Stack>
                           </Stack>
-                          <Stack>
+                          {/* <Stack>
                             <Stack horizontal className={styles.reviewitem}>
                               <Text className={styles.reviewitemname}> Zone 2</Text>
                               <Text className={styles.reviewitemvalue}> Seafood</Text>
@@ -456,7 +515,7 @@ const CamerasZonesWizardReview = () => {
                               <Text className={styles.reviewitemname}> Zone 5</Text>
                               <Text className={styles.reviewitemvalue}> Enterance</Text>
                             </Stack>
-                          </Stack>                                                                                                                               
+                          </Stack>                                                                                                                                */}
                         </Stack.Item>
                       </Stack>
                       <Stack id='cameras'>
@@ -465,21 +524,21 @@ const CamerasZonesWizardReview = () => {
                           <Stack>
                             <Stack horizontal className={styles.reviewitem}>
                               <Text className={styles.reviewitemname}> Camera 1</Text>
-                              <Text className={styles.reviewitemvalue}> Cam-001-north-enterance</Text>
+                              <Text className={styles.reviewitemvalue}> {selectedCameraParameter}</Text>
                             </Stack>
                           </Stack>                          
                           <Stack>
                             <Stack horizontal className={styles.reviewitem}>
                               <Text className={styles.reviewitemname}> Camera 2</Text>
-                              <Text className={styles.reviewitemvalue}> Cam-002-north-enterance</Text>
+                              <Text className={styles.reviewitemvalue}> {selectedCameraForSetupParameter}</Text>
                             </Stack>
                           </Stack>
-                          <Stack>
+                          {/* <Stack>
                             <Stack horizontal className={styles.reviewitem}>
                               <Text className={styles.reviewitemname}> Camera 3</Text>
                               <Text className={styles.reviewitemvalue}> Cam-003-north-enterance</Text>
                             </Stack>
-                          </Stack>                                                                              
+                          </Stack>                                                                               */}
                         </Stack.Item>
                       </Stack>                      
                       {/* Footer */}
@@ -497,7 +556,7 @@ const CamerasZonesWizardReview = () => {
           <div className={styles.footer}>
             <Stack horizontal>
             <Button appearance="secondary" className={styles.footerpreviousbutton}onClick={() => navigate("/camerazoneswizardsetupcamera")}>Previous</Button>
-            <Button appearance="primary" className={styles.footernextbutton} onClick={() => alert('save')}>Save</Button>
+            <Button appearance="primary" className={styles.footernextbutton} onClick={() => saveDataAndNavigate()}>Save</Button>
           </Stack>
           </div>
           </Stack.Item>
