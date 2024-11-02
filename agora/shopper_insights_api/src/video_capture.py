@@ -31,9 +31,7 @@ class VideoCapture:
                 if not self.running:
                     return
             
-            self.q.put(cv2.resize(frame, (1280, 720)))
-
-            #self.q.put(frame)
+            self.q.put(cv2.resize(frame, (640, 360)))
             self.state=ret
 
     def read(self):
