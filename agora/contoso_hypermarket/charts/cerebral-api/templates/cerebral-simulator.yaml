@@ -24,6 +24,18 @@ data:
   ORDER_FREQUENCY: "10"
   PRODUCTS_FILE: "products.json"
   UI_API_URL: "http://backend-api.contoso-hypermarket.svc.cluster.local:5002"
+  ENABLE_MQTT: true
+  ENABLE_INFLUXDB: true
+  ENABLE_HISTORICAL: true
+  ENABLE_PROMETHEUS: true
+  ENABLE_API: true
+  ENABLE_STORE_SIMULATOR: true
+  ENABLE_SQL: true
+  SQL_SERVER: "mssql-service.contoso-hypermarket.svc.cluster.local"
+  SQL_DATABASE: "RetailStore"
+  SQL_USERNAME: "sa"
+  SQL_PASSWORD: "ArcPassword123!!"
+
 ---
 
 apiVersion: apps/v1
