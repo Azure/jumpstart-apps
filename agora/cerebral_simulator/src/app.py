@@ -17,9 +17,10 @@ from prometheus_client.core import CollectorRegistry
 from flask import Flask, Response, jsonify
 from flasgger import Swagger, swag_from
 
-from store_simulator import run_store_simulator
+from store_simulator import run_store_simulator, StoreSimulator, ProductInventory
+from flask_cors import CORS  # Import CORS
 
-#dev mode
+#DEV_MODE
 #from dotenv import load_dotenv
 #load_dotenv()
 
@@ -43,7 +44,11 @@ ENABLE_HISTORICAL = os.getenv("ENABLE_HISTORICAL", "True").lower() == "true"
 ENABLE_PROMETHEUS = os.getenv("ENABLE_PROMETHEUS", "True").lower() == "true"
 ENABLE_API = os.getenv("ENABLE_API", "True").lower() == "true"
 ENABLE_STORE_SIMULATOR = os.getenv("ENABLE_STORE_SIMULATOR", "True").lower() == "true"
+STORE_ID = os.getenv("STORE_ID", "SEA")
 
+store_simulator_instance = None
+client = None
+write_api = None
 
 # Device Simulation Settings
 DEVICE_COUNTS = {
@@ -83,6 +88,7 @@ SCALE_TARE_WEIGHT = Gauge('scale_tare_weight_kg', 'Scale tare weight in kg', ['d
 POS_ITEMS_SOLD = Counter('pos_items_sold', 'Number of items sold', ['device_id'], registry=REGISTRY)
 POS_TOTAL_AMOUNT = Counter('pos_total_amount_usd', 'Total amount of sales in USD', ['device_id'], registry=REGISTRY)
 POS_PAYMENT_METHOD = Counter('pos_payment_method', 'Payment method used', ['method', 'device_id'], registry=REGISTRY)
+POS_FAILURE = Counter('pos_failure_count', 'Number of failures by type', ['failure_type', 'device_id'], registry=REGISTRY)
 
 # SmartShelf metrics
 SMART_SHELF_STOCK_LEVEL = Gauge('smart_shelf_stock_level', 'Smart shelf current stock level', ['product_id', 'device_id'], registry=REGISTRY)
@@ -110,6 +116,8 @@ EQUIPMENT_TYPES = ["Refrigerator", "Scale", "POS", "SmartShelf", "HVAC", "Lighti
 # Flask app and Swagger initialization
 app = Flask(__name__)
 swagger = Swagger(app)
+
+CORS(app)  # Enable CORS
 
 # Store metrics data in memory
 devices_metrics = {}
@@ -157,12 +165,26 @@ def generate_equipment_data(equipment_type, device_id, pk):
         })
     
     elif equipment_type == "POS":
+        has_failure = random.random() < 0.15
+        
         data.update({
             "transaction_id": f"txn_{random.randint(1000, 9999)}",
             "items_sold": float(random.randint(1, 10)),
             "total_amount_usd": round(random.uniform(10, 500), 2),
             "payment_method": random.choice(["credit_card", "cash", "mobile_payment"]),
+            "has_failure": has_failure,
         })
+
+        if has_failure:
+            data["failure_type"] = random.choice([
+                "printer_error",
+                "network_connection_lost",
+                "card_reader_error",
+                "cash_drawer_stuck",
+                "system_freeze"
+            ])
+        else:
+            data["failure_type"] = "none"
     
     elif equipment_type == "SmartShelf":
         data.update({
@@ -214,8 +236,11 @@ def write_data_to_influxdb(equipment_type, device_id, measurement_name, timestam
                 point.field(key, value)
             elif isinstance(value, str):
                 point.tag(key, value)
+            elif value is None:
+                continue
             else:
-                logger.warning(f"Skipping field {key} with unsupported type {type(value)}")
+                if VERBOSE:
+                    logger.warning(f"Skipping field {key} with unsupported type {type(value)}")
                 
         write_api.write(bucket=INFLUXDB_BUCKET, record=point)
 
@@ -231,6 +256,7 @@ def publish_data_to_mqtt(equipment_type, device_id, timestamp, data):
     try:
         mqtt_payload = json.dumps({
             "timestamp": timestamp,
+            "store_id": STORE_ID,
             "device_id": device_id,
             "equipment_type": equipment_type,
             "data": data
@@ -270,6 +296,15 @@ def update_prometheus_metrics(equipment_type, device_id, data):
             POS_ITEMS_SOLD.labels(device_id=device_id).inc(data["items_sold"])
             POS_TOTAL_AMOUNT.labels(device_id=device_id).inc(data["total_amount_usd"])
             POS_PAYMENT_METHOD.labels(method=data["payment_method"], device_id=device_id).inc()
+            if data.get("has_failure") and data.get("failure_type"):
+                POS_FAILURE.labels(
+                    failure_type=data["failure_type"],
+                    device_id=device_id
+                ).inc()
+                
+                if VERBOSE:
+                    logger.warning(f"POS {device_id} reported failure: {data['failure_type']}")
+
         elif equipment_type == "SmartShelf":
             SMART_SHELF_STOCK_LEVEL.labels(product_id=data["product_id"], device_id=device_id).set(data["stock_level"])
             SMART_SHELF_THRESHOLD.labels(product_id=data["product_id"], device_id=device_id).set(data["threshold_stock_level"])
@@ -301,11 +336,16 @@ def update_backend_api(equipment_type, pk, data):
             payload = {
                 **data
             }
-            response = requests.put(url, json=payload)
+            #print( payload )
+            response = requests.put(url, json=payload, timeout=5)  # Agregamos timeout
             response.raise_for_status()
-            logger.info(f"Successfully updated backend API for {pk}")
+            if VERBOSE:
+                logger.info(f"Successfully updated backend API for {pk}")
+            
         except requests.exceptions.RequestException as e:
-            logger.error(f"Failed to update backend API for {pk}: {str(e)}")
+            if VERBOSE:
+                logger.warning(f"Failed to update backend API for {pk}: {str(e)}")
+            pass
 
 def simulate_device(pk, equipment_type, device_id):
     while True:
@@ -491,17 +531,359 @@ app.config['SWAGGER'] = {
     'specs_route': '/apidocs/'
 }
 
-# Connect to InfluxDB
-client = InfluxDBClient(url=INFLUXDB_URL, token=INFLUXDB_TOKEN, org=INFLUXDB_ORG)
-write_api = client.write_api(write_options=SYNCHRONOUS)
+@app.route('/api/v1/orders/recent', methods=['GET'])
+@swag_from({
+    'responses': {
+        200: {
+            'description': 'List of recent orders',
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'orders': {
+                        'type': 'array',
+                        'items': {
+                            'type': 'object',
+                            'properties': {
+                                'timestamp': {'type': 'string', 'format': 'date-time'},
+                                'order_data': {
+                                    'type': 'object',
+                                    'properties': {
+                                        'sale_id': {'type': 'string'},
+                                        'sale_date': {'type': 'string', 'format': 'date-time'},
+                                        'store_id': {'type': 'string'},
+                                        'store_city': {'type': 'string'},
+                                        'product_id': {'type': 'string'},
+                                        'product_name': {'type': 'string'},
+                                        'quantity': {'type': 'integer'},
+                                        'item_total': {'type': 'number'},
+                                        'payment_method': {'type': 'string'}
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    'total_orders': {'type': 'integer'}
+                }
+            }
+        }
+    },
+    'summary': 'Returns the list of recent orders',
+    'tags': ['Orders']
+})
+def get_recent_orders():
+    if not store_simulator_instance:
+        return jsonify({'error': 'Store simulator not running'}), 503
+    
+    orders = store_simulator_instance.recent_orders
+    return jsonify({
+        'orders': orders,
+        'total_orders': len(orders)
+    })
+
+@app.route('/api/v1/orders/summary', methods=['GET'])
+@swag_from({
+    'responses': {
+        200: {
+            'description': 'Summary of recent orders',
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'total_orders': {'type': 'integer'},
+                    'total_sales': {'type': 'number'},
+                    'average_order_value': {'type': 'number'},
+                    'orders_by_store': {
+                        'type': 'object',
+                        'additionalProperties': {'type': 'integer'}
+                    },
+                    'payment_methods': {
+                        'type': 'object',
+                        'additionalProperties': {'type': 'integer'}
+                    }
+                }
+            }
+        }
+    },
+    'summary': 'Returns a summary of recent orders',
+    'tags': ['Orders']
+})
+def get_orders_summary():
+    if not store_simulator_instance:
+        return jsonify({'error': 'Store simulator not running'}), 503
+    
+    orders = store_simulator_instance.recent_orders
+    if not orders:
+        return jsonify({
+            'total_orders': 0,
+            'total_sales': 0,
+            'average_order_value': 0,
+            'orders_by_store': {},
+            'payment_methods': {}
+        })
+
+    total_sales = 0
+    orders_by_store = {}
+    payment_methods = {}
+    
+    for order in orders:
+        order_data = order['order_data']
+        total_sales += float(order_data['item_total'])
+        
+        store_id = order_data['store_id']
+        orders_by_store[store_id] = orders_by_store.get(store_id, 0) + 1
+        
+        payment = order_data['payment_method']
+        payment_methods[payment] = payment_methods.get(payment, 0) + 1
+
+    return jsonify({
+        'total_orders': len(orders),
+        'total_sales': round(total_sales, 2),
+        'average_order_value': round(total_sales / len(orders), 2),
+        'orders_by_store': orders_by_store,
+        'payment_methods': payment_methods
+    })
+
+@app.route('/api/v1/inventory', methods=['GET'])
+@swag_from({
+    'responses': {
+        200: {
+            'description': 'Current inventory for all stores',
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'inventory': {
+                        'type': 'array',
+                        'items': {
+                            'type': 'object',
+                            'properties': {
+                                'store_id': {'type': 'string'},
+                                'product_id': {'type': 'string'},
+                                'in_stock': {'type': 'integer'},
+                                'retail_price': {'type': 'number'},
+                                'reorder_threshold': {'type': 'integer'},
+                                'last_restocked': {'type': 'string', 'format': 'date-time'},
+                                'date_time': {'type': 'string', 'format': 'date-time'}
+                            }
+                        }
+                    },
+                    'total_items': {'type': 'integer'}
+                }
+            }
+        }
+    },
+    'summary': 'Returns current inventory for all stores',
+    'tags': ['Inventory']
+})
+def get_inventory():
+    if not store_simulator_instance:
+        return jsonify({'error': 'Store simulator not running'}), 503
+    
+    inventory_list = []
+    for key, inventory in store_simulator_instance.current_inventory.items():
+        inventory_list.append({
+            'store_id': inventory.store_id,
+            'product_id': inventory.product_id,
+            'in_stock': inventory.in_stock,
+            'retail_price': float(inventory.retail_price),
+            'reorder_threshold': inventory.reorder_threshold,
+            'last_restocked': inventory.last_restocked.isoformat(),
+            'date_time': inventory.date_time.isoformat()
+        })
+    
+    return jsonify({
+        'inventory': inventory_list,
+        'total_items': len(inventory_list)
+    })
+
+@app.route('/api/v1/inventory/summary', methods=['GET'])
+@swag_from({
+    'responses': {
+        200: {
+            'description': 'Summary of current inventory',
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'total_items': {'type': 'integer'},
+                    'items_by_store': {
+                        'type': 'object',
+                        'additionalProperties': {'type': 'integer'}
+                    },
+                    'low_stock_items': {
+                        'type': 'array',
+                        'items': {
+                            'type': 'object',
+                            'properties': {
+                                'store_id': {'type': 'string'},
+                                'product_id': {'type': 'string'},
+                                'in_stock': {'type': 'integer'},
+                                'reorder_threshold': {'type': 'integer'}
+                            }
+                        }
+                    },
+                    'total_value': {'type': 'number'}
+                }
+            }
+        }
+    },
+    'summary': 'Returns a summary of current inventory status',
+    'tags': ['Inventory']
+})
+def get_inventory_summary():
+    if not store_simulator_instance:
+        return jsonify({'error': 'Store simulator not running'}), 503
+    
+    items_by_store = {}
+    low_stock_items = []
+    total_value = 0
+    
+    for key, inventory in store_simulator_instance.current_inventory.items():
+        # Count items by store
+        items_by_store[inventory.store_id] = items_by_store.get(inventory.store_id, 0) + inventory.in_stock
+        
+        # Calculate total value
+        total_value += inventory.in_stock * inventory.retail_price
+        
+        # Check for low stock
+        if inventory.in_stock <= inventory.reorder_threshold:
+            low_stock_items.append({
+                'store_id': inventory.store_id,
+                'product_id': inventory.product_id,
+                'in_stock': inventory.in_stock,
+                'reorder_threshold': inventory.reorder_threshold
+            })
+    
+    return jsonify({
+        'total_items': sum(items_by_store.values()),
+        'items_by_store': items_by_store,
+        'low_stock_items': low_stock_items,
+        'total_value': round(float(total_value), 2)
+    })
+
+@app.route('/api/v1/inventory/<store_id>', methods=['GET'])
+@swag_from({
+    'parameters': [
+        {
+            'name': 'store_id',
+            'in': 'path',
+            'type': 'string',
+            'required': True,
+            'description': 'Store identifier'
+        }
+    ],
+    'responses': {
+        200: {
+            'description': 'Inventory for specific store',
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'store_id': {'type': 'string'},
+                    'items': {
+                        'type': 'array',
+                        'items': {
+                            'type': 'object',
+                            'properties': {
+                                'product_id': {'type': 'string'},
+                                'in_stock': {'type': 'integer'},
+                                'retail_price': {'type': 'number'},
+                                'last_restocked': {'type': 'string', 'format': 'date-time'}
+                            }
+                        }
+                    },
+                    'total_items': {'type': 'integer'},
+                    'total_value': {'type': 'number'}
+                }
+            }
+        },
+        404: {
+            'description': 'Store not found'
+        }
+    },
+    'summary': 'Get inventory for a specific store',
+    'tags': ['Inventory']
+})
+def get_store_inventory(store_id):
+    if not store_simulator_instance:
+        return jsonify({'error': 'Store simulator not running'}), 503
+    
+    store_inventory = []
+    total_value = 0
+    
+    for key, inventory in store_simulator_instance.current_inventory.items():
+        if inventory.store_id == store_id:
+            store_inventory.append({
+                'product_id': inventory.product_id,
+                'in_stock': inventory.in_stock,
+                'retail_price': float(inventory.retail_price),
+                'last_restocked': inventory.last_restocked.isoformat()
+            })
+            total_value += inventory.in_stock * inventory.retail_price
+    
+    if not store_inventory:
+        return jsonify({'error': 'Store not found'}), 404
+    
+    return jsonify({
+        'store_id': store_id,
+        'items': store_inventory,
+        'total_items': sum(item['in_stock'] for item in store_inventory),
+        'total_value': round(float(total_value), 2)
+    })
+
+@app.route('/api/v1/pos/failures', methods=['GET'])
+@swag_from({
+    'responses': {
+        200: {
+            'description': 'POS failures summary',
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'failures_by_type': {
+                        'type': 'object',
+                        'additionalProperties': {'type': 'integer'}
+                    },
+                    'failures_by_device': {
+                        'type': 'object',
+                        'additionalProperties': {'type': 'integer'}
+                    },
+                    'total_failures': {'type': 'integer'}
+                }
+            }
+        }
+    },
+    'summary': 'Returns a summary of POS failures',
+    'tags': ['POS']
+})
+def get_pos_failures():
+    failures_by_type = {}
+    failures_by_device = {}
+    total_failures = 0
+    
+    for device_data in devices_metrics.values():
+        if device_data['equipment_type'] == 'POS':
+            metrics = device_data['metrics']
+            if metrics.get('has_failure') and metrics.get('failure_type'):
+                failure_type = metrics['failure_type']
+                device_id = device_data['device_id']
+                
+                failures_by_type[failure_type] = failures_by_type.get(failure_type, 0) + 1
+                failures_by_device[device_id] = failures_by_device.get(device_id, 0) + 1
+                total_failures += 1
+    
+    return jsonify({
+        'failures_by_type': failures_by_type,
+        'failures_by_device': failures_by_device,
+        'total_failures': total_failures
+    })
 
 if __name__ == "__main__":
     from threading import Thread
     
+    if ENABLE_INFLUXDB:
+        # Connect to InfluxDB
+        client = InfluxDBClient(url=INFLUXDB_URL, token=INFLUXDB_TOKEN, org=INFLUXDB_ORG)
+        write_api = client.write_api(write_options=SYNCHRONOUS)
+
     # Start Flask app with Swagger UI
-    if ENABLE_API:
-        Thread(target=lambda: app.run(host="0.0.0.0", port=PORT, use_reloader=False)).start()
-        logger.info(f"API documentation available at http://localhost:{PORT}/apidocs")
+    Thread(target=lambda: app.run(host="0.0.0.0", port=PORT, use_reloader=False)).start()
+    logger.info(f"API documentation available at http://localhost:{PORT}/apidocs")
     
     # Start system metrics update in a separate thread
     if ENABLE_PROMETHEUS:
@@ -510,9 +892,14 @@ if __name__ == "__main__":
 
     # Start store simulator in a separate thread
     if ENABLE_STORE_SIMULATOR:
-        store_simulator_thread = Thread(target=run_store_simulator, daemon=True)
+        simulator = StoreSimulator()
+        store_simulator_instance = simulator
+        store_simulator_thread = Thread(target=simulator.run, daemon=True)
         store_simulator_thread.start()
         logger.info("Store simulator started")
+        #store_simulator_thread = Thread(target=run_store_simulator, daemon=True)
+        #store_simulator_thread.start()
+        #logger.info("Store simulator started")
 
     if ENABLE_MQTT:
         try:

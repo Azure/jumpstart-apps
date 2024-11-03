@@ -9,8 +9,8 @@ from azure.eventhub import EventHubProducerClient, EventData
 import paho.mqtt.client as mqtt
 import pyodbc
 
-#DevMode
-from dotenv import load_dotenv
+#DEV_MODE
+#from dotenv import load_dotenv
 
 class PriceRange:
     def __init__(self, min, max):
@@ -62,7 +62,7 @@ class StoreSimulator:
         logging.basicConfig(level=logging.INFO)
         self.logger = logging.getLogger(__name__)
         
-        # dev mode
+        # DEV_MODE
         # Load environment variables from .env file
         #load_dotenv()
         
@@ -77,7 +77,7 @@ class StoreSimulator:
         self.SQL_SERVER = os.getenv("SQL_SERVER", "localhost")
         self.SQL_DATABASE = os.getenv("SQL_DATABASE", "RetailStore")
         self.SQL_USERNAME = os.getenv("SQL_USERNAME", "sa")
-        self.SQL_PASSWORD = os.getenv("SQL_PASSWORD", "YourPassword123!")
+        self.SQL_PASSWORD = os.getenv("SQL_PASSWORD", "ArcPassword123!!")
         self.ENABLE_SQL = os.getenv("ENABLE_SQL", "True").lower() == "true"
         self.ENABLE_HISTORICAL = os.getenv("ENABLE_HISTORICAL", "True").lower() == "true"
 
@@ -120,6 +120,17 @@ class StoreSimulator:
 
         self.products_list = []
         self.current_inventory = {}
+
+        # Add orders storage
+        self.recent_orders = []
+        self.max_orders_history = 100
+
+    def add_order(self, order_data):
+        """Add order to recent orders list"""
+        self.recent_orders.append(order_data)
+        # keep only the recent orders
+        if len(self.recent_orders) > self.max_orders_history:
+            self.recent_orders.pop(0)
 
     def init_database(self):
         """Initialize database connection and create tables if they don't exist"""
@@ -444,6 +455,12 @@ class StoreSimulator:
                                 'customer_id': f'C-{random.randint(1,1000):03d}',
                                 'register_id': random.choice(self.store_registers)
                             }
+
+                            # Add to recent orders
+                            self.add_order({
+                                "timestamp": current_time_str,
+                                "order_data": line_item
+                            })
 
                             # Save to SQL if enabled
                             if self.ENABLE_SQL:
