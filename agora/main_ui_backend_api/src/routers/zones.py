@@ -33,8 +33,8 @@ def create_zone(zone: ZoneCreate):
     conn = get_db_connection()
     cursor = conn.cursor(cursor_factory=RealDictCursor)
     cursor.execute(
-        'INSERT INTO zones (name, description, x1, y1, x2, y2) VALUES (%s, %s, %s, %s, %s, %s) RETURNING *',
-        (zone.name, zone.description, zone.x1, zone.y1, zone.x2, zone.y2)
+        'INSERT INTO zones (name, description, x1, y1, x2, y2, camera_id) VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING *',
+        (zone.name, zone.description, zone.x1, zone.y1, zone.x2, zone.y2, zone.camera_id)
     )
     new_zone = cursor.fetchone()
     conn.commit()
@@ -47,8 +47,8 @@ def update_zone(zone_id: int, zone: ZoneCreate):
     conn = get_db_connection()
     cursor = conn.cursor(cursor_factory=RealDictCursor)
     cursor.execute(
-        'UPDATE zones SET name = %s, description = %s, x1 = %s, y1 = %s, x2 = %s, y2 = %s WHERE id = %s RETURNING *',
-        (zone.name, zone.description, zone.x1, zone.y1, zone.x2, zone.y2, zone_id)
+        'UPDATE zones SET name = %s, description = %s, x1 = %s, y1 = %s, x2 = %s, y2 = %s, camera_id = %s WHERE id = %s RETURNING *',
+        (zone.name, zone.description, zone.x1, zone.y1, zone.x2, zone.y2, zone.camera_id, zone_id)
     )
     updated_zone = cursor.fetchone()
     conn.commit()
