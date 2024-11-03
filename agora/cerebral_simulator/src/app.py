@@ -18,6 +18,7 @@ from flask import Flask, Response, jsonify
 from flasgger import Swagger, swag_from
 
 from store_simulator import run_store_simulator, StoreSimulator, ProductInventory
+from flask_cors import CORS  # Import CORS
 
 #DEV_MODE
 #from dotenv import load_dotenv
@@ -115,6 +116,8 @@ EQUIPMENT_TYPES = ["Refrigerator", "Scale", "POS", "SmartShelf", "HVAC", "Lighti
 # Flask app and Swagger initialization
 app = Flask(__name__)
 swagger = Swagger(app)
+
+CORS(app)  # Enable CORS
 
 # Store metrics data in memory
 devices_metrics = {}
@@ -879,9 +882,8 @@ if __name__ == "__main__":
         write_api = client.write_api(write_options=SYNCHRONOUS)
 
     # Start Flask app with Swagger UI
-    if ENABLE_API:
-        Thread(target=lambda: app.run(host="0.0.0.0", port=PORT, use_reloader=False)).start()
-        logger.info(f"API documentation available at http://localhost:{PORT}/apidocs")
+    Thread(target=lambda: app.run(host="0.0.0.0", port=PORT, use_reloader=False)).start()
+    logger.info(f"API documentation available at http://localhost:{PORT}/apidocs")
     
     # Start system metrics update in a separate thread
     if ENABLE_PROMETHEUS:

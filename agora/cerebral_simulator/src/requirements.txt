@@ -8,3 +8,4 @@ azure-eventhub
 python-dotenv
 flasgger
 pyodbc
+flask-cors
