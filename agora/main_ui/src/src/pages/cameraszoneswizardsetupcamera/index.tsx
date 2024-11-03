@@ -27,7 +27,7 @@ import {
 } from "@fluentui/react-icons";
 import { Toggle } from '@fluentui/react/lib/Toggle';
 import { useNavigate } from "react-router-dom";
-import Header from '../../components/SuiteHeader';
+import Header from '../../components/MaintenanceWorkerHeader';
 import Footer from '../../components/SuiteFooter';
 import VideoStreamWizard from '../../components/VideoStreamWizard';
 import SideMenu from "../../components/MaintenanceMenu";

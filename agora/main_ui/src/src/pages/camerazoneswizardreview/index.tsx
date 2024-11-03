@@ -15,7 +15,7 @@ import {
   Dropdown
 } from "@fluentui/react-components";
 import { useNavigate } from "react-router-dom";
-import Header from '../../components/SuiteHeader';
+import Header from '../../components/MaintenanceWorkerHeader';
 import Footer from '../../components/SuiteFooter';
 import SideMenu from "../../components/MaintenanceMenu";
 import { ITag, Pivot, PivotItem, PrimaryButton, TagPicker, TextField } from '@fluentui/react';

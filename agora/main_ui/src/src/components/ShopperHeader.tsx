@@ -1,7 +1,7 @@
 import { Stack, IStackTokens ,IStackProps, ITheme, IThemeRules, DefaultPalette, IconButton, IIconProps } from "@fluentui/react";
 import { Avatar, Text,  tokens, makeStyles, shorthands, Button } from "@fluentui/react-components";
 import { SearchBox } from "@fluentui/react-search-preview";
-
+import { useNavigate } from "react-router-dom";
 
 export interface IHeaderProps {
     themeRules?: IThemeRules;
@@ -335,10 +335,11 @@ const ShopperHeader: React.FC<{ callParentFunction: () => void; callCerebralPare
       childrenGap: 10,
       padding: 10,
     };
+    const navigate = useNavigate();
     return(
       <Stack horizontal tokens={horizontalStackTokens} className={classes.suiteheader} id='SuiteHeader'>
       <Stack.Item align="start">
-        <Stack horizontal>
+        <Stack horizontal onClick={() => navigate('/shopper')}>
           <div id='ProductName+Breadcrumb' className={classes.productnameandbreadcrumb}>
             <div id='ProduceName' className={classes.productname}>
               <div id='ContosoHypermarketDark' className={classes.contosohypermarketdark}>

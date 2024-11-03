@@ -317,7 +317,7 @@ const useStyles = makeStyles({
     },
   });
 
-const SuiteHeader: React.FC<{ callParentFunction: () => void }> = ({ callParentFunction }) => {
+const MaintenanceWorkerHeader: React.FC<{ callParentFunction: () => void }> = ({ callParentFunction }) => {
     const classes = useStyles();
     const horizontalStackTokens: IStackTokens = {
       childrenGap: 10,
@@ -327,7 +327,7 @@ const SuiteHeader: React.FC<{ callParentFunction: () => void }> = ({ callParentF
     return(
       <Stack horizontal tokens={horizontalStackTokens} className={classes.instance26Suiteheade}>
       <Stack.Item align="start">
-        <Stack horizontal onClick={() => navigate('/storemanager')} >
+        <Stack horizontal onClick={() => navigate('/maintenanceworker')} >
           <div id='ProductName+Breadcrumb' className={classes.productnameandbreadcrumb}>
             <div id='ProduceName' className={classes.productname}>
               <div id='ContosoHypermarketDark' className={classes.contosohypermarketdark}>
@@ -375,11 +375,11 @@ const SuiteHeader: React.FC<{ callParentFunction: () => void }> = ({ callParentF
         </div>
         </Stack.Item>
         <Stack.Item align="end" className={classes.accountmanager}>
-          <img src="PersonaLisa.png" alt="Sparkle" className={classes.accountmanagerimage} />
+          <img src="PersonaAsh.png" alt="Sparkle" className={classes.accountmanagerimage} />
         </Stack.Item>
       </Stack>
     </Stack>
     );
 };
 
-export default SuiteHeader;
+export default MaintenanceWorkerHeader;
