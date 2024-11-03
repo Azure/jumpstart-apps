@@ -13,7 +13,7 @@ import { Default as Banner } from "../../components/Banner";
 import Cards from "../../components/Cards";
 import Greetings from "../../components/Greetings";
 import InventoryStatus from "../../components/InventoryStatus";
-import Health from "../../components/Health";
+import DeviceStatus from "../../components/DeviceStatus";
 import { IStackProps, IStackTokens, Stack } from "@fluentui/react";
 
 import { CopilotProvider } from "@fluentui-copilot/react-copilot";
@@ -171,13 +171,12 @@ const StoreManager = () => {
           <Stack.Item grow={3}>
             <Stack tokens={themedMediumStackTokens}>
               <Greetings />
-              <Banner></Banner>
               <Cards />
               <Stack horizontal>
                 <Cameras />
                 <Stack>
                   <InventoryStatus />
-                  <Health />
+                  <DeviceStatus />
                 </Stack>
               </Stack>
             </Stack>

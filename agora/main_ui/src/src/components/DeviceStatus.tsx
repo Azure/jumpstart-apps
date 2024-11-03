@@ -13,7 +13,7 @@ import {
     CardPreview,
     Text,
   } from "@fluentui/react-components";
-  import { InventoryStatusGrid as DataGrid } from "./InventoryStatusGrid";  
+  import { DeviceStatusGrid as DataGrid } from "./DeviceStatusGrid";  
 import PanelHeader from "./PanelHeader";
 
   const resolveAsset = (asset: string) => {
@@ -36,7 +36,7 @@ const useStyles = makeStyles({
     }
   });
 
-const InventoryStatus = () => {
+const DeviceStatus = () => {
     const styles = useStyles();
     return (
         <Stack className={styles.stack}>
@@ -45,4 +45,4 @@ const InventoryStatus = () => {
     );
   };
   
-  export default InventoryStatus;
+  export default DeviceStatus;
