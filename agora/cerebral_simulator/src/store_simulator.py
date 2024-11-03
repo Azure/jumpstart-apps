@@ -9,8 +9,8 @@ from azure.eventhub import EventHubProducerClient, EventData
 import paho.mqtt.client as mqtt
 import pyodbc
 
-#DevMode
-#from dotenv import load_dotenv
+#DEV_MODE
+from dotenv import load_dotenv
 
 class PriceRange:
     def __init__(self, min, max):
@@ -62,7 +62,7 @@ class StoreSimulator:
         logging.basicConfig(level=logging.INFO)
         self.logger = logging.getLogger(__name__)
         
-        # dev mode
+        # DEV_MODE
         # Load environment variables from .env file
         #load_dotenv()
         
