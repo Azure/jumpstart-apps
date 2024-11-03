@@ -52,6 +52,17 @@ spec:
       labels:
         app: cerebral-simulator
     spec:
+      initContainers:
+      - name: init-sql-check
+        image: mcr.microsoft.com/azurelinux/busybox:1.36
+        command:
+          - sh
+          - -c
+          - |
+            until nc -z -v -w30 mssql-service.contoso-hypermarket.svc.cluster.local 1433; do
+              echo "Waiting for the mssql-service to start"
+              sleep 5
+            done
       containers:
       - name: cerebral-simulator
         ports:
