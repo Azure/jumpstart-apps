@@ -10,7 +10,7 @@ import paho.mqtt.client as mqtt
 import pyodbc
 
 #DevMode
-from dotenv import load_dotenv
+#from dotenv import load_dotenv
 
 class PriceRange:
     def __init__(self, min, max):
@@ -120,6 +120,17 @@ class StoreSimulator:
 
         self.products_list = []
         self.current_inventory = {}
+
+        # Add orders storage
+        self.recent_orders = []
+        self.max_orders_history = 100
+
+    def add_order(self, order_data):
+        """Add order to recent orders list"""
+        self.recent_orders.append(order_data)
+        # keep only the recent orders
+        if len(self.recent_orders) > self.max_orders_history:
+            self.recent_orders.pop(0)
 
     def init_database(self):
         """Initialize database connection and create tables if they don't exist"""
@@ -444,6 +455,12 @@ class StoreSimulator:
                                 'customer_id': f'C-{random.randint(1,1000):03d}',
                                 'register_id': random.choice(self.store_registers)
                             }
+
+                            # Add to recent orders
+                            self.add_order({
+                                "timestamp": current_time_str,
+                                "order_data": line_item
+                            })
 
                             # Save to SQL if enabled
                             if self.ENABLE_SQL:
