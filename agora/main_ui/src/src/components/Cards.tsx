@@ -1,3 +1,4 @@
+import React, { useEffect, useState }  from 'react';
 import { Stack } from "@fluentui/react";
 import {
     makeStyles,
@@ -97,6 +98,29 @@ const useStyles = makeStyles({
 
 const Cards = () => {
     const styles = useStyles();
+    var cerebralSimulatorAPI = process.env.REACT_APP_CEREBRAL_SIMULATOR_API_URL || "/cerebralSimulator_api";
+    type AutomatedCheckoutsOpen = {
+        avg_wait_time: number;
+        closed_automated_checkouts: number;
+        open_automated_checkouts: number;
+        queue_length: number;
+        total_checkouts: number;
+      };    
+      const automatedCheckoutsOpenItems: AutomatedCheckoutsOpen[] = [
+      ];
+      const [automatedCheckoutsOpen, setAutomatedCheckoutsOpenData] = useState();      
+      useEffect(() => {
+        var automatedCheckoutsOpenURL = cerebralSimulatorAPI + "/api/v1/automated_checkouts/open";
+        fetch(automatedCheckoutsOpenURL)
+        .then(response => response.json())
+        .then(json => setAutomatedCheckoutsOpenData(json))
+        .then()
+        .catch(error => console.error(error));
+        }, []);         
+        if(automatedCheckoutsOpen) {
+            console.log('automatedCheckoutsOpen');
+            console.log(automatedCheckoutsOpen);
+        }
     return (
 
         <Stack horizontalAlign="start" grow={1}>
