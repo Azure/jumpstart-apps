@@ -12,9 +12,9 @@ import {
   Button,
 } from "@fluentui/react-components";
 import { DismissRegular } from "@fluentui/react-icons";
-import SuiteHeader from '../../components/SuiteHeader';
+import SuiteHeader from '../../components/MaintenanceWorkerHeader';
 import Footer from '../../components/SuiteFooter';
-import SideMenu from "../../components/SideMenu";
+import SideMenu from "../../components/MaintenanceMenu";
 import { Default as Banner } from "../../components/Banner";
 import Cards from "../../components/Cards";
 import Greetings from "../../components/Greetings";
