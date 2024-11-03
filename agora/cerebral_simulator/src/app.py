@@ -882,9 +882,8 @@ if __name__ == "__main__":
         write_api = client.write_api(write_options=SYNCHRONOUS)
 
     # Start Flask app with Swagger UI
-    if ENABLE_API:
-        Thread(target=lambda: app.run(host="0.0.0.0", port=PORT, use_reloader=False)).start()
-        logger.info(f"API documentation available at http://localhost:{PORT}/apidocs")
+    Thread(target=lambda: app.run(host="0.0.0.0", port=PORT, use_reloader=False)).start()
+    logger.info(f"API documentation available at http://localhost:{PORT}/apidocs")
     
     # Start system metrics update in a separate thread
     if ENABLE_PROMETHEUS:

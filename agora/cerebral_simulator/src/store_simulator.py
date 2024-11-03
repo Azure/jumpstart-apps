@@ -77,7 +77,7 @@ class StoreSimulator:
         self.SQL_SERVER = os.getenv("SQL_SERVER", "localhost")
         self.SQL_DATABASE = os.getenv("SQL_DATABASE", "RetailStore")
         self.SQL_USERNAME = os.getenv("SQL_USERNAME", "sa")
-        self.SQL_PASSWORD = os.getenv("SQL_PASSWORD", "YourPassword123!")
+        self.SQL_PASSWORD = os.getenv("SQL_PASSWORD", "ArcPassword123!!")
         self.ENABLE_SQL = os.getenv("ENABLE_SQL", "True").lower() == "true"
         self.ENABLE_HISTORICAL = os.getenv("ENABLE_HISTORICAL", "True").lower() == "true"
 
