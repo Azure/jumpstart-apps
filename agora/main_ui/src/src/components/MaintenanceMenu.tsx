@@ -52,7 +52,7 @@ export const MaintenanceMenu: React.FC<NavDrawerProps> = () => {
       >
         <NavDrawerHeader>{renderHamburgerWithToolTip()}</NavDrawerHeader>
         <NavDrawerBody>
-          <NavItem icon={<Home />} value="1" href="maintenanceworker">
+          <NavItem icon={<Home />} value="1" href="maintenanceworkerdashboard">
             Overview
           </NavItem>
           <NavItem icon={
