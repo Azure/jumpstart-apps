@@ -8,7 +8,8 @@ class Zone(BaseModel):
     y1: int
     x2: int
     y2: int
-
+    camera_id: int  # New field added
+    
 class ZoneCreate(BaseModel):
     name: str
     description: str
@@ -16,3 +17,4 @@ class ZoneCreate(BaseModel):
     y1: int
     x2: int
     y2: int
+    camera_id: int  # New field added
