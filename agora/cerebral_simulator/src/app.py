@@ -18,6 +18,7 @@ from flask import Flask, Response, jsonify
 from flasgger import Swagger, swag_from
 
 from store_simulator import run_store_simulator, StoreSimulator, ProductInventory
+from flask_cors import CORS  # Import CORS
 
 #DEV_MODE
 #from dotenv import load_dotenv
@@ -115,6 +116,8 @@ EQUIPMENT_TYPES = ["Refrigerator", "Scale", "POS", "SmartShelf", "HVAC", "Lighti
 # Flask app and Swagger initialization
 app = Flask(__name__)
 swagger = Swagger(app)
+
+CORS(app)  # Enable CORS
 
 # Store metrics data in memory
 devices_metrics = {}
