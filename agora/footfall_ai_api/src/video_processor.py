@@ -2,10 +2,8 @@ import time
 import collections
 import cv2
 import numpy as np
-import torch
 from queue import Queue
 import threading
-from ultralytics import YOLO
 from ultralytics.solutions import ObjectCounter
 from video_capture import VideoCapture
 
@@ -158,4 +156,3 @@ class VideoProcessor:
         if not self.running:
             self.start()
         return self.processed_frame_queue.get() if not self.processed_frame_queue.empty() else None
-    
