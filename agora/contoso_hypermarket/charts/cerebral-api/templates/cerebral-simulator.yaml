@@ -32,7 +32,7 @@ data:
   ENABLE_STORE_SIMULATOR: "true"
   ENABLE_SQL: "true"
   SQL_SERVER: "mssql-service.contoso-hypermarket.svc.cluster.local"
-  SQL_DATABASE: "RetailStore"
+  SQL_DATABASE: "RetailDB"
   SQL_USERNAME: "sa"
   SQL_PASSWORD: "ArcPassword123!!"
 ---
