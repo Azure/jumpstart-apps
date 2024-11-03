@@ -46,6 +46,8 @@ ENABLE_STORE_SIMULATOR = os.getenv("ENABLE_STORE_SIMULATOR", "True").lower() == 
 STORE_ID = os.getenv("STORE_ID", "SEA")
 
 store_simulator_instance = None
+client = None
+write_api = None
 
 # Device Simulation Settings
 DEVICE_COUNTS = {
@@ -161,25 +163,25 @@ def generate_equipment_data(equipment_type, device_id, pk):
     
     elif equipment_type == "POS":
         has_failure = random.random() < 0.15
-        failure_type = None
-
-        if has_failure:
-            failure_type = random.choice([
-                "printer_error",
-                "network_connection_lost",
-                "card_reader_error",
-                "cash_drawer_stuck",
-                "system_freeze"
-            ])
-
+        
         data.update({
             "transaction_id": f"txn_{random.randint(1000, 9999)}",
             "items_sold": float(random.randint(1, 10)),
             "total_amount_usd": round(random.uniform(10, 500), 2),
             "payment_method": random.choice(["credit_card", "cash", "mobile_payment"]),
             "has_failure": has_failure,
-            "failure_type": failure_type
         })
+
+        if has_failure:
+            data["failure_type"] = random.choice([
+                "printer_error",
+                "network_connection_lost",
+                "card_reader_error",
+                "cash_drawer_stuck",
+                "system_freeze"
+            ])
+        else:
+            data["failure_type"] = "none"
     
     elif equipment_type == "SmartShelf":
         data.update({
@@ -231,8 +233,11 @@ def write_data_to_influxdb(equipment_type, device_id, measurement_name, timestam
                 point.field(key, value)
             elif isinstance(value, str):
                 point.tag(key, value)
+            elif value is None:
+                continue
             else:
-                logger.warning(f"Skipping field {key} with unsupported type {type(value)}")
+                if VERBOSE:
+                    logger.warning(f"Skipping field {key} with unsupported type {type(value)}")
                 
         write_api.write(bucket=INFLUXDB_BUCKET, record=point)
 
@@ -328,11 +333,16 @@ def update_backend_api(equipment_type, pk, data):
             payload = {
                 **data
             }
-            response = requests.put(url, json=payload)
+            #print( payload )
+            response = requests.put(url, json=payload, timeout=5)  # Agregamos timeout
             response.raise_for_status()
-            logger.info(f"Successfully updated backend API for {pk}")
+            if VERBOSE:
+                logger.info(f"Successfully updated backend API for {pk}")
+            
         except requests.exceptions.RequestException as e:
-            logger.error(f"Failed to update backend API for {pk}: {str(e)}")
+            if VERBOSE:
+                logger.warning(f"Failed to update backend API for {pk}: {str(e)}")
+            pass
 
 def simulate_device(pk, equipment_type, device_id):
     while True:
@@ -860,13 +870,14 @@ def get_pos_failures():
         'total_failures': total_failures
     })
 
-# Connect to InfluxDB
-client = InfluxDBClient(url=INFLUXDB_URL, token=INFLUXDB_TOKEN, org=INFLUXDB_ORG)
-write_api = client.write_api(write_options=SYNCHRONOUS)
-
 if __name__ == "__main__":
     from threading import Thread
     
+    if ENABLE_INFLUXDB:
+        # Connect to InfluxDB
+        client = InfluxDBClient(url=INFLUXDB_URL, token=INFLUXDB_TOKEN, org=INFLUXDB_ORG)
+        write_api = client.write_api(write_options=SYNCHRONOUS)
+
     # Start Flask app with Swagger UI
     if ENABLE_API:
         Thread(target=lambda: app.run(host="0.0.0.0", port=PORT, use_reloader=False)).start()

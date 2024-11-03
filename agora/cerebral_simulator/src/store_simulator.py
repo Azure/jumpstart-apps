@@ -10,7 +10,7 @@ import paho.mqtt.client as mqtt
 import pyodbc
 
 #DEV_MODE
-from dotenv import load_dotenv
+#from dotenv import load_dotenv
 
 class PriceRange:
     def __init__(self, min, max):
