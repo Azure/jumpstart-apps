@@ -71,8 +71,7 @@ consecutive_errors = 0
 REGISTRY = CollectorRegistry()
 CPU_USAGE = Gauge('cpu_usage_percent', 'CPU usage in percent', registry=REGISTRY)
 MEMORY_USAGE = Gauge('memory_usage_percent', 'Memory usage in percent', registry=REGISTRY)
-DATA_POINTS_GENERATED = Counter('data_points_generated', 'Number of data points generated', 
-                                ['equipment_type', 'device_id'], registry=REGISTRY)
+DATA_POINTS_GENERATED = Counter('data_points_generated', 'Number of data points generated', ['equipment_type', 'device_id'], registry=REGISTRY)
 LOG_MESSAGES = Counter('log_messages', 'Number of log messages', ['level'], registry=REGISTRY)
 
 # Refrigerator specific metrics
