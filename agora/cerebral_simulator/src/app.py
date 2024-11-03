@@ -114,9 +114,10 @@ EQUIPMENT_TYPES = ["Refrigerator", "Scale", "POS", "SmartShelf", "HVAC", "Lighti
 
 # Flask app and Swagger initialization
 app = Flask(__name__)
+CORS(app)  # Enable CORS
 swagger = Swagger(app)
 
-CORS(app)  # Enable CORS
+
 
 # Store metrics data in memory
 devices_metrics = {}
