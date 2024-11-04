@@ -88,7 +88,7 @@ class PrometheusMetrics:
             for area_id, times in detection_data['people_near_areas'].items():
                 if not times or len(times) == 0:
                     continue
-                total_time = sum(time['end_time'] - time['start_time'] for time in times)
+                total_time = sum(time.get('end_time', 0) - time.get('start_time', 0) for time in times if isinstance(time, dict))
                 total_entries = len(times)
                 average_time = total_time / total_entries if total_entries > 0 else 0
                 self.time_in_area_avg.labels(camera=camera_label, area_id=area_id).set(average_time)
