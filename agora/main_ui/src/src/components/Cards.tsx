@@ -181,7 +181,7 @@ const Cards = () => {
                         <Stack>
                             <Stack horizontal>
                                 <Stack>
-                                <Text className={styles.cardpreviewtext}>4 of 10</Text>
+                                <Text className={styles.cardpreviewtext}>{automatedCheckoutsOpen  ? automatedCheckoutsOpen["open_automated_checkouts"] : 0} of {automatedCheckoutsOpen  ? automatedCheckoutsOpen["total_checkouts"] : 0}</Text>
                                 <Text className={styles.cardpreviewsubtext}>Open and active</Text>
                                 </Stack>
                                 <Stack>
@@ -191,7 +191,7 @@ const Cards = () => {
                                 </div>
                                 </Stack>
                                 <Stack>
-                                <Text className={styles.cardpreviewtext}>6 of 10</Text>
+                                <Text className={styles.cardpreviewtext}>{automatedCheckoutsOpen  ? automatedCheckoutsOpen["closed_automated_checkouts"] : 0} of {automatedCheckoutsOpen  ? automatedCheckoutsOpen["total_checkouts"] : 0}</Text>
                                 <Text className={styles.cardpreviewsubtext}>Closed, staffing needed</Text>
                                 </Stack>
                             </Stack>
@@ -217,7 +217,7 @@ const Cards = () => {
                         <Stack>
                             <Stack horizontal>
                                 <Stack>
-                                <Text className={styles.cardpreviewtext}>7.5</Text>
+                                <Text className={styles.cardpreviewtext}>{automatedCheckoutsOpen  ? Math.ceil(automatedCheckoutsOpen["avg_wait_time"]) : 0}</Text>
                                 <Text className={styles.cardpreviewsubtext}>Minutes</Text>
                                 </Stack>
                             </Stack>
@@ -243,7 +243,7 @@ const Cards = () => {
                         <Stack>
                             <Stack horizontal>
                                 <Stack>
-                                <Text className={styles.cardpreviewtext}>7.5</Text>
+                                <Text className={styles.cardpreviewtext}>{automatedCheckoutsOpen  ? automatedCheckoutsOpen["queue_length"] : 0}</Text>
                                 <Text className={styles.cardpreviewsubtextextended}>Customers in checkout line</Text>
                                 </Stack>
                             </Stack>

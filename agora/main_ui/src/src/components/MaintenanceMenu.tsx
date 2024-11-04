@@ -43,7 +43,7 @@ export const MaintenanceMenu: React.FC<NavDrawerProps> = () => {
   return (
     <>
       <NavDrawer
-        defaultSelectedValue="2"
+        defaultSelectedValue= {window.location.pathname ==="/maintenanceworkerdashboard" ? "1" : "2"}
         defaultSelectedCategoryValue="1"
         open={true}
         type="inline"
