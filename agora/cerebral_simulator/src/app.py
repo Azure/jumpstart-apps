@@ -1,3 +1,4 @@
+#app.py
 from influxdb_client import InfluxDBClient, Point, WritePrecision
 from influxdb_client.client.write_api import SYNCHRONOUS
 import time
@@ -46,12 +47,12 @@ ENABLE_API = os.getenv("ENABLE_API", "True").lower() == "true"
 ENABLE_STORE_SIMULATOR = os.getenv("ENABLE_STORE_SIMULATOR", "True").lower() == "true"
 STORE_ID = os.getenv("STORE_ID", "SEA")
 
+
+
 store_simulator_instance = None
-client = None
-write_api = None
+mqtt_client = None
 influx_client = None
 write_api = None
-mqtt_client = None
 
 # Device Simulation Settings
 DEVICE_COUNTS = {
@@ -223,7 +224,8 @@ def generate_equipment_data(equipment_type, device_id, pk):
     return data
 
 def write_data_to_influxdb(equipment_type, device_id, measurement_name, timestamp, data):
-    if not ENABLE_INFLUXDB:
+    global write_api
+    if not ENABLE_INFLUXDB or write_api is None:
         return
     
     try:
@@ -331,24 +333,45 @@ def update_prometheus_metrics(equipment_type, device_id, data):
         logger.error(f"Error updating metrics for {device_id}: {str(e)}")
         LOG_MESSAGES.labels(level="error").inc()
 
+
+
 def update_backend_api(equipment_type, pk, data):
-    url = UI_API_URL
+    """Update backend API for specific equipment"""
+    if not ENABLE_API:
+        return
+        
     if equipment_type == "HVAC":
-        url += f"/hvacs/{pk}"
         try:
+            url = f"{UI_API_URL}/api/hvacs/{pk}"
             payload = {
-                **data
+                "id": data.get("id"),
+                "deviceId": data.get("device_id"),
+                "temperature": data.get("temperature_celsius"),
+                "humidity": data.get("humidity_percent"),
+                "power": data.get("power_usage_kwh"),
+                "mode": data.get("operating_mode"),
+                "storeId": os.getenv("STORE_ID", "SEA")
             }
-            #print( payload )
-            response = requests.put(url, json=payload, timeout=5)  # Agregamos timeout
-            response.raise_for_status()
+
             if VERBOSE:
-                logger.info(f"Successfully updated backend API for {pk}")
+                logger.info(f"Sending HVAC update to {url} with payload: {payload}")
+
+            response = requests.put(
+                url=url,
+                json=payload,
+                timeout=5,
+                headers={'Content-Type': 'application/json'}
+            )
             
+            if response.status_code != 200:
+                if VERBOSE:
+                    logger.warning(f"HVAC update failed with status {response.status_code}: {response.text}")
+            elif VERBOSE:
+                logger.info(f"Successfully updated HVAC {pk}")
+                
         except requests.exceptions.RequestException as e:
             if VERBOSE:
                 logger.warning(f"Failed to update backend API for {pk}: {str(e)}")
-            pass
 
 def simulate_device(pk, equipment_type, device_id):
     while True:
@@ -371,8 +394,8 @@ def simulate_device(pk, equipment_type, device_id):
                 update_prometheus_metrics(equipment_type, device_id, data)
 
             # Update backend API
-            if ENABLE_API:
-                update_backend_api(equipment_type, pk, data)
+            #if ENABLE_API:
+            #    update_backend_api(equipment_type, pk, data)
 
             # Increment the data points counter
             increment_data_points(equipment_type, device_id)
@@ -660,6 +683,7 @@ def get_orders_summary():
                             'properties': {
                                 'store_id': {'type': 'string'},
                                 'product_id': {'type': 'string'},
+                                'product_name': {'type': 'string'},
                                 'in_stock': {'type': 'integer'},
                                 'retail_price': {'type': 'number'},
                                 'reorder_threshold': {'type': 'integer'},
@@ -685,6 +709,7 @@ def get_inventory():
         inventory_list.append({
             'store_id': inventory.store_id,
             'product_id': inventory.product_id,
+            'product_name': inventory.product_name,
             'in_stock': inventory.in_stock,
             'retail_price': float(inventory.retail_price),
             'reorder_threshold': inventory.reorder_threshold,
@@ -717,6 +742,7 @@ def get_inventory():
                             'properties': {
                                 'store_id': {'type': 'string'},
                                 'product_id': {'type': 'string'},
+                                'product_name': {'type': 'string'},
                                 'in_stock': {'type': 'integer'},
                                 'reorder_threshold': {'type': 'integer'}
                             }
@@ -750,6 +776,7 @@ def get_inventory_summary():
             low_stock_items.append({
                 'store_id': inventory.store_id,
                 'product_id': inventory.product_id,
+                'product_name': inventory.product_name,
                 'in_stock': inventory.in_stock,
                 'reorder_threshold': inventory.reorder_threshold
             })
