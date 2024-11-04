@@ -50,6 +50,39 @@ services:
       - influxdb
     restart: "no"
 
+  cerebral-api-init-documents:
+    container_name: init-documents
+    image: mcr.microsoft.com/cbl-mariner/base/core:2.0
+    command: 
+      - sh
+      - -c
+      - |
+        tdnf update -y
+        tdnf install wget -y
+        cd /app/docs
+        wget -O "SmartShelf_Manual.pdf" "https://download.microsoft.com/download/2b3927e0-5342-4d84-8b55-ab958281259b/SmartShelf%20System%20User%20Manual%20for%20Contoso%20Hypermarket.pdf" && \
+        wget -O "Scale_Manual.pdf" "https://download.microsoft.com/download/2b3927e0-5342-4d84-8b55-ab958281259b/Scale%20System%20User%20Manual%20for%20Contoso%20Hypermarket.pdf" && \
+        wget -O "Refrigeration_Manual.pdf" "https://download.microsoft.com/download/2b3927e0-5342-4d84-8b55-ab958281259b/Refrigeration%20System%20User%20Manual%20for%20Contoso%20Hypermarket.pdf" && \
+        wget -O "Checkout_Manual.pdf" "https://download.microsoft.com/download/2b3927e0-5342-4d84-8b55-ab958281259b/Automated%20Checkout%20System%20User%20Manual%20for%20Contoso%20Hypermarket.pdf" && \
+        wget -O "HVAC_Manual.pdf" "https://download.microsoft.com/download/2b3927e0-5342-4d84-8b55-ab958281259b/HVAC%20System%20User%20Manual%20for%20Contoso%20Hypermarket.pdf"
+    volumes:
+      - cerebral-docs:/app/docs
+
+  cerebral-api-init-model:
+    container_name: init-slm-model
+    image: mcr.microsoft.com/azurelinux/base/python:3.12
+    command: 
+      - sh
+      - -c
+      - |
+        pip install -U "huggingface_hub[cli]"
+        huggingface-cli download microsoft/Phi-3-mini-4k-instruct-onnx \
+        --include "cpu_and_mobile/cpu-int4-rtn-block-32-acc-level-4/*" \
+        --local-dir /app/models
+        mkdir /app/models/phi3
+    volumes:
+      - cerebral-slm-model:/app/models
+
   cerebral-simulator:
     build:
       context: ../../cerebral_simulator/src  # This should point to the folder containing the Dockerfile
@@ -66,11 +99,14 @@ services:
     restart: always  # Optional: Restart policy
 
   cerebral-api:
-    # build:
-    #     context: ../cerebral_api/src  # This should point to the folder containing the Dockerfile and requirements.txt
-    #     dockerfile: Dockerfile
-    image: mcr.microsoft.com/jumpstart/agora/cerebral_api:1.0.0
+    build:
+        context: ../../cerebral_api/src  # This should point to the folder containing the Dockerfile and requirements.txt
+        dockerfile: Dockerfile
+    #image: mcr.microsoft.com/jumpstart/agora/cerebral_api:1.0.0
     container_name: cerebral_api  # Name of the container
+    depends_on:
+      - cerebral-api-init-model
+      - cerebral-api-init-documents
     ports:
       - "5003:5003"  # Map host port 5003 to container port 5003
       - "8000:8000"  # Map host port 8000 to container port 8000
@@ -91,9 +127,16 @@ services:
       AZURE_AI_SPEECH_KEY : ""
       AZURE_AI_SPEECH_REGION : "eastus"
     restart: always  # Optional: Restart policy
+    volumes:
+      - cerebral-docs:/app/docs
+      - cerebral-slm-model:/app/models
 
 volumes:
   mssql-data:
     driver: local
   influxdb-storage:
+    driver: local
+  cerebral-docs:
+    driver: local
+  cerebral-slm-model:
     driver: local
