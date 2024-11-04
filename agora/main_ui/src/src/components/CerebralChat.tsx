@@ -47,6 +47,7 @@ const CerebralChatWithAudio = (props: CopilotChatProps) => {
     industry: process.env.REACT_APP_CEREBRAL_INDUSTRY || 'default',
     role: process.env.REACT_APP_CEREBRAL_ROLE || 'default'
   });
+  const isMounted = React.useRef(false);
   
   // Initialize buffers for storing messages by type until 'complete' is received
   let messageBuffer = {
@@ -57,7 +58,7 @@ const CerebralChatWithAudio = (props: CopilotChatProps) => {
     recommendations: '',
   };
 
-  const flushBufferedMessages = (isCompleted : Boolean) => {
+  const flushBufferedMessages = (isCompleted: Boolean) => {
     const formattedMessage = `
       ${messageBuffer.classification ? `<strong>Category:</strong> ${messageBuffer.classification.trim()}<br/>` : ''}
       ${messageBuffer.message ? `<strong>Message:</strong> ${messageBuffer.message.trim()}<br/>` : ''}
@@ -65,44 +66,42 @@ const CerebralChatWithAudio = (props: CopilotChatProps) => {
       ${messageBuffer.result ? `${messageBuffer.result.trim()}<br/>` : ''}
       ${messageBuffer.recommendations ? `<strong>Recommendations:</strong> ${messageBuffer.recommendations.trim()}<br/>` : ''}
     `.trim();
+  
+    if (!formattedMessage) return; // Skip if nothing to update
+  
     setMessages(prevMessages => {
       if (isCompleted) {
-        // If complete, modify the last message and set isCompleted to true
         const updatedMessages = [...prevMessages];
         const lastMessage = updatedMessages[updatedMessages.length - 1];
-        if (lastMessage) {
-          lastMessage.isCompleted = true;
-        }
-        return updatedMessages;
-      } 
-      else {
-        // If not complete, modify the last message
-        const updatedMessages = [...prevMessages];
-        const lastMessage = updatedMessages[updatedMessages.length - 1];
-        
         if (lastMessage && !lastMessage.isCompleted) {
-          // Update the content of the last incomplete message
-          lastMessage.content = `${formattedMessage}`;
+          lastMessage.isCompleted = true;
+          return updatedMessages;
         }
-        else {
-          // Add as a new message if there's no last incomplete message
-          updatedMessages.push({
-            content: formattedMessage,
-            isUser: false,
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            isCompleted: false
-          });
+        return prevMessages;
+      } else {
+        const lastMessage = prevMessages[prevMessages.length - 1];
+        if (lastMessage && !lastMessage.isCompleted) {
+          lastMessage.content = formattedMessage;
+          return [...prevMessages];
+        } else {
+          return [
+            ...prevMessages,
+            {
+              content: formattedMessage,
+              isUser: false,
+              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+              isCompleted: false
+            }
+          ];
         }
-  
-        return updatedMessages;
       }
     });
   
-    // Clear the buffer only if the message is complete
     if (isCompleted) {
       messageBuffer = { classification: '', message: '', query: '', result: '', recommendations: '' };
     }
   };
+  
   
   // Initialize Socket.IO connection
   React.useEffect(() => {
@@ -113,9 +112,15 @@ const CerebralChatWithAudio = (props: CopilotChatProps) => {
       reconnectionDelay: 1000
     });
 
+    if (!isMounted.current){
+      addBotMessage("Connecting to Jumpstart Cerebral - Please wait...");
+    }
+  
     const socket = socketRef.current;
+    let reconnectAttempts = 0;
 
     socket.on('connect', () => {
+      reconnectAttempts = 0; // Reset counter on successful connection
       setIsConnected(true);
       addBotMessage("Hi, I'm here to help! You can ask me questions using text or voice.");
     });
@@ -126,36 +131,46 @@ const CerebralChatWithAudio = (props: CopilotChatProps) => {
     });
 
     socket.on('connect_error', () => {
+      reconnectAttempts++;
+      if (reconnectAttempts == 5) {
+        socket.io.opts.reconnection = false; // Disable further reconnections
+        addBotMessage("Connection error. Please try again later.");
+      }
       setIsConnected(false);
-      addBotMessage("Connection error. Please try again later.");
     });
-    
+
     socket.on('error', (data) => {
+      setIsProcessing(false);
       addBotMessage(`Error: ${data.error}`);
     });
 
     // Socket event handlers
     socket.on('classification', (data) => {
+      setIsProcessing(false);
       messageBuffer.classification += " " + data.category;
       flushBufferedMessages(false);
     });
 
     socket.on('message', (data) => {
+      setIsProcessing(false);
       messageBuffer.message += " " + data.message;
       flushBufferedMessages(false);
     });
 
     socket.on('query', (data) => {
+      setIsProcessing(false);
       messageBuffer.query += " " + data.query;
       flushBufferedMessages(false);
     });
 
     socket.on('result', (data) => {
+      setIsProcessing(false);
       messageBuffer.result += " " + data.result;
       flushBufferedMessages(false);
     });
 
     socket.on('recommendations', (data) => {
+      setIsProcessing(false);
       messageBuffer.recommendations = data.recommendations;
       flushBufferedMessages(false);
     });
@@ -170,6 +185,8 @@ const CerebralChatWithAudio = (props: CopilotChatProps) => {
     script.src = `${process.env.PUBLIC_URL}/RecordRTC.min.js`;
     script.async = true;
     document.body.appendChild(script);
+
+    isMounted.current = true;
 
     return () => {
       socket.close();
@@ -187,22 +204,8 @@ const CerebralChatWithAudio = (props: CopilotChatProps) => {
     setMessages(prev => [...prev, newMessage]);
   };
 
-  const appendToLastBotMessage = (content: string) => {
-    setMessages(prev => {
-      const lastMessage = prev[prev.length - 1];
-      if (lastMessage && !lastMessage.isUser) {
-        const updatedMessages = [...prev];
-        updatedMessages[prev.length - 1] = {
-          ...lastMessage,
-          content: lastMessage.content + content
-        };
-        return updatedMessages;
-      }
-      return prev;
-    });
-  };
-
   const handleSend = (ev: React.FormEvent, data: { value: string }) => {
+    setIsProcessing(true);
     const message = data.value.trim();
     if (!message || !isConnected) return;
 
@@ -285,7 +288,6 @@ const CerebralChatWithAudio = (props: CopilotChatProps) => {
           body: formData,
         }
       );
-
       if (!response.ok) throw new Error('STT processing failed');
 
       const data = await response.json();
@@ -332,9 +334,9 @@ const CerebralChatWithAudio = (props: CopilotChatProps) => {
         key={index}
         avatar={
           <Avatar
-            size={24}
+            size={20}
             image={{
-              src: "https://res-2-sdf.cdn.office.net/files/fabric-cdn-prod_20240411.001/assets/brand-icons/product/svg/copilot_24x1.svg",
+              src: "./Cerebral_round.png",
             }}
           />
         }
@@ -349,16 +351,36 @@ const CerebralChatWithAudio = (props: CopilotChatProps) => {
           </Button>
         }
       >
-        {msg.content}
       <div dangerouslySetInnerHTML={{ __html: msg.content }} />
       </CopilotMessage>
     );
   };
 
+  const renderProcessing = () => {
+    return (
+      <CopilotMessage
+        avatar={
+          <Avatar
+            size={24}
+            image={{
+              src: "./Cerebral_round.png",
+            }}
+          />
+        }
+        name="Copilot"
+        loadingState="loading"
+      >
+        Searching...
+      </CopilotMessage>
+    );
+  };
+  
   return (
     <FluentProvider theme={webLightTheme}>
       <CopilotChat {...props} style={{ margin: '30px' }}>
         {messages.map((msg, index) => renderMessage(msg, index))}
+
+        {isProcessing && renderProcessing()}
 
         <CerebralChatInput
           onSubmit={handleSend}

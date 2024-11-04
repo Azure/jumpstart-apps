@@ -32,6 +32,7 @@ import {
 } from "@fluentui/react-components";
 import SideMenu from '../../components/ShopperFilterbox';
 import { registerIcons } from '@fluentui/react/lib/Styling';
+import CerebralHeader from '../../components/CerebralHeader';
 
 registerIcons({
   icons: {
@@ -544,6 +545,12 @@ const onCancelCerebralDrawer = () => {
             type={PanelType.custom}
             customWidth="30%"
             headerText=""
+            onRenderHeader={() => (
+              <CerebralHeader 
+                title="Cerebral" 
+                onClose={toggleCerebralDrawer} 
+              />
+            )}
             onRenderFooterContent={onRenderCerebralFooterContent}
             isFooterAtBottom={true}
             hasCloseButton={true}

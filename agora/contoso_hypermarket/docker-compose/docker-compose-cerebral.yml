@@ -52,7 +52,7 @@ services:
 
   cerebral-simulator:
     build:
-      context: ../cerebral_simulator/src  # This should point to the folder containing the Dockerfile
+      context: ../../cerebral_simulator/src  # This should point to the folder containing the Dockerfile
       dockerfile: Dockerfile
     container_name: cerebral_simulator  # Name of the container
     ports:
@@ -66,12 +66,13 @@ services:
     restart: always  # Optional: Restart policy
 
   cerebral-api:
-    build:
-        context: ../cerebral_api/src  # This should point to the folder containing the Dockerfile and requirements.txt
-        dockerfile: Dockerfile
+    # build:
+    #     context: ../cerebral_api/src  # This should point to the folder containing the Dockerfile and requirements.txt
+    #     dockerfile: Dockerfile
+    image: mcr.microsoft.com/jumpstart/agora/cerebral_api:1.0.0
     container_name: cerebral_api  # Name of the container
     ports:
-      - "5004:5004"  # Map host port 5003 to container port 5003
+      - "5003:5003"  # Map host port 5003 to container port 5003
       - "8000:8000"  # Map host port 8000 to container port 8000
     environment:
       AZURE_OPENAI_API_KEY: ""  # Environment variables
@@ -88,7 +89,7 @@ services:
       SQL_PASSWORD: "ArcPassword123!!"
       WHISPER_MODEL_PATH : ""
       AZURE_AI_SPEECH_KEY : ""
-      AZURE_AI_SPEECH_REGION : ""
+      AZURE_AI_SPEECH_REGION : "eastus"
     restart: always  # Optional: Restart policy
 
 volumes:

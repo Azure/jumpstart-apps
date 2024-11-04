@@ -46,6 +46,8 @@ import { useCallback } from 'react';
 import { text } from 'stream/consumers';
 import CerebralChatWithAudio from '../../components/CerebralChat';
 import type { SliderProps } from "@fluentui/react-components";
+import CerebralHeader from '../../components/CerebralHeader';
+
 const Main = (props: IStackProps) => (
     <Stack horizontal grow={1} disableShrink {...props} />
   );
@@ -445,6 +447,12 @@ const CamerasZonesWizardSetupCamera = () => {
             type={PanelType.custom}
             customWidth="30%"
             headerText=""
+            onRenderHeader={() => (
+              <CerebralHeader 
+                title="Cerebral" 
+                onClose={toggleCerebralDrawer} 
+              />
+            )}
             onRenderFooterContent={onRenderCerebralFooterContent}
             isFooterAtBottom={true}
             hasCloseButton={true}

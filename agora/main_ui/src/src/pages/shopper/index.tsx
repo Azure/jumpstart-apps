@@ -23,6 +23,7 @@ import {
   CardHeader,
   CardPreview
 } from "@fluentui/react-components";
+import CerebralHeader from '../../components/CerebralHeader';
 
 const useStyles = makeStyles({
     main: {
@@ -243,6 +244,12 @@ const useStyles = makeStyles({
             type={PanelType.custom}
             customWidth="30%"
             headerText=""
+            onRenderHeader={() => (
+              <CerebralHeader 
+                title="Cerebral" 
+                onClose={toggleCerebralDrawer} 
+              />
+            )}
             onRenderFooterContent={onRenderCerebralFooterContent}
             isFooterAtBottom={true}
             hasCloseButton={true}
