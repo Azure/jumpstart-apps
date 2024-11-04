@@ -40,10 +40,11 @@ spec:
               pip install -U "huggingface_hub[cli]"
               huggingface-cli download microsoft/Phi-3-mini-4k-instruct-onnx \
               --include "cpu_and_mobile/cpu-int4-rtn-block-32-acc-level-4/*" \
-              --local-dir /app/slm
+              --local-dir /app/models
+              mkdir /app/models/phi3
           volumeMounts:
           - name: cerebral-slm-model
-            mountPath: /app/slm
+            mountPath: /app/models
       containers:
       - name: cerebral-api
         image: mcr.microsoft.com/jumpstart/agora/cerebral_api:1.0.0
@@ -82,6 +83,10 @@ spec:
           value: ""
         - name: AZURE_AI_SPEECH_REGION
           value: ""
+        - name: USE_LOCAL_LLM
+          value: "false"
+        - name: MODEL_PATH
+          value: "/app/models"
       volumes:
       - name: cerebral-docs
         persistentVolumeClaim:

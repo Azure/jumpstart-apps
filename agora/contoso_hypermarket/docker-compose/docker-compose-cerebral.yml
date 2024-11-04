@@ -109,23 +109,23 @@ services:
       - cerebral-api-init-documents
     ports:
       - "5003:5003"  # Map host port 5003 to container port 5003
-      - "8000:8000"  # Map host port 8000 to container port 8000
     environment:
-      AZURE_OPENAI_API_KEY: ""  # Environment variables
+      AZURE_OPENAI_API_KEY: ""
       CHATGPT_MODEL: "gpt-35-turbo"
       AZURE_OPENAI_ENDPOINT: ""
       OPENAI_API_VERSION: "2024-03-01-preview"
-      INFLUXDB_URL: "http://influxdb:8086"
+      INFLUXDB_URL: "http://influxdb.contoso-hypermarket.svc.cluster.local:8086"
       INFLUXDB_BUCKET: "hypermarket"
       INFLUXDB_TOKEN: "secret-token"
       INFLUXDB_ORG: "InfluxData"
-      SQL_DATABASE: "RetailDB" 
-      SQL_SERVER: "10.0.0.4" 
-      SQL_USERNAME: "SA" 
+      REDIS_URL: "redis://redis-service.contoso-hypermarket.svc.cluster.local:6379"
+      SQL_DATABASENAME: "RetailDB"
+      SQL_SERVER: "mssql-service"
+      SQL_USERNAME: "SA"
       SQL_PASSWORD: "ArcPassword123!!"
-      WHISPER_MODEL_PATH : ""
-      AZURE_AI_SPEECH_KEY : ""
-      AZURE_AI_SPEECH_REGION : "eastus"
+      WHISPER_MODEL_PATH: ""
+      AZURE_AI_SPEECH_KEY: ""
+      AZURE_AI_SPEECH_REGION: ""
     restart: always  # Optional: Restart policy
     volumes:
       - cerebral-docs:/app/docs
