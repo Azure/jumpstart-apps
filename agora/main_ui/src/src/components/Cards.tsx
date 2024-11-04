@@ -217,7 +217,7 @@ const Cards = () => {
                         <Stack>
                             <Stack horizontal>
                                 <Stack>
-                                <Text className={styles.cardpreviewtext}>{automatedCheckoutsOpen  ? automatedCheckoutsOpen["avg_wait_time"] : 0}</Text>
+                                <Text className={styles.cardpreviewtext}>{automatedCheckoutsOpen  ? Math.ceil(automatedCheckoutsOpen["avg_wait_time"]) : 0}</Text>
                                 <Text className={styles.cardpreviewsubtext}>Minutes</Text>
                                 </Stack>
                             </Stack>
