@@ -49,6 +49,9 @@ STORE_ID = os.getenv("STORE_ID", "SEA")
 store_simulator_instance = None
 client = None
 write_api = None
+influx_client = None
+write_api = None
+mqtt_client = None
 
 # Device Simulation Settings
 DEVICE_COUNTS = {
@@ -60,10 +63,6 @@ DEVICE_COUNTS = {
     "LightingSystem": int(os.getenv("LIGHTINGSYSTEM_COUNT", 2)),
     "AutomatedCheckout": int(os.getenv("AUTOMATEDCHECKOUT_COUNT", 10))
 }
-
-# Connect to MQTT Broker
-client_id1 = f'python-mqtt-{random.randint(0, 1000)}'
-mqtt_client = mqtt.Client()
 
 MAX_CONSECUTIVE_ERRORS = 30
 consecutive_errors = 0
@@ -249,6 +248,8 @@ def write_data_to_influxdb(equipment_type, device_id, measurement_name, timestam
     
     except Exception as e:
         logger.error(f"Error writing data to InfluxDB for {device_id}: {str(e)}")
+        # try to reconnect
+        init_influxdb()
 
 def publish_data_to_mqtt(equipment_type, device_id, timestamp, data):
     if not ENABLE_MQTT:
@@ -267,6 +268,8 @@ def publish_data_to_mqtt(equipment_type, device_id, timestamp, data):
             logger.info(f"Data for {device_id} published to MQTT: {mqtt_payload}")
     except Exception as e:
         logger.error(f"Error publishing data to MQTT for {device_id}: {str(e)}")
+        # try to reconnect
+        init_mqtt()
 
 def update_system_metrics():
     while True:
@@ -873,17 +876,49 @@ def get_pos_failures():
         'total_failures': total_failures
     })
 
+def init_influxdb():
+    """Initialize InfluxDB connection"""
+    global influx_client, write_api
+    if ENABLE_INFLUXDB:
+        try:
+            influx_client = InfluxDBClient(url=INFLUXDB_URL, token=INFLUXDB_TOKEN, org=INFLUXDB_ORG)
+            write_api = influx_client.write_api(write_options=SYNCHRONOUS)
+            logger.info("Successfully connected to InfluxDB")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to connect to InfluxDB: {str(e)}")
+            return False
+
+def init_mqtt():
+    """Initialize MQTT connection"""
+    global mqtt_client
+    if ENABLE_MQTT:
+        try:
+            # Connect to MQTT Broker
+            client_id1 = f'python-mqtt-{random.randint(0, 1000)}'
+            mqtt_client = mqtt.Client()
+            mqtt_client.connect(MQTT_BROKER, MQTT_PORT)
+            mqtt_client.loop_start()
+            logger.info("Successfully connected to MQTT broker")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to connect to MQTT broker: {str(e)}")
+            return False
+
 if __name__ == "__main__":
     from threading import Thread
     
     if ENABLE_INFLUXDB:
         # Connect to InfluxDB
-        client = InfluxDBClient(url=INFLUXDB_URL, token=INFLUXDB_TOKEN, org=INFLUXDB_ORG)
-        write_api = client.write_api(write_options=SYNCHRONOUS)
+        init_influxdb()
+
+    if ENABLE_MQTT:
+        init_mqtt()
 
     # Start Flask app with Swagger UI
-    Thread(target=lambda: app.run(host="0.0.0.0", port=PORT, use_reloader=False)).start()
-    logger.info(f"API documentation available at http://localhost:{PORT}/apidocs")
+    if ENABLE_API:
+        Thread(target=lambda: app.run(host="0.0.0.0", port=PORT, use_reloader=False)).start()
+        logger.info(f"API documentation available at http://localhost:{PORT}/apidocs")
     
     # Start system metrics update in a separate thread
     if ENABLE_PROMETHEUS:
@@ -892,23 +927,16 @@ if __name__ == "__main__":
 
     # Start store simulator in a separate thread
     if ENABLE_STORE_SIMULATOR:
-        simulator = StoreSimulator()
-        store_simulator_instance = simulator
-        store_simulator_thread = Thread(target=simulator.run, daemon=True)
-        store_simulator_thread.start()
-        logger.info("Store simulator started")
-        #store_simulator_thread = Thread(target=run_store_simulator, daemon=True)
-        #store_simulator_thread.start()
-        #logger.info("Store simulator started")
-
-    if ENABLE_MQTT:
         try:
-            mqtt_client.connect(MQTT_BROKER, MQTT_PORT)
-            mqtt_client.loop_start()
+            simulator = StoreSimulator()
+            store_simulator_instance = simulator
+            store_simulator_thread = Thread(target=simulator.run, daemon=True)
+            store_simulator_thread.start()
+            logger.info("Store simulator started")
         except Exception as e:
-            logger.error(f"An unexpected error occurred: {str(e)}")
+            logger.error(f"Error starting store simulator: {str(e)}")
 
-    # Create a list of all devices to simulate
+   # Create a list of all devices to simulate
     devices_to_simulate = []
     pk = 1
     for equipment_type, count in DEVICE_COUNTS.items():
@@ -933,11 +961,14 @@ if __name__ == "__main__":
         except Exception as e:
             logger.error(f"An unexpected error occurred: {str(e)}")
         finally:
-            logger.info("Shutting down MQTT client...")
-            mqtt_client.loop_stop()
-            mqtt_client.disconnect()
+            logger.info("Cleaning up resources...")
+            if mqtt_client:
+                mqtt_client.loop_stop()
+                mqtt_client.disconnect()
             
-            logger.info("Shutting down InfluxDB client...")
-            client.close()
+            if write_api:
+                write_api.close()
+            if influx_client:
+                influx_client.close()
             
             logger.info("Program terminated.")

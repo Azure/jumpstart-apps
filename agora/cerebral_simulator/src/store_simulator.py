@@ -80,27 +80,39 @@ class StoreSimulator:
         self.SQL_PASSWORD = os.getenv("SQL_PASSWORD", "ArcPassword123!!")
         self.ENABLE_SQL = os.getenv("ENABLE_SQL", "True").lower() == "true"
         self.ENABLE_HISTORICAL = os.getenv("ENABLE_HISTORICAL", "True").lower() == "true"
-
-        if self.ENABLE_SQL:
-            self.init_database()
-
         # MQTT Settings
-        MQTT_BROKER = os.getenv("MQTT_BROKER", "localhost")
-        MQTT_PORT = int(os.getenv("MQTT_PORT", 1883))
+        self.MQTT_BROKER = os.getenv("MQTT_BROKER", "localhost")
+        self.MQTT_PORT = int(os.getenv("MQTT_PORT", 1883))
 
-        self.mqtt_client = mqtt.Client()
-        self.mqtt_client.connect(MQTT_BROKER, MQTT_PORT)
-        
-        # Initialize Event Hub clients
+        # Initialize connections with error handling
+        self.sql_conn = None
+        self.mqtt_client = None
+        self.orders_producer = None
+        self.inventory_producer = None
+
+        # Try to initialize SQL if enabled
+        if self.ENABLE_SQL:
+            try:
+                self.init_database()
+            except Exception as e:
+                self.logger.error(f"Failed to initialize SQL connection: {str(e)}")
+                self.ENABLE_SQL = False
+
+        # Try to initialize MQTT
+        try:
+            self.init_mqtt()
+        except Exception as e:
+            self.logger.error(f"Failed to initialize MQTT connection: {str(e)}")
+            self.mqtt_client = None
+
+        # Try to initialize Event Hub if historical data is enabled
         if self.ENABLE_HISTORICAL:
-            self.orders_producer = EventHubProducerClient.from_connection_string(
-                conn_str=self.EVENTHUB_CONNECTION_STRING, 
-                eventhub_name=self.ORDERS_EVENTHUB_NAME
-            )
-            self.inventory_producer = EventHubProducerClient.from_connection_string(
-                conn_str=self.EVENTHUB_CONNECTION_STRING, 
-                eventhub_name=self.INVENTORY_EVENTHUB_NAME
-            )
+            try:
+                self.init_event_hub()
+            except Exception as e:
+                self.logger.error(f"Failed to initialize Event Hub: {str(e)}")
+                self.ENABLE_HISTORICAL = False
+
 
         # Initialize store details data structures
         self.store_details = [
@@ -124,6 +136,32 @@ class StoreSimulator:
         # Add orders storage
         self.recent_orders = []
         self.max_orders_history = 100
+
+    def init_mqtt(self):
+        """Initialize MQTT connection"""
+        try:
+            self.mqtt_client = mqtt.Client()
+            self.mqtt_client.connect(self.MQTT_BROKER, self.MQTT_PORT)
+            self.logger.info("Successfully connected to MQTT broker")
+        except Exception as e:
+            self.logger.error(f"Error connecting to MQTT: {str(e)}")
+            raise
+
+    def init_event_hub(self):
+        """Initialize Event Hub connections"""
+        try:
+            self.orders_producer = EventHubProducerClient.from_connection_string(
+                conn_str=self.EVENTHUB_CONNECTION_STRING,
+                eventhub_name=self.ORDERS_EVENTHUB_NAME
+            )
+            self.inventory_producer = EventHubProducerClient.from_connection_string(
+                conn_str=self.EVENTHUB_CONNECTION_STRING,
+                eventhub_name=self.INVENTORY_EVENTHUB_NAME
+            )
+            self.logger.info("Successfully connected to Event Hub")
+        except Exception as e:
+            self.logger.error(f"Error connecting to Event Hub: {str(e)}")
+            raise
 
     def add_order(self, order_data):
         """Add order to recent orders list"""
@@ -327,6 +365,9 @@ class StoreSimulator:
             self.products_list = [Product(**product) for product in products]
 
     def publish_data_to_mqtt(self, simulation_data, topic):
+        
+        if self.mqtt_client is None:
+            return
         try:
             staging_event = json.dumps({
             "source": "simulator",
@@ -338,35 +379,53 @@ class StoreSimulator:
             self.mqtt_client.publish(f"{mqtt_topic}", staging_event)
 
             # Save to SQL Server
-            if self.ENABLE_SQL:
-                event_data = json.loads(simulation_data)
-                if topic == "topic/inventory":
-                    self.save_to_sql("inventory", event_data)
-                elif topic == "topic/sales":
-                    self.save_to_sql("sales", event_data)
-
+            if self.ENABLE_SQL and self.sql_conn:
+                try:
+                    event_data = json.loads(simulation_data)
+                    if topic == "topic/inventory":
+                        self.save_to_sql("inventory", event_data)
+                    elif topic == "topic/sales":
+                        self.save_to_sql("sales", event_data)
+                except Exception as e:
+                    self.logger.error(f"Error saving to SQL: {str(e)}")
+                
 
             if os.getenv("VERBOSE", "False").lower() == "true":
                 self.logger.info(f"Data for {mqtt_topic} published to MQTT: {staging_event}")
 
         except Exception as e:
-            self.logger.error(f"Error publishing data to MQTT for {mqtt_topic}: {str(e)}")
+            self.logger.error(f"Error publishing to MQTT: {str(e)}")
+            # Try to reconnect
+            try:
+                self.init_mqtt()
+            except:
+                pass
 
     def cleanup(self):
         """Cleanup resources"""
-        try:
-            if hasattr(self, 'sql_conn'):
+        if self.sql_conn:
+            try:
                 self.sql_conn.close()
                 self.logger.info("SQL Server connection closed")
-        except Exception as e:
-            self.logger.error(f"Error closing SQL connection: {str(e)}")
-        
-        if os.getenv("ENABLE_HISTORICAL", "True").lower() == "true":
-            self.logger.info("Closing Event Hub producers...")
-            if self.orders_producer:
-                self.orders_producer.close()
-            if self.inventory_producer:
-                self.inventory_producer.close()
+            except Exception as e:
+                self.logger.error(f"Error closing SQL connection: {str(e)}")
+
+        if self.mqtt_client:
+            try:
+                self.mqtt_client.disconnect()
+                self.logger.info("MQTT connection closed")
+            except Exception as e:
+                self.logger.error(f"Error closing MQTT connection: {str(e)}")
+
+        if self.ENABLE_HISTORICAL:
+            try:
+                if self.orders_producer:
+                    self.orders_producer.close()
+                if self.inventory_producer:
+                    self.inventory_producer.close()
+                self.logger.info("Event Hub connections closed")
+            except Exception as e:
+                self.logger.error(f"Error closing Event Hub connections: {str(e)}")
 
     
 
@@ -523,35 +582,46 @@ class StoreSimulator:
 
 
     def send_inventory_to_event_hub(self, simulation_data):
-        
-        if not os.getenv("ENABLE_HISTORICAL", "True").lower() == "true":
+        if not self.ENABLE_HISTORICAL or self.inventory_producer is None:
             return
-    
-        staging_event = {
-        "source": "simulator",
-        "subject": "topic/inventory",
-        "event_data": json.loads(simulation_data)
-        }
+        
+        try:
+            staging_event = {
+                "source": "simulator",
+                "subject": "topic/inventory",
+                "event_data": json.loads(simulation_data)
+            }
 
-        event_data = EventData(json.dumps(staging_event))
-        self.inventory_producer.send_batch([event_data])
-        if os.getenv("VERBOSE", "False").lower() == "true":
-            self.logger.info(f"Sent inventory data: {simulation_data}")
+            event_data = EventData(json.dumps(staging_event))
+            self.inventory_producer.send_batch([event_data])
+        except Exception as e:
+            self.logger.error(f"Error sending to Event Hub: {str(e)}")
+            # Try to reconnect
+            try:
+                self.init_event_hub()
+            except:
+                self.ENABLE_HISTORICAL = False
 
     def send_orders_to_event_hub(self, simulation_data):
-        if not os.getenv("ENABLE_HISTORICAL", "True").lower() == "true":
+        if not self.ENABLE_HISTORICAL or self.orders_producer is None:
             return
         
-        staging_event = {
-        "source": "simulator",
-        "subject": "topic/sales",
-        "event_data": json.loads(simulation_data)
-        }
+        try:
+            staging_event = {
+                "source": "simulator",
+                "subject": "topic/sales",
+                "event_data": json.loads(simulation_data)
+            }
 
-        event_data = EventData(json.dumps(staging_event))
-        self.orders_producer.send_batch([event_data])
-        if os.getenv("VERBOSE", "False").lower() == "true":
-            self.logger.info(f"Sent order data: {simulation_data}")
+            event_data = EventData(json.dumps(staging_event))
+            self.orders_producer.send_batch([event_data])
+        except Exception as e:
+            self.logger.error(f"Error sending to Event Hub: {str(e)}")
+            # Try to reconnect
+            try:
+                self.init_event_hub()
+            except:
+                self.ENABLE_HISTORICAL = False
 
     def run(self):
         try:
