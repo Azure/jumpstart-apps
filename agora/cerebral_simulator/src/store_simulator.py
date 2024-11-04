@@ -9,8 +9,8 @@ from azure.eventhub import EventHubProducerClient, EventData
 import paho.mqtt.client as mqtt
 import pyodbc
 
-#DevMode
-from dotenv import load_dotenv
+#DEV_MODE
+#from dotenv import load_dotenv
 
 class PriceRange:
     def __init__(self, min, max):
@@ -62,7 +62,7 @@ class StoreSimulator:
         logging.basicConfig(level=logging.INFO)
         self.logger = logging.getLogger(__name__)
         
-        # dev mode
+        # DEV_MODE
         # Load environment variables from .env file
         #load_dotenv()
         
@@ -77,7 +77,7 @@ class StoreSimulator:
         self.SQL_SERVER = os.getenv("SQL_SERVER", "localhost")
         self.SQL_DATABASE = os.getenv("SQL_DATABASE", "RetailStore")
         self.SQL_USERNAME = os.getenv("SQL_USERNAME", "sa")
-        self.SQL_PASSWORD = os.getenv("SQL_PASSWORD", "YourPassword123!")
+        self.SQL_PASSWORD = os.getenv("SQL_PASSWORD", "ArcPassword123!!")
         self.ENABLE_SQL = os.getenv("ENABLE_SQL", "True").lower() == "true"
         self.ENABLE_HISTORICAL = os.getenv("ENABLE_HISTORICAL", "True").lower() == "true"
 
@@ -121,7 +121,40 @@ class StoreSimulator:
         self.products_list = []
         self.current_inventory = {}
 
+        # Add orders storage
+        self.recent_orders = []
+        self.max_orders_history = 100
+
+    def add_order(self, order_data):
+        """Add order to recent orders list"""
+        self.recent_orders.append(order_data)
+        # keep only the recent orders
+        if len(self.recent_orders) > self.max_orders_history:
+            self.recent_orders.pop(0)
+
+
     def init_database(self):
+        """Print configuration values grouped by category"""
+        print("\n=== EventHub Configuration ===")
+        print(f"Connection String: {self.EVENTHUB_CONNECTION_STRING}")
+        print(f"Orders EventHub: {self.ORDERS_EVENTHUB_NAME}")
+        print(f"Inventory EventHub: {self.INVENTORY_EVENTHUB_NAME}")
+        
+        print("\n=== Data Configuration ===")
+        print(f"Historical Data Days: {self.HISTORICAL_DATA_DAYS}")
+        print(f"Order Frequency: {self.ORDER_FREQUENCY}")
+        print(f"Products File: {self.PRODUCTS_FILE}")
+        
+        print("\n=== SQL Configuration ===")
+        print(f"Server: {self.SQL_SERVER}")
+        print(f"Database: {self.SQL_DATABASE}")
+        print(f"Username: {self.SQL_USERNAME}")
+        print(f"Password: {self.SQL_PASSWORD}")
+        
+        print("\n=== Feature Flags ===")
+        print(f"SQL Enabled: {self.ENABLE_SQL}")
+        print(f"Historical Enabled: {self.ENABLE_HISTORICAL}")
+        
         """Initialize database connection and create tables if they don't exist"""
         try:
             drivers = [
@@ -444,6 +477,12 @@ class StoreSimulator:
                                 'customer_id': f'C-{random.randint(1,1000):03d}',
                                 'register_id': random.choice(self.store_registers)
                             }
+
+                            # Add to recent orders
+                            self.add_order({
+                                "timestamp": current_time_str,
+                                "order_data": line_item
+                            })
 
                             # Save to SQL if enabled
                             if self.ENABLE_SQL:

@@ -13,10 +13,6 @@ docker compose -f docker-compose-vision-ai.yml -f docker-compose-main-ui.yml -f 
 helm dependency build .\charts\contoso-hypermarket\ --namespace contoso-hypermarket
 helm install contoso-hypermarket .\charts\contoso-hypermarket\ --create-namespace --namespace contoso-hypermarket
 
-### Install Remaining Manifests not yet part of Helm
-kubectl apply -f ../cerebral_api/operations/cerebral-simulator-prometheus.yaml
-kubectl apply -f ../shopper_insights_api/operations/shopper-insights-prometheus.yaml
-
 ## Re-installing
 
 If re-installing with Helm, the influxdb-pvc will not uninstall by itself without patching the finalizer (the default behavior protects against accidental deletion)

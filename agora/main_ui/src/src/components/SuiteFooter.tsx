@@ -142,7 +142,7 @@ const SuiteFooter: React.FC = () => {
     <Stack horizontal styles={containerStyles} tokens={stackTokens}>
         <Stack id='footerbottom' styles={footerBottom}>
             <Stack.Item grow styles={itemStyles} id='CopyRight'>
-                <Text className={classes.footerText}>© 2024, All rights reserved Arc JumpStart</Text>
+                <Text className={classes.footerText}>© 2024, All rights reserved Arc Jumpstart</Text>
             </Stack.Item>
             <Stack.Item grow styles={itemStyles} id='socialmedia'>
                 <div className={classes.footerSocial}>

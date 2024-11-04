@@ -61,6 +61,7 @@ ENV SQL_SERVER=your_server
 ENV SQL_DATABASE=RetailStore
 ENV SQL_USERNAME=your_username
 ENV SQL_PASSWORD=your_password
+ENV STORE_ID=SEA
 
 EXPOSE 8001
 

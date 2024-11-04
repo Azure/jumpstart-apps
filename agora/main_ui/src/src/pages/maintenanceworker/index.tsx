@@ -4,7 +4,7 @@ import {
   webLightTheme,
   Text,
 } from "@fluentui/react-components";
-import Header from '../../components/SuiteHeader';
+import Header from '../../components/MaintenanceWorkerHeader';
 import Footer from '../../components/SuiteFooter';
 import SideMenu from "../../components/MaintenanceMenu";
 import { Default as Banner } from "../../components/Banner";
