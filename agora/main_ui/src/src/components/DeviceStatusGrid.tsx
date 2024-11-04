@@ -38,6 +38,21 @@ type LineCell = {
   label: string;
 };
 
+type OperatingModeCell = {
+    label: string;
+  };
+  
+type HumidityPercentageCell = {
+    label: number;
+  };
+
+type PowerUsageKwhCell = {
+    label: number;
+  };
+
+type TemperatureCelsiusCell = {
+    label: number;
+  };
 type DataItem = {
     applianceDeviceName: ApplianceDeviceNameCell;
     location: LocationCell;
@@ -45,12 +60,37 @@ type DataItem = {
     healthStatus: HealthStatusCell;
 };
 
+type HVACGridDataItem = {
+    applianceDeviceName: ApplianceDeviceNameCell;
+    humidityPercentage: HumidityPercentageCell;
+    operatingMode: OperatingModeCell;
+    powerUsageKwh: PowerUsageKwhCell;
+    temperatureCelsius: TemperatureCelsiusCell;    
+};
 
+type DevicesDataItem = {
+    deviceId: string,
+    equipementType: string,
+    lastUpdated: string
+}
+
+type HVACDeviceMetricsDataItem = {
+    id: number,
+    deviceId: string,
+    humidityPercent: number,
+    operatingMode: string,
+    powerUsageKwh: number,
+    temperatureCelsius: number
+}
+const devicesDataItems: DevicesDataItem [] = [];
+const hvacDeviceMetricsDataItems: HVACDeviceMetricsDataItem [] = [];
+var hvacGridDataItems: HVACGridDataItem[]=[];
+  
 const dataItems: DataItem[] = [
 ];
 
-const columns: TableColumnDefinition<DataItem>[] = [
-  createTableColumn<DataItem>({
+const columns: TableColumnDefinition<HVACGridDataItem>[] = [
+  createTableColumn<HVACGridDataItem>({
     columnId: "applianceDeviceName",
     renderHeaderCell: () => {
       return "Appliance/Device";
@@ -63,42 +103,56 @@ const columns: TableColumnDefinition<DataItem>[] = [
       );
     },
   }),
-  createTableColumn<DataItem>({
-    columnId: "location",
+  createTableColumn<HVACGridDataItem>({
+    columnId: "humidityPercentage",
     renderHeaderCell: () => {
-      return "Location";
+      return "HumidityPercentage";
     },
     renderCell: (item) => {
       return (
         <TableCellLayout>
-          {item.location.label}
+          {item.humidityPercentage.label}
         </TableCellLayout>
       );
     },
   }), 
 
-  createTableColumn<DataItem>({
-    columnId: "Temp",
+  createTableColumn<HVACGridDataItem>({
+    columnId: "operatingMode",
     renderHeaderCell: () => {
-      return "Temp";
+      return "OperatingMode";
     },
     renderCell: (item) => {
       return (
         <TableCellLayout>
-          {item.Temp.label}
+          {item.operatingMode.label}
         </TableCellLayout>
       );
     },
   }), 
-  createTableColumn<DataItem>({
-    columnId: "healthStatus",
+  createTableColumn<HVACGridDataItem>({
+    columnId: "powerUsageKwh",
     renderHeaderCell: () => {
-      return "Health status";
+      return "Power Usage Kwh";
     },
     renderCell: (item) => {
       return (
         <TableCellLayout>
-          {item.healthStatus.label}
+          {item.powerUsageKwh.label}
+        </TableCellLayout>
+      );
+    },
+  }), 
+ 
+  createTableColumn<HVACGridDataItem>({
+    columnId: "temperatureCelsius",
+    renderHeaderCell: () => {
+      return "TemperatureCelsius";
+    },
+    renderCell: (item) => {
+      return (
+        <TableCellLayout>
+          {item.temperatureCelsius.label}
         </TableCellLayout>
       );
     },
@@ -163,35 +217,92 @@ const useStyles = makeStyles({
 export const DeviceStatusGrid = () => {
   const defaultSelectedItems = React.useMemo(() => new Set([1]), []);
   const [data, setData] = useState([]);
+  const [metricData, setMetricData] = useState([]);
   const baseApiUrl = process.env.REACT_APP_CEREBRAL_SIMULATOR_API_URL || "/cerebralSimulator_api";
-  useEffect(() => {
+
+interface DeviceData {
+    device_id: string;
+    equipment_type: string;
+    last_updated: string;
+    metrics: MetricData;
+  }
+  
+interface MetricData {
+    device_id: string;
+    humidity_percent: number;
+    id: number;
+    operating_mode: string;
+    power_usage_kwh: number;
+    temperature_celsius: number;
+
+}
+const [posts, setPosts] = useState([]);
+const [metrics, setMetrics] = useState<DeviceData[]>();
+const [loading, setLoading] = useState(true);
+const [gridData, setGridData]= useState<HVACGridDataItem[]>();
+useEffect(() => {
     fetch(`${baseApiUrl}/api/v1/devices`)
       .then(response => response.json())
-      .then(json => setData(json))
-      .then()
-      .catch(error => console.error(error));
+      .then(posts => {
+        setPosts(posts);
+        let postPromises = posts.map((post: { [x: string]: string; }) => {
+            if(post["equipment_type"] === "HVAC") {
+                var metricURLWithPost = `${baseApiUrl}/api/v1/devices/` + post["equipment_type"] + `/` + post["device_id"] + `/metrics`;
+                return fetch(metricURLWithPost)
+                    .then(response => response.json());
+            }
+        });
+
+        return Promise.all(postPromises);
+      })
+      .then(metricsArray => {
+        for(let i=0; i<metricsArray.length; i++) {
+
+        }
+        setMetrics(metricsArray);
+        setLoading(false);
+      })
+      .catch(error => {
+        console.error(error);
+        setLoading(false);
+      });
   }, []);
-  let counter = 0;
-  data.forEach(
-    function(d){
-        counter = counter + 1;
-      var newDataItem: DataItem = {
-        applianceDeviceName: { label: d["application_name"] },
-        location: { label: d["configured_status"] },
-        Temp: { label: d["configured_version"]},
-        healthStatus: { label: d["deployed_status"]},
-      };
-      console.log(counter);
-      if(counter < 3) {
-        dataItems.push(newDataItem);
-      }
-     }
-  )  
-  console.log(dataItems);
+
+  
+  if(metrics) {
+    for(let i=0; i < metrics.length; i++) {
+        if(metrics[i] && metrics[i] !== undefined)
+        {
+            var newHVACDeviceMetricsDataItem: HVACDeviceMetricsDataItem = {
+                deviceId: metrics[i]["metrics"]["device_id"],
+                humidityPercent: metrics[i]["metrics"]["humidity_percent"],
+                id: metrics[i]["metrics"]["id"],
+                operatingMode: metrics[i]["metrics"]["operating_mode"],
+                powerUsageKwh: metrics[i]["metrics"]["power_usage_kwh"],
+                temperatureCelsius: metrics[i]["metrics"]["temperature_celsius"],
+            }
+            if(newHVACDeviceMetricsDataItem) {
+                hvacDeviceMetricsDataItems.push(newHVACDeviceMetricsDataItem);
+                if(newHVACDeviceMetricsDataItem) {
+                    var newHVACGridDataItem:  HVACGridDataItem = {
+                        applianceDeviceName: { label: newHVACDeviceMetricsDataItem.deviceId},
+                        humidityPercentage: { label: newHVACDeviceMetricsDataItem.humidityPercent},
+                        operatingMode: { label: newHVACDeviceMetricsDataItem.operatingMode},
+                        powerUsageKwh: { label: newHVACDeviceMetricsDataItem.powerUsageKwh},
+                        temperatureCelsius: { label: newHVACDeviceMetricsDataItem.temperatureCelsius},
+                    }
+                    if(hvacGridDataItems.length<4) {
+                        hvacGridDataItems.push(newHVACGridDataItem);    
+                    }
+                }                        
+            }            
+        }
+    }  
+  }
   const styles = useStyles();
   return (
     <DataGrid
-      items={dataItems}
+      items={hvacGridDataItems}
       columns={columns}
       selectionMode="single"
       defaultSelectedItems={defaultSelectedItems}
@@ -219,7 +330,6 @@ export const DeviceStatusGrid = () => {
                 </div>                
                 </Stack>
                 <Stack id="headerDivider" className={styles.headerDivider}>
-
                 </Stack>
             </Stack>
         </DataGridHeaderCell>
