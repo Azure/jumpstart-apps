@@ -56,7 +56,7 @@ spec:
         - name: CHATGPT_MODEL
           value: "gpt-35-turbo"
         - name: AZURE_OPENAI_ENDPOINT
-          value: "https://jsextoai.openai.azure.com"
+          value: ""
         - name: OPENAI_API_VERSION
           value: "2024-03-01-preview"
         - name: INFLUXDB_URL
@@ -87,6 +87,12 @@ spec:
           value: "false"
         - name: MODEL_PATH
           value: "/app/models"
+        - name: CHROMA_HOST
+          value: "chroma-db-service.contoso-hypermarket.svc.cluster.local"
+        - name: CHROMA_PORT
+          value: "8040"
+        - name: CHROMA_COLLECTION
+          value: "documents"
       volumes:
       - name: cerebral-docs
         persistentVolumeClaim:

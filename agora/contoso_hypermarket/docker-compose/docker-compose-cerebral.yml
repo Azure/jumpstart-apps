@@ -50,6 +50,24 @@ services:
       - influxdb
     restart: "no"
 
+  chroma-db:
+    image: chromadb/chroma:latest
+    container_name: chroma_db
+    ports:
+      - "8040:8040"
+    environment:
+      - CHROMA_SERVER_HTTP_PORT=8040
+      - CHROMA_SERVER_HOST=0.0.0.0
+      - CHROMA_SERVER_CORS_ALLOW_ORIGINS=["*"]
+      - CHROMA_SERVER_AUTH_CREDENTIALS=false
+      - PERSIST_DIRECTORY=/chroma/data
+      - CHROMA_SERVER_AUTH_BASIC_ENABLE=false
+      - CHROMA_SERVER_AUTH_DISABLE=true
+      - ALLOW_RESET=true
+    volumes:
+      - chroma-data:/chroma/data
+    restart: always
+
   cerebral-api-init-documents:
     container_name: init-documents
     image: mcr.microsoft.com/cbl-mariner/base/core:2.0
@@ -126,6 +144,11 @@ services:
       WHISPER_MODEL_PATH: ""
       AZURE_AI_SPEECH_KEY: ""
       AZURE_AI_SPEECH_REGION: ""
+      USE_LOCAL_LLM: "false" # Change to true if you want to use a local LLM model
+      MODEL_PATH: "/app/models/cpu_and_mobile/cpu-int4-rtn-block-32-acc-level-4"
+      CHROMA_HOST: "chroma_db"
+      CHROMA_PORT: "8000"
+      CHROMA_COLLECTION: "documents"
     restart: always  # Optional: Restart policy
     volumes:
       - cerebral-docs:/app/docs
@@ -139,4 +162,6 @@ volumes:
   cerebral-docs:
     driver: local
   cerebral-slm-model:
+    driver: local
+  chroma-data:
     driver: local
