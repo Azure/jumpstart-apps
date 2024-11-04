@@ -4,32 +4,34 @@ import { IconButton, Text } from '@fluentui/react';
 interface CerebralHeaderProps {
   title?: string;
   onClose: () => void;
-  iconSrc: string; // URL or path to the image icon
+  iconSrc?: string;
 }
 
-const CerebralHeader: React.FC<CerebralHeaderProps> = ({ title = "Cerebral", onClose }) => {
+const CerebralHeader: React.FC<CerebralHeaderProps> = ({ 
+  title = "Jumpstart Cerebral", 
+  onClose,
+}) => {
   return (
     <div style={{
-      display: 'flex',
-      justifyContent: 'space-between',
-      padding: '10px 20px',
-      borderBottom: '1px solid #e1e1e1',
+      display: 'flex !important',
+      justifyContent: 'flex-start !important',
+      alignItems: 'center !important',
+      width: '100%',
+      padding: '5px 16px',
+      position: 'relative',  // Add this
     }}>
-      <div style={{ display: 'flex', alignItems: 'left' }}>
-        <img src="./Cerebral_round.png" alt="Cerebral Logo" style={{ width: 32, height: 32, marginRight: 10 }} />
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        flex: '1 1 auto',
+      }}>
+        <img 
+          src="./Cerebral_round.png" 
+          alt="Cerebral Logo" 
+          style={{ width: 32, height: 32, marginRight: 12 }} 
+        />
         <Text variant="xLarge">{title}</Text>
       </div>
-      <IconButton
-        iconProps={{ iconName: 'Cancel' }}
-        ariaLabel="Close"
-        onClick={onClose}
-        styles={{
-          root: {
-            color: '#605e5c',
-            fontSize: 16,
-          },
-        }}
-      />
     </div>
   );
 };

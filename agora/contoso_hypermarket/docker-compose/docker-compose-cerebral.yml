@@ -75,7 +75,7 @@ services:
       - "5004:5003"  # Map host port 5003 to container port 5003
       - "8000:8000"  # Map host port 8000 to container port 8000
     environment:
-      AZURE_OPENAI_API_KEY: "50121186acc94bb39cbc67dbf8c86b2a"  # Environment variables
+      AZURE_OPENAI_API_KEY: ""  # Environment variables
       CHATGPT_MODEL: "gpt-35-turbo"
       AZURE_OPENAI_ENDPOINT: "https://jsextoai.openai.azure.com"
       OPENAI_API_VERSION: "2024-03-01-preview"
@@ -88,7 +88,7 @@ services:
       SQL_USERNAME: "SA" 
       SQL_PASSWORD: "ArcPassword123!!"
       WHISPER_MODEL_PATH : ""
-      AZURE_AI_SPEECH_KEY : "FyLX1JZLBE42XkJg5wcfIG22kpgyTw5UZFjKWo0VIKDaFVFwh63OJQQJ99AJACYeBjFXJ3w3AAAYACOGNJHT"
+      AZURE_AI_SPEECH_KEY : ""
       AZURE_AI_SPEECH_REGION : "eastus"
     restart: always  # Optional: Restart policy
 

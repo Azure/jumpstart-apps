@@ -207,14 +207,13 @@ const CamerasZones: React.FC<CameraPanelProps> = ({ isOpen, onDismiss, onSave })
               <CerebralHeader 
                 title="Cerebral" 
                 onClose={toggleCerebralDrawer} 
-                iconSrc="/images/cerebral-icon.png" // Replace with actual path to your image
               />
             )}
             onRenderFooterContent={onRenderCerebralFooterContent}
             isFooterAtBottom={true}
             hasCloseButton={true}
             closeButtonAriaLabel="Close"
-            isLightDismiss={true}            
+            isLightDismiss={true}         
             >
               <CerebralChatWithAudio />
           </Panel>

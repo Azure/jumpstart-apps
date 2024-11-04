@@ -140,31 +140,37 @@ const CerebralChatWithAudio = (props: CopilotChatProps) => {
     });
 
     socket.on('error', (data) => {
+      setIsProcessing(false);
       addBotMessage(`Error: ${data.error}`);
     });
 
     // Socket event handlers
     socket.on('classification', (data) => {
+      setIsProcessing(false);
       messageBuffer.classification += " " + data.category;
       flushBufferedMessages(false);
     });
 
     socket.on('message', (data) => {
+      setIsProcessing(false);
       messageBuffer.message += " " + data.message;
       flushBufferedMessages(false);
     });
 
     socket.on('query', (data) => {
+      setIsProcessing(false);
       messageBuffer.query += " " + data.query;
       flushBufferedMessages(false);
     });
 
     socket.on('result', (data) => {
+      setIsProcessing(false);
       messageBuffer.result += " " + data.result;
       flushBufferedMessages(false);
     });
 
     socket.on('recommendations', (data) => {
+      setIsProcessing(false);
       messageBuffer.recommendations = data.recommendations;
       flushBufferedMessages(false);
     });
@@ -199,6 +205,7 @@ const CerebralChatWithAudio = (props: CopilotChatProps) => {
   };
 
   const handleSend = (ev: React.FormEvent, data: { value: string }) => {
+    setIsProcessing(true);
     const message = data.value.trim();
     if (!message || !isConnected) return;
 
@@ -274,7 +281,6 @@ const CerebralChatWithAudio = (props: CopilotChatProps) => {
       formData.append('audio_data', audioBlob, 'recording.wav');
       formData.append('model', process.env.REACT_APP_CEREBRAL_STT_MODEL || 'azure');
 
-      debugger;
       const response = await fetch(
         process.env.REACT_APP_CEREBRAL_STT_API_URL || 'http://localhost:5004/Cerebral/api/stt',
         {
@@ -282,7 +288,6 @@ const CerebralChatWithAudio = (props: CopilotChatProps) => {
           body: formData,
         }
       );
-      debugger;
       if (!response.ok) throw new Error('STT processing failed');
 
       const data = await response.json();
@@ -329,7 +334,7 @@ const CerebralChatWithAudio = (props: CopilotChatProps) => {
         key={index}
         avatar={
           <Avatar
-            size={28}
+            size={20}
             image={{
               src: "./Cerebral_round.png",
             }}
@@ -350,10 +355,32 @@ const CerebralChatWithAudio = (props: CopilotChatProps) => {
       </CopilotMessage>
     );
   };
+
+  const renderProcessing = () => {
+    return (
+      <CopilotMessage
+        avatar={
+          <Avatar
+            size={24}
+            image={{
+              src: "./Cerebral_round.png",
+            }}
+          />
+        }
+        name="Copilot"
+        loadingState="loading"
+      >
+        Searching...
+      </CopilotMessage>
+    );
+  };
+  
   return (
     <FluentProvider theme={webLightTheme}>
       <CopilotChat {...props} style={{ margin: '30px' }}>
         {messages.map((msg, index) => renderMessage(msg, index))}
+
+        {isProcessing && renderProcessing()}
 
         <CerebralChatInput
           onSubmit={handleSend}

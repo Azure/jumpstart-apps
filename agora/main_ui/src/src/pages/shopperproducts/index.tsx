@@ -24,6 +24,7 @@ import { CopilotProvider } from "@fluentui-copilot/react-copilot";
 import { IDropdownOption, IImageProps, IStackProps, IStackTokens, Stack,   PrimaryButton, Image, Text, IStackStyles} from "@fluentui/react";
 import { Panel, PanelType, DefaultButton } from '@fluentui/react';
 import CerebralChatWithAudio from '../../components/CerebralChat';
+import CerebralHeader from '../../components/CerebralHeader';
 
 import {
   Card,
@@ -506,6 +507,12 @@ const onCancelCerebralDrawer = () => {
             type={PanelType.custom}
             customWidth="30%"
             headerText=""
+            onRenderHeader={() => (
+              <CerebralHeader 
+                title="Cerebral" 
+                onClose={toggleCerebralDrawer} 
+              />
+            )}
             onRenderFooterContent={onRenderCerebralFooterContent}
             isFooterAtBottom={true}
             hasCloseButton={true}
