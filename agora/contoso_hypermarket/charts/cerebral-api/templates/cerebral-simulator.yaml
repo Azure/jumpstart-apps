@@ -7,7 +7,7 @@ data:
   INFLUXDB_TOKEN: "secret-token"
   INFLUXDB_ORG: "InfluxData"
   INFLUXDB_BUCKET: "hypermarket"
-  MQTT_BROKER: "localhost"
+  MQTT_BROKER: "aio-broker-insecure.azure-iot-operations.svc.cluster.local"
   MQTT_PORT: "1883"
   MQTT_TOPIC: "iot/devices"
   REFRIGERATOR_COUNT: "3"
@@ -17,7 +17,7 @@ data:
   HVAC_COUNT: "3"
   LIGHTINGSYSTEM_COUNT: "3"
   AUTOMATEDCHECKOUT_COUNT: "3"
-  EVENTHUB_CONNECTION_STRING: "https://aiohubns021ef.servicebus.windows.net:443/"
+  EVENTHUB_CONNECTION_STRING: "REPLACEME"
   ORDERS_EVENTHUB_NAME: ORDERS
   INVENTORY_EVENTHUB_NAME: INVENTORY
   HISTORICAL_DATA_DAYS: "1"
@@ -54,15 +54,35 @@ spec:
     spec:
       initContainers:
       - name: init-sql-check
-        image: mcr.microsoft.com/azurelinux/busybox:1.36
+        image: mcr.microsoft.com/mssql-tools:latest  # Correct image with sqlcmd
         command:
-          - sh
+          - /bin/bash
           - -c
           - |
-            until nc -z -v -w30 mssql-service.contoso-hypermarket.svc.cluster.local 1433; do
-              echo "Waiting for the mssql-service to start"
-              sleep 5
+            # Wait until database is ready
+            until /opt/mssql-tools/bin/sqlcmd \
+              -S mssql-service.contoso-hypermarket.svc.cluster.local \
+              -U SA \
+              -P "ArcPassword123!!" \
+              -Q "SELECT 1" > /dev/null 2>&1
+            do
+              echo "Waiting for database to be ready..."
+              sleep 10
             done
+
+            # Check if Stores table has data
+            until /opt/mssql-tools/bin/sqlcmd \
+              -S mssql-service.contoso-hypermarket.svc.cluster.local \
+              -U SA \
+              -P "ArcPassword123!!" \
+              -d RetailDB \
+              -Q "SELECT COUNT(*) FROM Stores" | grep -q '[1-9]'
+            do
+              echo "Stores table is empty. Waiting..."
+              sleep 10
+            done
+
+            echo "Database is ready."
       containers:
       - name: cerebral-simulator
         ports:
