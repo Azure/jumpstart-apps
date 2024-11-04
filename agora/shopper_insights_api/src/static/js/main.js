@@ -2,6 +2,7 @@ let videoFeed;
 let detectionAreas = [];
 let nextAreaId = 0;
 let cameraInitialized = false;
+let cameraName = "";
 
 const colors = [
     'rgba(255, 0, 0, 0.3)',   // Red
@@ -267,7 +268,7 @@ function sendRestrictedAreas() {
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ areas: areas, video_url: !cameraInitialized || videoUrl == ""  ? "" : videoUrl}),
+        body: JSON.stringify({ areas: areas.length > 0 ? areas : [], debug: false, cameraName: !cameraInitialized || cameraName == ""  ? "" : cameraName}),
     })
     .then(response => response.json())
     .then(data => {
@@ -281,36 +282,34 @@ function sendRestrictedAreas() {
 function setVideoSource() {
     log("Setting video source");
     const url = document.getElementById('video-url').value;
-    const cameraName = `camera_${Math.floor(Math.random() * 1000)}`;
+    cameraName = `camera_${Math.floor(Math.random() * 1000)}`;
     fetch('/set_video_source', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ url: url, x: 0, y: 0, w: 0, h: 1, debug: false, cameraName }),
+        body: JSON.stringify({ cameraName, video_url: url, x: 0, y: 0, w: 0, h: 1, debug: false, cameraName }),
     })
     .then(response => response.json())
     .then(data => {
         log('Video source set successfully');
-        updateVideoFeed(url);
+        updateVideoFeed(cameraName);
     })
     .catch((error) => {
         log('Error setting video source: ' + error);
     });
 }
 
-function updateVideoFeed(url) {
+function updateVideoFeed(cameraName) {
     log("Updating video feed");
-    const data = {
-    };
-    const jsonData = encodeURIComponent(JSON.stringify(data));
-    videoFeed.src = `/video_feed/${encodeURIComponent(url)}?data=${jsonData}`;
+    const jsonData = encodeURIComponent(JSON.stringify({cameraName, debug: false}));
+    videoFeed.src = `/video_feed?data=${jsonData}`;
     cameraInitialized = true;
 }
 
 function fetchDetectionData() {
     const videoUrl = document.getElementById('video-url').value;
-    const url = !cameraInitialized || videoUrl == ""  ? "/status" : `/status?video_url=${encodeURIComponent(videoUrl)}`;
+    const url = !cameraInitialized || videoUrl == ""  ? "/status" : `/status?camera_name=${cameraName}`;
     fetch(url)
     .then(response => response.json())
     .then(data => {
