@@ -72,6 +72,7 @@ ENV AZURE_OPENAI_API_KEY=<your_azure_openai_api_key> \
     ENV MODEL_PATH=cpu_and_mobile/cpu-int4-rtn-block-32-acc-level-4
     ENV USE_LOCAL_LLM=false
     ENV PORT=5003
+    ENV STORE_ID=SEA
 
 # Copy the Supervisor configuration
 COPY supervisor.conf /etc/supervisor/conf.d/supervisord.conf
