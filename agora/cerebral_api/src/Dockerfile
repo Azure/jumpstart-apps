@@ -25,9 +25,6 @@ RUN pip install --no-cache-dir --upgrade pip && \
     # Install remaining dependencies
     pip install --no-cache-dir -r requirements.txt
 
-# Create necessary directories
-RUN mkdir -p /app/templates
-
 # Copy the rest of the application code
 COPY . /app
 
@@ -62,9 +59,6 @@ ENV AZURE_OPENAI_API_KEY=<your_azure_openai_api_key> \
 COPY supervisor.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Expose the ports that the applications will use
-#EXPOSE 5004 8000
 EXPOSE 5003
 
-# Start Supervisor
-# CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
 CMD ["python", "app.py"]
