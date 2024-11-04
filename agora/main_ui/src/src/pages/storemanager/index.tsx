@@ -168,7 +168,7 @@ const StoreManager = () => {
           <Stack.Item>
               <SideMenu />
           </Stack.Item>
-          <Stack.Item grow={3}>
+          <Stack.Item grow={3} style={{backgroundColor: "#F3F2F1"}}>
             <Stack tokens={themedMediumStackTokens}>
               <Greetings />
               <Cards />
