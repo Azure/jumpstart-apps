@@ -8,6 +8,8 @@ from datetime import timedelta, datetime
 from azure.eventhub import EventHubProducerClient, EventData
 import paho.mqtt.client as mqtt
 import pyodbc
+from threading import Thread
+
 
 #DEV_MODE
 #from dotenv import load_dotenv
@@ -33,7 +35,7 @@ class Product:
         return f"Product(product_id={self.product_id}, name={self.name}, price_range={self.price_range}, stock={self.stock}, photo_path={self.photo_path}, category={self.category})"
 
 class ProductInventory:
-    def __init__(self, date_time, product_id, store_id, retail_price, in_stock, reorder_threshold, last_restocked):
+    def __init__(self, date_time, product_id, store_id, retail_price, in_stock, reorder_threshold, last_restocked, product_name=""):
         self.date_time = date_time
         self.product_id = product_id
         self.store_id = store_id
@@ -41,9 +43,10 @@ class ProductInventory:
         self.in_stock = in_stock
         self.reorder_threshold = reorder_threshold
         self.last_restocked = last_restocked
+        self.product_name = product_name
 
     def __repr__(self):
-        return f"ProductInventory(date_time={self.date_time}, product_id={self.product_id}, store_id={self.store_id}, retail_price={self.retail_price}, in_stock={self.in_stock}, reorder_threshold={self.reorder_threshold}, last_restocked={self.last_restocked})"
+        return f"ProductInventory(date_time={self.date_time}, product_id={self.product_id}, store_id={self.store_id}, retail_price={self.retail_price}, in_stock={self.in_stock}, reorder_threshold={self.reorder_threshold}, last_restocked={self.last_restocked}, product_name={self.product_name})"
 
     def to_dict(self):
         return {
@@ -53,7 +56,8 @@ class ProductInventory:
             "retail_price": self.retail_price,
             "in_stock": self.in_stock,
             "reorder_threshold": self.reorder_threshold,
-            "last_restocked": self.last_restocked.isoformat()
+            "last_restocked": self.last_restocked.isoformat(),
+            "product_name": self.product_name
         }
 
 class StoreSimulator:
@@ -142,6 +146,7 @@ class StoreSimulator:
         try:
             self.mqtt_client = mqtt.Client()
             self.mqtt_client.connect(self.MQTT_BROKER, self.MQTT_PORT)
+            self.mqtt_client.loop_start()
             self.logger.info("Successfully connected to MQTT broker")
         except Exception as e:
             self.logger.error(f"Error connecting to MQTT: {str(e)}")
@@ -367,7 +372,11 @@ class StoreSimulator:
     def publish_data_to_mqtt(self, simulation_data, topic):
         
         if self.mqtt_client is None:
-            return
+            self.logger.error("MQTT client is None, attempting reconnection")
+            try:
+                self.init_mqtt()
+            except:
+                return
         try:
             staging_event = json.dumps({
             "source": "simulator",
@@ -375,8 +384,14 @@ class StoreSimulator:
             "event_data": json.loads(simulation_data)
             })
 
-            mqtt_topic = "topic/commercial"
-            self.mqtt_client.publish(f"{mqtt_topic}", staging_event)
+            # mqtt_topic = "topic/commercial"
+            result = self.mqtt_client.publish(topic, staging_event)
+            if result.rc != 0:
+                self.logger.error(f"Failed to publish to MQTT: {result.rc}")
+                return
+
+            if os.getenv("VERBOSE", "False").lower() == "true":
+                self.logger.info(f"Data published to MQTT topic {topic}: {staging_event}")
 
             # Save to SQL Server
             if self.ENABLE_SQL and self.sql_conn:
@@ -391,7 +406,7 @@ class StoreSimulator:
                 
 
             if os.getenv("VERBOSE", "False").lower() == "true":
-                self.logger.info(f"Data for {mqtt_topic} published to MQTT: {staging_event}")
+                self.logger.info(f"Data for {topic} published to MQTT: {staging_event}")
 
         except Exception as e:
             self.logger.error(f"Error publishing to MQTT: {str(e)}")
@@ -431,11 +446,14 @@ class StoreSimulator:
 
     def generate_inventory_data(self, current_time, destination="MQTT"):
         """Generate initial inventory data for all stores and products"""
+        #self.logger.info(f" ******* Product list {self.products_list}")
         try:
             for store in self.store_details:
                 for product in self.products_list:
                     try:
                         product_price = round(random.uniform(product.price_range.min, product.price_range.max), 2)
+                        self.logger.info(f"******** Product name for product_id {product.product_id}: {product.name}")
+                        
                         product_inventory = ProductInventory(
                             date_time=current_time,
                             store_id=store["store_id"],
@@ -443,7 +461,8 @@ class StoreSimulator:
                             retail_price=product_price,
                             in_stock=product.stock,
                             reorder_threshold=int(product.stock * 0.2),
-                            last_restocked=current_time - timedelta(days=random.randint(1, 30))
+                            last_restocked=current_time - timedelta(days=random.randint(1, 30)),
+                            product_name=product.name
                         )
 
                         key = (store["store_id"], str(product.product_id)) 
@@ -465,100 +484,135 @@ class StoreSimulator:
         except Exception as e:
             self.logger.error(f"Error in generate_inventory_data: {str(e)}")
 
-    def simulate_order_data(self, current_time, destination="MQTT"):
+    def generate_order(self, current_time, store, products):
+        """
+        Generate a single order with multiple items
+        
+        Args:
+            current_time: DateTime for the order
+            store: Store dictionary containing store details
+            products: List of available products
+            
+        Returns:
+            list: List of order items or None if error occurs
+        """
         try:
-            day_name = current_time.strftime('%A')
             current_time_str = str(current_time)
+            order_id = current_time.strftime('%Y%m%d%H%M%S-') + '{:03d}'.format(random.randint(1, 999))
+            order_items = []
+            
+            # Generate random profit margins for this order
+            profit_choices = random.sample(range(-20, 30), 5)
+            
+            # Select random products for this order (1-5 products)
+            selected_products = random.sample(products, random.randint(1, min(5, len(products))))
 
-            # Determine number of random orders
+            for product in selected_products:
+                # Generate random quantity for this product
+                quantity_sold = random.randint(1, 10)
+                inventory_key = (store["store_id"], str(product.product_id))
+
+                # Create or get inventory for this product
+                if inventory_key not in self.current_inventory:
+                    product_price = round(random.uniform(product.price_range.min, product.price_range.max), 2)
+                    self.current_inventory[inventory_key] = ProductInventory(
+                        date_time=current_time,
+                        store_id=store["store_id"],
+                        product_id=str(product.product_id),
+                        product_name=product.name,
+                        retail_price=product_price,
+                        in_stock=product.stock,
+                        reorder_threshold=int(product.stock * 0.2),
+                        last_restocked=current_time
+                    )
+
+                product_inventory = self.current_inventory[inventory_key]
+
+                # Update inventory levels
+                if product_inventory.in_stock > quantity_sold:
+                    product_inventory.in_stock -= quantity_sold
+                else:
+                    # Restock if not enough inventory
+                    product_inventory.in_stock = product.stock - quantity_sold
+                    product_inventory.last_restocked = current_time
+
+                product_inventory.date_time = current_time
+                self.current_inventory[inventory_key] = product_inventory
+
+                # Calculate order item details
+                discount = random.choice(self.product_discount) / 100
+                line_item_total_price = round(product_inventory.retail_price * quantity_sold * (1 - discount), 2)
+                profit = round(line_item_total_price * random.choice(profit_choices) / 100, 2)
+
+                # Create order item
+                order_item = {
+                    'sale_id': order_id,
+                    'sale_date': current_time_str,
+                    'store_id': store["store_id"],
+                    'store_city': store["city"],
+                    'product_id': str(product.product_id),
+                    'product_category': product.category,
+                    'product_name': product.name,
+                    'price': product_inventory.retail_price,
+                    'discount': discount,
+                    'quantity': quantity_sold,
+                    'item_total': line_item_total_price,
+                    'profit': profit,
+                    'payment_method': random.choice(self.payment_methods),
+                    'customer_id': f'C-{random.randint(1,1000):03d}',
+                    'register_id': random.choice(self.store_registers)
+                }
+                order_items.append(order_item)
+
+            return order_items
+        except Exception as e:
+            self.logger.error(f"Error generating order: {str(e)}")
+            return None
+
+    def simulate_order_data(self, current_time, destination="MQTT", save_to_sql=False):
+        """
+        Simulate order data for the given time
+        
+        Args:
+            current_time: DateTime to generate orders for
+            destination: Where to send the data ("MQTT" or "EventHub")
+            save_to_sql: Whether to save the data to SQL (default: False)
+        """
+        try:
+            # Calculate number of orders based on day and time
+            day_name = current_time.strftime('%A')
             randomOrders = self.calculate_random_orders(current_time, day_name)
             
-            product_count = len(self.products_list)
-            for orderIndex in range(1, randomOrders + 1):
-                try:
-                    store_index = random.randint(0, len(self.store_details) - 1)
-                    store = self.store_details[store_index]
-                    order_id = current_time.strftime('%Y%m%d%H%M%S-') + '{:03d}'.format(orderIndex)
+            # Generate all orders
+            all_orders = []
+            for _ in range(randomOrders):
+                store = random.choice(self.store_details)
+                order_items = self.generate_order(current_time, store, self.products_list)
+                if order_items:
+                    all_orders.extend(order_items)
 
-                    # Seleccionar productos aleatorios para esta orden
-                    selected_products = random.sample(self.products_list, random.randint(1, min(5, product_count)))
-                    profit_choices = random.sample(range(-20, 30), 5)
+            # Store in SQL if enabled and requested
+            if save_to_sql and self.ENABLE_SQL and all_orders:
+                sql_orders = random.sample(all_orders, min(5, len(all_orders)))
+                for order in sql_orders:
+                    self.save_to_sql("sales", order)
+                self.logger.info(f"Saved {len(sql_orders)} orders to SQL")
 
-                    for product in selected_products:
-                        try:
-                            quantity_sold = random.randint(1, 10)
-                            inventory_key = (store["store_id"], str(product.product_id))
+            # Send all orders to MQTT/EventHub
+            for order in all_orders:
+                # Add to recent orders memory
+                self.add_order({
+                    "timestamp": order['sale_date'],
+                    "order_data": order
+                })
 
-                            if inventory_key not in self.current_inventory:
-                                self.logger.warning(f"Inventory not found for {inventory_key}, generating new inventory")
-                                product_price = round(random.uniform(product.price_range.min, product.price_range.max), 2)
-                                self.current_inventory[inventory_key] = ProductInventory(
-                                    date_time=current_time,
-                                    store_id=store["store_id"],
-                                    product_id=str(product.product_id),
-                                    retail_price=product_price,
-                                    in_stock=product.stock,
-                                    reorder_threshold=int(product.stock * 0.2),
-                                    last_restocked=current_time
-                                )
-
-                            product_inventory = self.current_inventory[inventory_key]
-
-                            # Update inventory
-                            if product_inventory.in_stock > quantity_sold:
-                                product_inventory.in_stock -= quantity_sold
-                            else:
-                                product_inventory.in_stock = product.stock - quantity_sold
-                                product_inventory.last_restocked = current_time
-
-                            product_inventory.date_time = current_time
-                            self.current_inventory[inventory_key] = product_inventory
-
-                            # Generate sales data
-                            discount = random.choice(self.product_discount) / 100
-                            line_item_total_price = round(product_inventory.retail_price * quantity_sold * (1 - discount), 2)
-                            profit = round(line_item_total_price * random.choice(profit_choices) / 100, 2)
-
-                            line_item = {
-                                'sale_id': order_id,
-                                'sale_date': current_time_str,
-                                'store_id': store["store_id"],
-                                'store_city': store["city"],
-                                'product_id': str(product.product_id),
-                                'product_category': product.category,
-                                'product_name': product.name,
-                                'price': product_inventory.retail_price,
-                                'discount': discount,
-                                'quantity': quantity_sold,
-                                'item_total': line_item_total_price,
-                                'profit': profit,
-                                'payment_method': random.choice(self.payment_methods),
-                                'customer_id': f'C-{random.randint(1,1000):03d}',
-                                'register_id': random.choice(self.store_registers)
-                            }
-
-                            # Add to recent orders
-                            self.add_order({
-                                "timestamp": current_time_str,
-                                "order_data": line_item
-                            })
-
-                            # Save to SQL if enabled
-                            if self.ENABLE_SQL:
-                                self.save_to_sql("sales", line_item)
-
-                            # Send to destination
-                            simulation_data = json.dumps(line_item)
-                            if destination == "EventHub":
-                                self.send_orders_to_event_hub(simulation_data)
-                            else:
-                                self.publish_data_to_mqtt(simulation_data, "topic/sales")
-
-                        except Exception as e:
-                            self.logger.error(f"Error processing product {product.product_id} in order {order_id}: {str(e)}")
-
-                except Exception as e:
-                    self.logger.error(f"Error processing order {orderIndex}: {str(e)}")
+                # Send to appropriate destination
+                simulation_data = json.dumps(order)
+                if destination == "EventHub":
+                    self.send_orders_to_event_hub(simulation_data)
+                else:
+                    self.logger.info(f"Publishing order to MQTT topic/sales: {order['sale_id']}")
+                    self.publish_data_to_mqtt(simulation_data, "topic/sales")
 
         except Exception as e:
             self.logger.error(f"Error in simulate_order_data: {str(e)}")
@@ -623,46 +677,73 @@ class StoreSimulator:
             except:
                 self.ENABLE_HISTORICAL = False
 
+    def run_historical_data(self, start_datetime):
+        """Process historical data in parallel"""
+        try:
+            current_datetime = start_datetime
+            while current_datetime <= datetime.now():
+                self.logger.info(f'Generating historical data for: {current_datetime}')
+                self.simulate_order_data(current_datetime, destination="EventHub")
+                current_datetime += timedelta(minutes=self.ORDER_FREQUENCY)
+        except Exception as e:
+            self.logger.error(f"Error processing historical data: {str(e)}")
+
     def run(self):
         try:
             self.logger.info("Starting store simulator...")
-            # Load products
             self.load_products()
             self.logger.info(f"Loaded {len(self.products_list)} products")
 
-            # Generate batch and continue with live data
-            production_datetime = datetime.now() + timedelta(days=self.HISTORICAL_DATA_DAYS)
+            # Calculate start time for historical data
+            historical_start = datetime.now() + timedelta(days=self.HISTORICAL_DATA_DAYS)
 
+            # Start historical processing in a separate thread if enabled
+            historical_thread = None
             if self.ENABLE_HISTORICAL:
-                # Generate initial inventory and historical data
-                self.logger.info("Historical data enabled. Generating initial inventory...")
-                # Generate initial inventory
-                self.logger.info("Generating initial inventory...")
-                self.generate_inventory_data(production_datetime)
+                self.logger.info("Starting historical data processing...")
+                historical_thread = Thread(
+                    target=self.run_historical_data,
+                    args=(historical_start,),
+                    daemon=True
+                )
+                historical_thread.start()
 
-                # Process historical data
-                self.logger.info("Processing historical data...")
-                while production_datetime <= datetime.now():
-                    self.logger.info(f'Generating data for: {production_datetime}')
-                    self.simulate_order_data(production_datetime, destination="EventHub")
-                    production_datetime += timedelta(minutes=self.ORDER_FREQUENCY)  # Increment by ORDER_FREQUENCY minutes
-
-                self.logger.info("Historical data generation completed.")
-
+            last_sql_save = datetime.now()
+            
             # Generate live data
-            self.logger.info("Now generating live data...")
+            self.logger.info("Starting live data generation...")
             while True:
                 current_time = datetime.now()
-                self.logger.info(f'Generating for: {current_time}')
-                self.simulate_order_data(current_time, destination="MQTT")
-                time.sleep(60)  # Sleep for 1 minute for live data
+                
+                try:
+                    # Generate and send data to MQTT continuously
+                    self.simulate_order_data(current_time, destination="MQTT", save_to_sql=False)
+                    
+                    # Every minute, save to SQL
+                    if (current_time - last_sql_save).seconds >= 60:
+                        self.logger.info(f'Saving batch to SQL at: {current_time}')
+                        self.simulate_order_data(current_time, destination="MQTT", save_to_sql=True)
+                        last_sql_save = current_time
+                    
+                    # Small sleep to prevent overwhelming the system
+                    time.sleep(random.uniform(8, 12))
+                    
+                except Exception as e:
+                    self.logger.error(f"Error generating live data: {str(e)}")
+                    time.sleep(5)  # Wait a bit on error
 
         except KeyboardInterrupt:
             self.logger.info("Received keyboard interrupt, shutting down...")
         except Exception as e:
             self.logger.error(f"Error in store simulator: {str(e)}")
         finally:
+            if historical_thread and historical_thread.is_alive():
+                self.logger.info("Waiting for historical processing to complete...")
+                historical_thread.join(timeout=5)
             self.cleanup()
+        
+    #End class
+
 
 def run_store_simulator():
     """Function to run the store simulator that can be called from other scripts"""
