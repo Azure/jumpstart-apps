@@ -132,7 +132,29 @@ class StoreSimulator:
         if len(self.recent_orders) > self.max_orders_history:
             self.recent_orders.pop(0)
 
+
     def init_database(self):
+        """Print configuration values grouped by category"""
+        print("\n=== EventHub Configuration ===")
+        print(f"Connection String: {self.EVENTHUB_CONNECTION_STRING}")
+        print(f"Orders EventHub: {self.ORDERS_EVENTHUB_NAME}")
+        print(f"Inventory EventHub: {self.INVENTORY_EVENTHUB_NAME}")
+        
+        print("\n=== Data Configuration ===")
+        print(f"Historical Data Days: {self.HISTORICAL_DATA_DAYS}")
+        print(f"Order Frequency: {self.ORDER_FREQUENCY}")
+        print(f"Products File: {self.PRODUCTS_FILE}")
+        
+        print("\n=== SQL Configuration ===")
+        print(f"Server: {self.SQL_SERVER}")
+        print(f"Database: {self.SQL_DATABASE}")
+        print(f"Username: {self.SQL_USERNAME}")
+        print(f"Password: {self.SQL_PASSWORD}")
+        
+        print("\n=== Feature Flags ===")
+        print(f"SQL Enabled: {self.ENABLE_SQL}")
+        print(f"Historical Enabled: {self.ENABLE_HISTORICAL}")
+        
         """Initialize database connection and create tables if they don't exist"""
         try:
             drivers = [
