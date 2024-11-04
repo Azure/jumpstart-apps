@@ -7,7 +7,7 @@ data:
   INFLUXDB_TOKEN: "secret-token"
   INFLUXDB_ORG: "InfluxData"
   INFLUXDB_BUCKET: "hypermarket"
-  MQTT_BROKER: "localhost"
+  MQTT_BROKER: "aio-broker-insecure.azure-iot-operations.svc.cluster.local"
   MQTT_PORT: "1883"
   MQTT_TOPIC: "iot/devices"
   REFRIGERATOR_COUNT: "3"
