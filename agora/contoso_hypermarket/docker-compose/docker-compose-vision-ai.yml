@@ -1,7 +1,7 @@
 services:
   footfall_ai_api:
     build:
-      context: ../footfall_ai_api/src  # This should point to the folder containing the Dockerfile and requirements.txt
+      context: ../../footfall_ai_api/src  # This should point to the folder containing the Dockerfile and requirements.txt
       dockerfile: Dockerfile
     container_name: footfall_ai_api_container
     volumes:
@@ -15,7 +15,7 @@ services:
 
   shopper_insights_api:
     build:
-      context: ../shopper_insights_api/src  # This should point to the folder containing the Dockerfile and requirements.txt
+      context: ../../shopper_insights_api/src  # This should point to the folder containing the Dockerfile and requirements.txt
       dockerfile: Dockerfile
     container_name: shopper_insights_api_container
     volumes:

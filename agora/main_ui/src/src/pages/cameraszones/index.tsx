@@ -20,6 +20,7 @@ import MaintenanceCameras from '../../components/MaintenanceCameras';
 import MaintenanceZones from '../../components/MaintenanceZones';
 import VideoStream from '../../components/VideoStream';
 import CerebralChatWithAudio from '../../components/CerebralChat';
+import CerebralHeader from '../../components/CerebralHeader';
 
 const Main = (props: IStackProps) => (
     <Stack horizontal grow={1} disableShrink {...props} />
@@ -202,6 +203,13 @@ const CamerasZones: React.FC<CameraPanelProps> = ({ isOpen, onDismiss, onSave })
             type={PanelType.custom}
             customWidth="30%"
             headerText=""
+            onRenderHeader={() => (
+              <CerebralHeader 
+                title="Cerebral" 
+                onClose={toggleCerebralDrawer} 
+                iconSrc="/images/cerebral-icon.png" // Replace with actual path to your image
+              />
+            )}
             onRenderFooterContent={onRenderCerebralFooterContent}
             isFooterAtBottom={true}
             hasCloseButton={true}

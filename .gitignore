@@ -196,3 +196,5 @@ agora/cerebral_api/src/cpu_and_mobile
 agora/cerebral_api/src/__pycache__
 agora/cerebral_api/src/.cache
 *.idea
+/agora/contoso_hypermarket/docker-compose/models
+/agora/contoso_hypermarket/docker-compose/samples
