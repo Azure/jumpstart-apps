@@ -171,6 +171,9 @@ class VideoProcessor:
                 self.age_stats[age_group] += 1
                 self.age_stats[person_hash] = age_group
 
+    def update_debug(self, debug):
+        self.debug = debug
+
     def point_in_rectangle(self, point, rectangle):
         x, y = point
         x1, y1, x2, y2 = rectangle
