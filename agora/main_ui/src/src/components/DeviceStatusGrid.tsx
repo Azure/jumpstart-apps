@@ -106,7 +106,7 @@ const columns: TableColumnDefinition<HVACGridDataItem>[] = [
   createTableColumn<HVACGridDataItem>({
     columnId: "humidityPercentage",
     renderHeaderCell: () => {
-      return "HumidityPercentage";
+      return "Humidity (%)";
     },
     renderCell: (item) => {
       return (
@@ -133,7 +133,7 @@ const columns: TableColumnDefinition<HVACGridDataItem>[] = [
   createTableColumn<HVACGridDataItem>({
     columnId: "powerUsageKwh",
     renderHeaderCell: () => {
-      return "Power Usage Kwh";
+      return "Power Usage(Kwh)";
     },
     renderCell: (item) => {
       return (
@@ -147,7 +147,7 @@ const columns: TableColumnDefinition<HVACGridDataItem>[] = [
   createTableColumn<HVACGridDataItem>({
     columnId: "temperatureCelsius",
     renderHeaderCell: () => {
-      return "TemperatureCelsius";
+      return "Temperature(celsius)";
     },
     renderCell: (item) => {
       return (
@@ -169,12 +169,7 @@ const useStyles = makeStyles({
     headerContainer: {
       margin: "auto",
       width: "100%",
-      maxWidth: "100%",
-      
-      /* Elevation/Light/Shadow 02 */
-      boxShadow: "0px 1px 2px 0px rgba(0, 0, 0, 0.14), 0px 0px 2px 0px rgba(0, 0, 0, 0.12)",
-      borderRadius: "8px",
-      background: "#FFF"         
+      maxWidth: "100%",       
     },
     headerAndIcon: {
       margin: "auto",
@@ -212,7 +207,28 @@ const useStyles = makeStyles({
       height: "1px",
       flexShrink: "0",
       background: "#C4C4C4"
-    }
+    },
+    gridHeaderContainer:{
+        borderRadius: "8px",
+        border: "0.5px solid var(--Surfaces-Inactive, #E1DFDD)",
+        background: "var(--Surfaces-Surface, #FFF)",
+    },
+    gridHeader: {
+        color: "#242424",
+        /* Azure / Data Vis / Metrics Unit */
+        fontFamily: "Segoe UI",
+        fontSize: "13px",
+        fontStyle: "normal",
+        fontWeight: "600",
+        lineHeight: "18px", /* 138.462% */        
+        minHeight: "50px", 
+        justifyContent: "center", 
+        alignItems: "center",
+        display: "flex",
+        padding: "11px var(--Horizontal-S, 8px) 13px var(--Horizontal-S, 8px)",
+        gap: "var(--Horizontal-S, 8px)",
+        flex: "1 0 0",
+        alignSelf: "stretch",       }
   });  
 export const DeviceStatusGrid = () => {
   const defaultSelectedItems = React.useMemo(() => new Set([1]), []);
@@ -256,9 +272,6 @@ useEffect(() => {
         return Promise.all(postPromises);
       })
       .then(metricsArray => {
-        for(let i=0; i<metricsArray.length; i++) {
-
-        }
         setMetrics(metricsArray);
         setLoading(false);
       })
@@ -306,7 +319,7 @@ useEffect(() => {
       columns={columns}
       selectionMode="single"
       defaultSelectedItems={defaultSelectedItems}
-      style={{ width: "63vw"}}
+      style={{ marginTop: "11px", width: "63vw", background: "var(--Surfaces-Surface, #FFF)", borderRadius: "8px", border: "0.5px solid var(--Surfaces-Inactive, #E1DFDD)" }}
       sortable
       sortState={ {sortColumn: "applicationName", sortDirection: "ascending"} }
     >
@@ -335,7 +348,7 @@ useEffect(() => {
         </DataGridHeaderCell>
         <DataGridRow>
           {({ renderHeaderCell }) => (
-            <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>
+            <DataGridHeaderCell className={styles.gridHeader}>{renderHeaderCell()}</DataGridHeaderCell>
           )}
         </DataGridRow>
       </DataGridHeader>
