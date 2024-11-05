@@ -262,10 +262,17 @@ def publish_data_to_mqtt(equipment_type, device_id, timestamp, data):
             "equipment_type": equipment_type,
             "data": data
         })
-        mqtt_client.publish(f"{MQTT_TOPIC}/{equipment_type}/{device_id}", mqtt_payload)
+
+        mqtt_payload_for_event_hub = json.dumps({
+            "source": "simulator",
+            "subject": MQTT_TOPIC,
+            "event_data": json.loads(mqtt_payload)
+            })
+        
+        mqtt_client.publish(f"{MQTT_TOPIC}/{equipment_type}/{device_id}", mqtt_payload_for_event_hub)
 
         if VERBOSE:
-            logger.info(f"Data for {device_id} published to MQTT: {mqtt_payload}")
+            logger.info(f"Data for {device_id} published to MQTT: {mqtt_payload_for_event_hub}")
     except Exception as e:
         logger.error(f"Error publishing data to MQTT for {device_id}: {str(e)}")
         # try to reconnect
