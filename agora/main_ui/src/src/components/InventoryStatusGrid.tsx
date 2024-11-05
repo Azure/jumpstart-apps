@@ -37,8 +37,7 @@ type DataItem = {
   InventoryStateOfShelf: InventoryStateOfShelfCell;
 };
 
-const dataItems: DataItem[] = [
-];
+
 
 const columns: TableColumnDefinition<DataItem>[] = [
   createTableColumn<DataItem>({
@@ -49,7 +48,20 @@ const columns: TableColumnDefinition<DataItem>[] = [
     renderCell: (item) => {
       return (
         <TableCellLayout>
-          {item.productName.label}
+            <Stack>
+                {item.productName.label}
+                <Text style={{
+                    color: "var(--Button-Button-Text, #323130)", 
+                    background: "var(--Neutral-Grey-84, #D6D6D6)",
+                    borderRadius: "2px",
+                    fontFamily: "Segoe UI",
+                    fontSize: "12px", 
+                    fontStyle: "normal", 
+                    fontWeight: "400", 
+                    padding: "0px 5px",
+                    gap: "10px",
+                    lineHeight: "20px",  /* 166.667% */ }}>Top 25 most purchased product</Text>
+          </Stack>
         </TableCellLayout>
       );
     },
@@ -62,7 +74,19 @@ const columns: TableColumnDefinition<DataItem>[] = [
     renderCell: (item) => {
       return (
         <TableCellLayout>
-          {item.productId.label}
+            <Text style={{
+                    color: "#1C5E75", 
+                    borderRadius: "2px",
+                    fontFamily: "Segoe UI",
+                    fontSize: "14px", 
+                    fontStyle: "normal", 
+                    fontWeight: "400", 
+                    padding: "0px 5px",
+                    gap: "10px",
+                    textDecorationLine: "underline",
+                    lineHeight: "20px",  /* 166.667% */ }}>
+                {item.productId.label}
+            </Text>
         </TableCellLayout>
       );
     },
@@ -76,7 +100,21 @@ const columns: TableColumnDefinition<DataItem>[] = [
     renderCell: (item) => {
       return (
         <TableCellLayout>
-          {item.inventoryOutTime.label}
+            <Stack>
+                {item.inventoryOutTime.label} days
+                <Text style={{
+                    color: "var(--Button-Button-Text, #323130)", 
+                    borderRadius: "2px",
+                    fontFamily: "Segoe UI",
+                    fontSize: "12px", 
+                    fontStyle: "normal", 
+                    fontWeight: "400", 
+                    padding: "0px 5px",
+                    gap: "10px",
+                    lineHeight: "20px",  /* 166.667% */ }}>High probability<svg style={{verticalAlign: "middle", marginLeft: "2px"}} xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 17 17" fill="none">
+                    <path d="M9.06283 8.1819C9.06277 7.90576 8.83887 7.68234 8.56273 7.68289C8.28658 7.68344 8.06277 7.90774 8.06283 8.18388L8.06344 11.1839C8.0635 11.46 8.2874 11.6834 8.56354 11.6829C8.83968 11.6823 9.06349 11.458 9.06344 11.1819L9.06283 8.1819ZM9.31146 6.18144C9.31155 6.59512 8.97626 6.93114 8.56258 6.93196C8.1489 6.93278 7.81348 6.59809 7.8134 6.18441C7.81331 5.77073 8.1486 5.43471 8.56228 5.43389C8.97596 5.43307 9.31138 5.76776 9.31146 6.18144ZM8.56248 1.68291C4.6965 1.69057 1.56314 4.83078 1.56393 8.69677C1.56471 12.5628 4.69935 15.6906 8.56533 15.6829C12.4313 15.6752 15.5647 12.535 15.5639 8.66904C15.5631 4.80305 12.4285 1.67525 8.56248 1.68291ZM2.56392 8.69479C2.56325 5.38109 5.24898 2.68948 8.56268 2.68291C11.8764 2.67635 14.5632 5.35732 14.5639 8.67102C14.5646 11.9847 11.8788 14.6763 8.56513 14.6829C5.25143 14.6895 2.5646 12.0085 2.56392 8.69479Z" fill="#616161"/>
+                    </svg></Text>                
+          </Stack>
         </TableCellLayout>
       );
     },
@@ -89,7 +127,14 @@ const columns: TableColumnDefinition<DataItem>[] = [
     renderCell: (item) => {
       return (
         <TableCellLayout>
-          {item.InventoryStateOfShelf.label}
+            <Stack>
+                <svg xmlns="http://www.w3.org/2000/svg" width="141" height="9" viewBox="0 0 141 9" fill="none">
+                    <rect width="80.752" height="8" transform="matrix(1 -0.000521861 0.000894493 0.999999 0.649902 0.714111)" fill="#DB7500"/>
+                    <rect width="57.6502" height="8" transform="matrix(1 -0.000521861 0.000894493 0.999999 83.1323 0.671082)" fill="#E1DFDD"/>
+                </svg>
+                {item.InventoryStateOfShelf.label}
+
+            </Stack>
         </TableCellLayout>
       );
     },
@@ -103,15 +148,18 @@ const useStyles = makeStyles({
       maxWidth: "100%",
       paddingLeft: "40px"
     },
+    topProduct: {
+        color: "var(--Button-Button-Text, #323130)", 
+        fontFamily: "Segoe UI",
+        fontSize: "12px", 
+        fontStyle: "normal", 
+        fontWeight: "400", 
+        lineHeight: "20px",  /* 166.667% */        
+    },
     headerContainer: {
       margin: "auto",
       width: "100%",
-      maxWidth: "100%",
-      
-      /* Elevation/Light/Shadow 02 */
-      boxShadow: "0px 1px 2px 0px rgba(0, 0, 0, 0.14), 0px 0px 2px 0px rgba(0, 0, 0, 0.12)",
-      borderRadius: "8px",
-      background: "#FFF"         
+      maxWidth: "100%",       
     },
     headerAndIcon: {
       margin: "auto",
@@ -149,35 +197,73 @@ const useStyles = makeStyles({
       height: "1px",
       flexShrink: "0",
       background: "#C4C4C4"
+    },
+    gridHeaderContainer:{
+        borderRadius: "8px",
+        border: "0.5px solid var(--Surfaces-Inactive, #E1DFDD)",
+        background: "var(--Surfaces-Surface, #FFF)",
+    },
+    gridHeader: {
+        color: "#242424",
+        /* Azure / Data Vis / Metrics Unit */
+        fontFamily: "Segoe UI",
+        fontSize: "13px",
+        fontStyle: "normal",
+        fontWeight: "600",
+        lineHeight: "18px", /* 138.462% */        
+        minHeight: "50px", 
+        justifyContent: "center", 
+        alignItems: "center",
+        display: "flex",
+        padding: "11px var(--Horizontal-S, 8px) 13px var(--Horizontal-S, 8px)",
+        gap: "var(--Horizontal-S, 8px)",
+        flex: "1 0 0",
+        alignSelf: "stretch",       
     }
   });  
+  function daysBetween(date: Date): number {
+    const today = new Date();
+    const diff = today.getTime() - date.getTime();
+    return Math.round(diff / (1000 * 60 * 60 * 24));
+  }
 export const InventoryStatusGrid = () => {
   const defaultSelectedItems = React.useMemo(() => new Set([1]), []);
   const [data, setData] = useState([]);
-  const baseApiUrl = process.env.REACT_APP_CEREBRAL_API_URL || '/Cerebral';
+  const baseApiUrl = process.env.REACT_APP_CEREBRAL_SIMULATOR_API_URL || '/Cerebral';
+  console.log("baseApiUrl");
+  console.log(baseApiUrl);
   useEffect(() => {
-    fetch(`${baseApiUrl}/api/get_applications`)
+    fetch(`${baseApiUrl}/api/v1/inventory`)
       .then(response => response.json())
       .then(json => setData(json))
       .then()
       .catch(error => console.error(error));
   }, []);
   let counter = 0;
-  data.forEach(
-    function(d){
+  console.log("Inventory data");
+  var jsonObject = JSON.parse(JSON.stringify(data));
+  console.log(jsonObject);
+  console.log("jsonObject.inventory");
+  console.log(jsonObject.inventory);
+  
+  const dataItems: DataItem[] = [];
+  if(jsonObject.inventory) {
+    for(let index = 0; index < jsonObject.inventory.length; index++)
+    {
         counter = counter + 1;
-      var newDataItem: DataItem = {
-        productName: { label: d["application_name"] },
-        productId: { label: d["configured_status"] },
-        inventoryOutTime: { label: d["configured_version"]},
-        InventoryStateOfShelf: { label: d["deployed_status"]},
-      };
-      console.log(counter);
-      if(counter < 3) {
-        dataItems.push(newDataItem);
-      }
-     }
-  )  
+        var newDataItem: DataItem = {
+            productName: { label: jsonObject.inventory[index]["product_name"] },
+            productId: { label: jsonObject.inventory[index]["product_id"] },
+            inventoryOutTime: { label: daysBetween(new Date(jsonObject.inventory[index]["last_restocked"])).toString()},
+            InventoryStateOfShelf: { label: jsonObject.inventory[index]["reorder_threshold"] + " of " + jsonObject.inventory[index]["in_stock"] },
+        };
+        console.log(counter);
+        if(counter < 5) {
+            dataItems.push(newDataItem);
+        }
+    }
+}
+  console.log("Inventory dataItems");
   console.log(dataItems);
   const styles = useStyles();
   return (
@@ -186,7 +272,7 @@ export const InventoryStatusGrid = () => {
       columns={columns}
       selectionMode="single"
       defaultSelectedItems={defaultSelectedItems}
-      style={{ width: "63vw"}}
+      style={{ marginTop: "0px", width: "63vw", background: "var(--Surfaces-Surface, #FFF)", borderRadius: "8px", border: "0.5px solid var(--Surfaces-Inactive, #E1DFDD)" }}
       sortable
       sortState={ {sortColumn: "productName", sortDirection: "ascending"} }
     >
@@ -216,7 +302,7 @@ export const InventoryStatusGrid = () => {
         </DataGridHeaderCell>
         <DataGridRow>
           {({ renderHeaderCell }) => (
-            <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>
+            <DataGridHeaderCell className={styles.gridHeader}>{renderHeaderCell()}</DataGridHeaderCell>
           )}
         </DataGridRow>
       </DataGridHeader>
