@@ -20,6 +20,7 @@ import Cards from "../../components/Cards";
 import Greetings from "../../components/Greetings";
 import Greeting from "../../components/Greeting";
 import InventoryStatus from "../../components/InventoryStatus";
+import { EquipmentStatusGrid as EquipmentStatusGrid } from "../../components/EquipmentStatusGrid";  
 import Health from "../../components/Health";
 import { IStackProps, IStackTokens, Stack } from "@fluentui/react";
 import NumberOfProductsManufacturedGraph from "../../components/NumberOfProductsManufacturedGraph";
@@ -48,6 +49,7 @@ const useStyles = makeStyles({
       fontStyle: "normal",
       fontWeight: "600",
       lineHeight: "23.589px", /* 140% */    
+      marginLeft: "10px"
     },
     container: {
       gap: "36px",
@@ -95,7 +97,7 @@ const MaintenanceWorkerDashboard = () => {
           <Stack.Item>
               <SideMenu />
           </Stack.Item>
-          <Stack.Item grow={3}>
+          <Stack.Item grow={3} style={{backgroundColor: "#F3F2F1"}}>
             <Stack tokens={themedMediumStackTokens}>
               <Stack>
                 <Greeting />
@@ -129,7 +131,7 @@ const MaintenanceWorkerDashboard = () => {
             <Stack id='Equipment'>
               <Stack>
                 <Text className={classes.frameheader}>Equipments</Text>
-                <InventoryStatus />
+                <EquipmentStatusGrid />
               </Stack>
             </Stack>
           </Stack.Item>
