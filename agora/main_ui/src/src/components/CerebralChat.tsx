@@ -282,7 +282,7 @@ const CerebralChatWithAudio = (props: CopilotChatProps) => {
       formData.append('model', process.env.REACT_APP_CEREBRAL_STT_MODEL || 'azure');
 
       const response = await fetch(
-        process.env.REACT_APP_CEREBRAL_STT_API_URL || 'Cerebral/api/stt',
+        process.env.REACT_APP_CEREBRAL_STT_API_URL || '/Cerebral/api/stt',
         {
           method: 'POST',
           body: formData,
