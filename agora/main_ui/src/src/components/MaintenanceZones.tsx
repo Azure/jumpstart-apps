@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from 'react';
 import { Dropdown, SearchBox, Stack } from "@fluentui/react";
 import cameraimage1 from '../assets/cameraimage1.png'; 
 import cameraimage2 from '../assets/cameraimage2.png'; 
@@ -117,6 +118,18 @@ import { useNavigate } from "react-router-dom";
         display: "flex",
     }
   });
+  interface ZoneCameraData {
+    zoneId: number;
+    cameraId: number;
+    zoneName: string;
+    zoneDescription: string;
+    cameraName: string;
+    cameraDescription: string;
+    rtspuri: string;
+  }
+  interface MaintenanceZonesGridProps {
+    zonesCameras: ZoneCameraData[];
+  }
   const MaintenanceZones = () => {
     const classes = useStyles();
     const navigate = useNavigate();
@@ -124,7 +137,64 @@ import { useNavigate } from "react-router-dom";
     const navigotteToWizard = () => {
       navigate('/camerazoneswizard');
     };
-  
+
+    interface CameraData {
+        id: number;
+        name: string;
+        description: string;
+        rtspuri: string;
+      }
+
+    interface ZoneCameraData {
+        zoneId: number;
+        cameraId: number;
+        zoneName: string;
+        zoneDescription: string;
+        cameraName: string;
+        cameraDescription: string;
+        rtspuri: string;
+      }
+
+    const [metrics, setMetrics] = useState<CameraData[]>();
+    const [posts, setPosts] = useState([]);    
+    const [completeData, setCompleteData] = useState<ZoneCameraData[]>();
+    var zonesCameras: ZoneCameraData[]=[];
+    var storeAPI = process.env.REACT_APP_STORE_API_URL || "/store_api";
+    useEffect(() => {
+        fetch(`${storeAPI}/zones`)
+          .then(response => response.json())
+          .then(posts => {
+            setPosts(posts);
+            let postPromises = posts.map((post: { [x: string]: string; }) => {
+                var metricURLWithPost = `${storeAPI}/cameras/` + post["camera_id"];
+                return fetch(metricURLWithPost)
+                    .then(response => response.json())
+                    .then(camera => {
+                        var newZoneCameraData: ZoneCameraData = {
+                            cameraId: camera["id"],
+                            cameraName: camera["name"],
+                            cameraDescription: camera["description"],
+                            rtspuri: camera["rtspuri"],
+                            zoneId:  Number(post["id"]),
+                            zoneDescription:  post["description"],
+                            zoneName:  post["name"]
+                        }
+                        zonesCameras.push(newZoneCameraData);
+                        setCompleteData(zonesCameras);
+                    });
+            });
+    
+            return Promise.all(postPromises);
+          })
+          .then(metricsArray => {
+            setMetrics(metricsArray);
+          })
+          .catch(error => {
+            console.error(error);
+          });
+      }, []);
+
+      
     return (
         <Stack id='maincontainer'>
             <Stack id='zonesheader' horizontal style={{width: "100%"}}>
@@ -142,6 +212,7 @@ import { useNavigate } from "react-router-dom";
                 <SearchBox placeholder="Search camera feeds" className={classes.searchbox} />
                 </Stack>
             </Stack> 
+            {(completeData && completeData.length == 0) ? (
             <Stack id='emptyspace' className={classes.emptyspace}>
                 <Stack style={{height:'100%', width:'100%', marginTop:'258px'}}>
                     <Text align="center" size={500}>No floor zones to display</Text>
@@ -155,8 +226,11 @@ import { useNavigate } from "react-router-dom";
                     </div>
                 </Stack>
             </Stack>
+            ) : (            
             <Stack id='camerascollection'>
+                <MaintenanceZonesGrid zonesCameras={completeData ? completeData : []}></MaintenanceZonesGrid>
             </Stack>
+            )}            
         </Stack>
     );
   };
