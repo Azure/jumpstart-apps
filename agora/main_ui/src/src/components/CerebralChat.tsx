@@ -336,7 +336,7 @@ const CerebralChatWithAudio = (props: CopilotChatProps) => {
           <Avatar
             size={20}
             image={{
-              src: "Cerebral_round.png",
+              src: "CerebralRound.png",
             }}
           />
         }
@@ -363,7 +363,7 @@ const CerebralChatWithAudio = (props: CopilotChatProps) => {
           <Avatar
             size={24}
             image={{
-              src: "Cerebral_round.png",
+              src: "CerebralRound.png",
             }}
           />
         }
