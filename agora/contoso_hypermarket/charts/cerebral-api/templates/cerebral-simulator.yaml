@@ -17,7 +17,6 @@ data:
   HVAC_COUNT: "3"
   LIGHTINGSYSTEM_COUNT: "3"
   AUTOMATEDCHECKOUT_COUNT: "3"
-  EVENTHUB_CONNECTION_STRING: "REPLACEME"
   ORDERS_EVENTHUB_NAME: ORDERS
   INVENTORY_EVENTHUB_NAME: INVENTORY
   HISTORICAL_DATA_DAYS: "1"
@@ -34,7 +33,6 @@ data:
   SQL_SERVER: "mssql-service.contoso-hypermarket.svc.cluster.local"
   SQL_DATABASE: "RetailDB"
   SQL_USERNAME: "sa"
-  SQL_PASSWORD: "ArcPassword123!!"
   STORE_ID: "SEA"
 ---
 
@@ -64,7 +62,7 @@ spec:
             until /opt/mssql-tools/bin/sqlcmd \
               -S mssql-service.contoso-hypermarket.svc.cluster.local \
               -U SA \
-              -P "ArcPassword123!!" \
+              -P "$SQL_PASSWORD" \
               -Q "SELECT 1" > /dev/null 2>&1
             do
               echo "Waiting for database to be ready..."
@@ -75,7 +73,7 @@ spec:
             until /opt/mssql-tools/bin/sqlcmd \
               -S mssql-service.contoso-hypermarket.svc.cluster.local \
               -U SA \
-              -P "ArcPassword123!!" \
+              -P "$SQL_PASSWORD" \
               -d RetailDB \
               -Q "SELECT COUNT(*) FROM Stores" | grep -q '[1-9]'
             do
@@ -84,6 +82,12 @@ spec:
             done
 
             echo "Database is ready."
+        env:
+        - name: SQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: azure-sqlpassword-secret
+              key: azure-sqlpassword-secret
       containers:
       - name: cerebral-simulator
         ports:
@@ -93,6 +97,18 @@ spec:
         envFrom: 
         - configMapRef:
             name: cerebral-simulator-config
+        env:
+        - name: EVENTHUB_CONNECTION_STRING
+          valueFrom:
+            secretKeyRef:
+              name: azure-eventhub-secret
+              key: azure-eventhub-connection-string
+        env:
+        - name: SQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: azure-sqlpassword-secret
+              key: azure-sqlpassword-secret
 ---
 
 apiVersion: v1

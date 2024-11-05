@@ -10,7 +10,7 @@ data:
     # Variables
     DB_HOST="mssql-service"
     DB_USER="SA"
-    DB_PASS="ArcPassword123!!"
+    DB_PASS="$SA_PASSWORD"
     DB_NAME="RetailDB"
 
     # Wait until the database is ready
@@ -174,7 +174,10 @@ spec:
         - name: ACCEPT_EULA
           value: "Y"
         - name: SA_PASSWORD
-          value: "ArcPassword123!!"
+          valueFrom:
+            secretKeyRef:
+              name: azure-sqlpassword-secret
+              key: azure-sqlpassword-secret
       restartPolicy: Never
       volumes:
       - name: script-volume

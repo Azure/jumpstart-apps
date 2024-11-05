@@ -52,11 +52,17 @@ spec:
         - containerPort: 5003
         env:
         - name: AZURE_OPENAI_API_KEY
-          value: "replaceme"
+          valueFrom:
+            secretKeyRef:
+              name: azure-openai-secret
+              key: azure-openai-key
         - name: CHATGPT_MODEL
           value: "gpt-35-turbo"
         - name: AZURE_OPENAI_ENDPOINT
-          value: "https://jsextoai.openai.azure.com"
+          valueFrom:
+            secretKeyRef:
+              name: azure-openai-secret
+              key: azure-openai-endpoint
         - name: OPENAI_API_VERSION
           value: "2024-03-01-preview"
         - name: INFLUXDB_URL
@@ -76,11 +82,17 @@ spec:
         - name: SQL_USERNAME
           value: "SA"
         - name: SQL_PASSWORD
-          value: "ArcPassword123!!"
+          valueFrom:
+            secretKeyRef:
+              name: azure-sqlpassword-secret
+              key: azure-sqlpassword-secret
         - name: WHISPER_MODEL_PATH
           value: ""
         - name: AZURE_AI_SPEECH_KEY
-          value: ""
+          valueFrom:
+            secretKeyRef:
+              name: azure-openai-secret
+              key: azure-openai-key
         - name: AZURE_AI_SPEECH_REGION
           value: ""
         - name: USE_LOCAL_LLM
