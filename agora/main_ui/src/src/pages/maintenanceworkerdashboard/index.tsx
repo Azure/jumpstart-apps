@@ -16,7 +16,7 @@ import SuiteHeader from '../../components/MaintenanceWorkerHeader';
 import Footer from '../../components/SuiteFooter';
 import SideMenu from "../../components/MaintenanceMenu";
 import { Default as Banner } from "../../components/Banner";
-import Cards from "../../components/Cards";
+import Cards from "../../components/MaintenanceCards";
 import Greetings from "../../components/Greetings";
 import Greeting from "../../components/Greeting";
 import InventoryStatus from "../../components/InventoryStatus";
