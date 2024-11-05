@@ -27,7 +27,7 @@ def get_or_create_processor(camera_name, data):
         x1, y1, w, h = data['x'], data['y'], data['w'], data['h']
         debug = bool(data['debug'])
         video_url = data['video_url']
-        video_processors[video_url] = VideoProcessor(video_url, index, name, debug,enable_saving=ENABLE_SAVING)
+        video_processors[camera_name] = VideoProcessor(video_url, index, camera_name, debug,enable_saving=ENABLE_SAVING)
         if(data.get('areas', None)):
             video_processors[video_url].set_restricted_area(data['areas'])
     else:
