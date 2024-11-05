@@ -106,8 +106,8 @@ import {
   });
   const Cameras = () => {
     const styles = useStyles();
-    var storeAPI = process.env.REACT_APP_STORE_API_URL || "/store_api";
-    var footfallAIAPI = process.env.REACT_APP_FOOTFALL_API || "/footfall_api";
+    var storeAPI = process.env.REACT_APP_STORE_API_URL || "/StoreApi";
+    var footfallAIAPI = process.env.REACT_APP_FOOTFALL_API || "/FootfallApi";
     type DataItem = {
         id: number;
         name: string;

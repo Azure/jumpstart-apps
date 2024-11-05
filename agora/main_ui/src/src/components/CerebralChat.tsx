@@ -105,7 +105,7 @@ const CerebralChatWithAudio = (props: CopilotChatProps) => {
   
   // Initialize Socket.IO connection
   React.useEffect(() => {
-    const serverUrl = process.env.REACT_APP_CEREBRAL_WS_URL || 'http://localhost:8080';
+    const serverUrl = process.env.REACT_APP_CEREBRAL_WS_URL || '/WebSocketCerebral';
     socketRef.current = io(serverUrl, {
       reconnection: true,
       reconnectionAttempts: 5,
@@ -282,7 +282,7 @@ const CerebralChatWithAudio = (props: CopilotChatProps) => {
       formData.append('model', process.env.REACT_APP_CEREBRAL_STT_MODEL || 'azure');
 
       const response = await fetch(
-        process.env.REACT_APP_CEREBRAL_STT_API_URL || 'http://localhost:5004/Cerebral/api/stt',
+        process.env.REACT_APP_CEREBRAL_STT_API_URL || '/Cerebral/api/stt',
         {
           method: 'POST',
           body: formData,
@@ -336,7 +336,7 @@ const CerebralChatWithAudio = (props: CopilotChatProps) => {
           <Avatar
             size={20}
             image={{
-              src: "./Cerebral_round.png",
+              src: "LogoCerebralRound.png",
             }}
           />
         }
@@ -363,7 +363,7 @@ const CerebralChatWithAudio = (props: CopilotChatProps) => {
           <Avatar
             size={24}
             image={{
-              src: "./Cerebral_round.png",
+              src: "LogoCerebralRound.png",
             }}
           />
         }
