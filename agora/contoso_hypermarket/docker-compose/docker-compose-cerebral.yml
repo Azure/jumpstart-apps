@@ -129,7 +129,7 @@ services:
       - cerebral-api-init-model
       - cerebral-api-init-documents
     ports:
-      - "5006:5003"  # Map host port 5003 to container port 5003
+      - "5006:5006"  # Map host port 5003 to container port 5003
     environment:
       AZURE_OPENAI_API_KEY: ""
       CHATGPT_MODEL: "gpt-35-turbo"
@@ -152,6 +152,7 @@ services:
       CHROMA_HOST: "chroma_db"
       CHROMA_PORT: "8000"
       CHROMA_COLLECTION: "documents"
+      PORT : "5006"
     restart: always  # Optional: Restart policy
     volumes:
       - cerebral-docs:/app/docs

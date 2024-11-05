@@ -21,7 +21,7 @@ server {
     }
 
     location /Cerebral {
-        rewrite ^/Cerebral/(.*)$ /$1 break;
+        rewrite ^/Cerebral/(.*)$ /Cerebral/$1 break;
         proxy_pass ${REACT_APP_CEREBRAL_API_URL};
         proxy_set_header Host ${REACT_APP_CEREBRAL_API_URL};
     }
@@ -32,9 +32,17 @@ server {
         proxy_set_header Host ${REACT_APP_SIMULATOR_API_URL};
     }
 
-    location /WebSocketCerebral {
-        rewrite ^/WebSocketCerebral/(.*)$ /$1 break;
+    # WebSocket support
+    location /socket.io/ {
         proxy_pass ${REACT_APP_CEREBRAL_WS_URL};
-        proxy_set_header Host ${REACT_APP_CEREBRAL_WS_URL};
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 60s;  # Adjust as needed
+        proxy_send_timeout 60s;
     }
 }

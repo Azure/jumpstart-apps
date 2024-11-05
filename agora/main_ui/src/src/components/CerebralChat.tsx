@@ -105,9 +105,10 @@ const CerebralChatWithAudio = (props: CopilotChatProps) => {
   
   // Initialize Socket.IO connection
   React.useEffect(() => {
-    const serverUrl = process.env.REACT_APP_CEREBRAL_WS_URL || '/WebSocketCerebral';
+    const serverUrl = process.env.REACT_APP_CEREBRAL_WS_URL || '/';
     socketRef.current = io(serverUrl, {
-      reconnection: true,
+      transports: ["websocket", "polling"],  // Ensures WebSocket is preferred
+      reconnection: true,       
       reconnectionAttempts: 5,
       reconnectionDelay: 1000
     });
