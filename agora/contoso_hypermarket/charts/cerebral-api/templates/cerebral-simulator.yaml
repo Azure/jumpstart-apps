@@ -62,7 +62,7 @@ spec:
             until /opt/mssql-tools/bin/sqlcmd \
               -S mssql-service.contoso-hypermarket.svc.cluster.local \
               -U SA \
-              -P "ArcPassword123!!" \
+              -P "$SQL_PASSWORD" \
               -Q "SELECT 1" > /dev/null 2>&1
             do
               echo "Waiting for database to be ready..."
@@ -73,7 +73,7 @@ spec:
             until /opt/mssql-tools/bin/sqlcmd \
               -S mssql-service.contoso-hypermarket.svc.cluster.local \
               -U SA \
-              -P "ArcPassword123!!" \
+              -P "$SQL_PASSWORD" \
               -d RetailDB \
               -Q "SELECT COUNT(*) FROM Stores" | grep -q '[1-9]'
             do
