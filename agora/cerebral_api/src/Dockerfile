@@ -25,25 +25,6 @@ RUN pip install --no-cache-dir --upgrade pip && \
     # Install remaining dependencies
     pip install --no-cache-dir -r requirements.txt
 
-# Create necessary directories
-RUN mkdir -p /app/models/phi3 && \
-    mkdir -p /app/docs && \
-    mkdir -p /app/templates && \
-    mkdir -p /app/cpu_and_mobile
-
-# Download documents
-RUN cd /app/docs && \
-    wget -O "SmartShelf_Manual.pdf" "https://download.microsoft.com/download/2b3927e0-5342-4d84-8b55-ab958281259b/SmartShelf%20System%20User%20Manual%20for%20Contoso%20Hypermarket.pdf" && \
-    wget -O "Scale_Manual.pdf" "https://download.microsoft.com/download/2b3927e0-5342-4d84-8b55-ab958281259b/Scale%20System%20User%20Manual%20for%20Contoso%20Hypermarket.pdf" && \
-    wget -O "Refrigeration_Manual.pdf" "https://download.microsoft.com/download/2b3927e0-5342-4d84-8b55-ab958281259b/Refrigeration%20System%20User%20Manual%20for%20Contoso%20Hypermarket.pdf" && \
-    wget -O "Checkout_Manual.pdf" "https://download.microsoft.com/download/2b3927e0-5342-4d84-8b55-ab958281259b/Automated%20Checkout%20System%20User%20Manual%20for%20Contoso%20Hypermarket.pdf" && \
-    wget -O "HVAC_Manual.pdf" "https://download.microsoft.com/download/2b3927e0-5342-4d84-8b55-ab958281259b/HVAC%20System%20User%20Manual%20for%20Contoso%20Hypermarket.pdf"
-
-# Download the model
-RUN huggingface-cli download microsoft/Phi-3-mini-4k-instruct-onnx \
-    --include "cpu_and_mobile/cpu-int4-rtn-block-32-acc-level-4/*" \
-    --local-dir /app
-
 # Copy the rest of the application code
 COPY . /app
 
@@ -78,9 +59,6 @@ ENV AZURE_OPENAI_API_KEY=<your_azure_openai_api_key> \
 COPY supervisor.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Expose the ports that the applications will use
-#EXPOSE 5004 8000
 EXPOSE 5003
 
-# Start Supervisor
-# CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
 CMD ["python", "app.py"]
