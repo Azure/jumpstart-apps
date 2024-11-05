@@ -234,7 +234,7 @@ export const DeviceStatusGrid = () => {
   const defaultSelectedItems = React.useMemo(() => new Set([1]), []);
   const [data, setData] = useState([]);
   const [metricData, setMetricData] = useState([]);
-  const baseApiUrl = process.env.REACT_APP_CEREBRAL_SIMULATOR_API_URL || "/CerebralSimulator";
+  const baseApiUrl = process.env.REACT_APP_SIMULATOR_API_URL || "/CerebralSimulator";
 
 interface DeviceData {
     device_id: string;

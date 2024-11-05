@@ -28,8 +28,8 @@ server {
 
     location /CerebralSimulator {
         rewrite ^/(.*)$ /$1 break;
-        proxy_pass ${REACT_APP_CEREBRAL_SIMULATOR_API_URL};
-        proxy_set_header Host ${REACT_APP_CEREBRAL_SIMULATOR_API_URL};
+        proxy_pass ${REACT_APP_SIMULATOR_API_URL};
+        proxy_set_header Host ${REACT_APP_SIMULATOR_API_URL};
     }
 
     location /CerebralWS {
