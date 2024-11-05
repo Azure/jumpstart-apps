@@ -8,14 +8,14 @@ server {
         try_files $uri /index.html;
     }
 
-    location /store_api {
-        rewrite ^/store_api/(.*)$ /$1 break;
+    location /StoreApi {
+        rewrite ^/StoreApi/(.*)$ /$1 break;
         proxy_pass ${REACT_APP_STORE_API_URL};
         proxy_set_header Host ${REACT_APP_STORE_API_URL};
     }
 
-    location /footfall_api {
-        rewrite ^/footfall_api/(.*)$ /$1 break;
+    location /FootfallApi {
+        rewrite ^/FootfallApi/(.*)$ /$1 break;
         proxy_pass ${REACT_APP_FOOTFALL_API};
         proxy_set_header Host ${REACT_APP_FOOTFALL_API};
     }
@@ -26,14 +26,14 @@ server {
         proxy_set_header Host ${REACT_APP_CEREBRAL_API_URL};
     }
 
-    location /CerebralSimulator {
-        rewrite ^/CerebralSimulator(.*)$ $1 break;
+    location /DataSimulator {
+        rewrite ^/DataSimulator(.*)$ $1 break;
         proxy_pass ${REACT_APP_SIMULATOR_API_URL};
         proxy_set_header Host ${REACT_APP_SIMULATOR_API_URL};
     }
 
-    location /CerebralWS {
-        rewrite ^/CerebralWS/(.*)$ /$1 break;
+    location /WebSocketCerebral {
+        rewrite ^/WebSocketCerebral/(.*)$ /$1 break;
         proxy_pass ${REACT_APP_CEREBRAL_WS_URL};
         proxy_set_header Host ${REACT_APP_CEREBRAL_WS_URL};
     }

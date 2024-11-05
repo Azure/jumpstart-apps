@@ -159,7 +159,7 @@ import { useNavigate } from "react-router-dom";
     const [posts, setPosts] = useState([]);    
     const [completeData, setCompleteData] = useState<ZoneCameraData[]>();
     var zonesCameras: ZoneCameraData[]=[];
-    var storeAPI = process.env.REACT_APP_STORE_API_URL || "/store_api";
+    var storeAPI = process.env.REACT_APP_STORE_API_URL || "/StoreApi";
     useEffect(() => {
         fetch(`${storeAPI}/zones`)
           .then(response => response.json())

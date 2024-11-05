@@ -8,6 +8,7 @@ services:
       - "8080:8080"
     environment:
       - REACT_APP_FOOTFALL_API=http://footfall_ai_api_container:5003
-      - REACT_APP_CEREBRAL_API_URL=http://cerebral_api:5002
+      - REACT_APP_CEREBRAL_API_URL=http://cerebral_api:5003
       - REACT_APP_STORE_API_URL=http://store_api_container:5002
-      - REACT_APP_CEREBRAL_WS_URL=http://192.168.50.35:8080
+      - REACT_APP_CEREBRAL_WS_URL=http://cerebral_api:5006
+      - REACT_APP_SIMULATOR_API_URL=http://cerebral_simulator:8001

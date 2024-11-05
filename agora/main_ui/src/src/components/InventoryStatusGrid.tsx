@@ -229,11 +229,9 @@ const useStyles = makeStyles({
 export const InventoryStatusGrid = () => {
   const defaultSelectedItems = React.useMemo(() => new Set([1]), []);
   const [data, setData] = useState([]);
-  const baseApiUrl = process.env.REACT_APP_SIMULATOR_API_URL || '/CerebralSimulator';
-  console.log("baseApiUrl");
-  console.log(baseApiUrl);
+  const baseApiUrl = process.env.REACT_APP_SIMULATOR_API_URL || '/DataSimulator';
   useEffect(() => {
-    fetch(`${baseApiUrl}/api/v1/inventory`)
+    fetch(baseApiUrl + '/api/v1/inventory')
       .then(response => response.json())
       .then(json => setData(json))
       .then()
