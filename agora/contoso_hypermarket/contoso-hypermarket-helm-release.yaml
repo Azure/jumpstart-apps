@@ -6,7 +6,8 @@ metadata:
   annotations:
     clusterconfig.azure.com/use-managed-source: "true"
 spec:
-  interval: 1m
+  interval: 10m
+  timeout: 20m
   releaseName: contoso-hypermarket
   chart:
     spec:
