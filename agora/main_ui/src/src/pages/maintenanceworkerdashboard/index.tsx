@@ -24,7 +24,8 @@ import { EquipmentStatusGrid as EquipmentStatusGrid } from "../../components/Equ
 import Health from "../../components/Health";
 import { IStackProps, IStackTokens, Stack } from "@fluentui/react";
 import NumberOfProductsManufacturedGraph from "../../components/NumberOfProductsManufacturedGraph";
-import OEEPerPlantGraph from "../../components/OEEPerPlantGraph";
+import OEEPerPlantBarGraph from "../../components/OEEPerPlantBarGraph";
+import OEEByProductsBarGraph from "../../components/OEEByProductBarGraph";
 import OEEByProductsGraph from "../../components/OEEByProductsGraph";
 import { CopilotProvider } from "@fluentui-copilot/react-copilot";
 import logo from './logo.svg';
@@ -123,8 +124,8 @@ const MaintenanceWorkerDashboard = () => {
                 </Stack>  
                 <Stack className={classes.container} horizontal>
                 <NumberOfProductsManufacturedGraph />
-                <OEEPerPlantGraph />
-                <OEEByProductsGraph />
+                <OEEPerPlantBarGraph />
+                <OEEByProductsBarGraph />
                 </Stack>                  
               </Stack>
             </Stack>
