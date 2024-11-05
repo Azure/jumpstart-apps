@@ -40,5 +40,5 @@ spec:
           value: "http://backend-api.contoso-hypermarket.svc.cluster.local:5002"
         - name: REACT_APP_CEREBRAL_WS_URL
           value: "http://cerebral-api-service.contoso-hypermarket.svc.cluster.local:5003"
-        - name: REACT_APP_CEREBRAL_SIMULATOR_API_URL
+        - name: REACT_APP_SIMULATOR_API_URL
           value: "http://cerebral-simulator-service.contoso-hypermarket.svc.cluster.local:8001"
