@@ -26,11 +26,10 @@ const CerebralHeader: React.FC<CerebralHeaderProps> = ({
         flex: '1 1 auto',
       }}>
         <img 
-          src="./Cerebral_round.png" 
+          src="Cerebral logo_text_light mode.png" 
           alt="Cerebral Logo" 
-          style={{ width: 32, height: 32, marginRight: 12 }} 
+          style={{ height: 32, marginRight: 12 }} 
         />
-        <Text variant="xLarge">{title}</Text>
       </div>
     </div>
   );
