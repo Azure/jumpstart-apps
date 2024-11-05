@@ -145,7 +145,7 @@ const useStyles = makeStyles({
 
 const MaintenanceCards = () => {
     const styles = useStyles();
-    var cerebralSimulatorAPI = process.env.REACT_APP_CEREBRAL_SIMULATOR_API_URL || "/cerebralSimulator_api";
+    var cerebralSimulatorAPI = process.env.REACT_APP_SIMULATOR_API_URL || "/DataSimulator";
     type AutomatedCheckoutsOpen = {
         avg_wait_time: number;
         closed_automated_checkouts: number;
