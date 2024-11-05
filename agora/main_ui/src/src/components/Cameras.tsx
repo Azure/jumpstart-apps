@@ -106,8 +106,8 @@ import {
   });
   const Cameras = () => {
     const styles = useStyles();
-    var storeAPI = process.env.REACT_APP_STORE_API_URL || "/store_api";
-    var footfallAIAPI = process.env.REACT_APP_FOOTFALL_API || "/footfall_api";
+    var storeAPI = process.env.REACT_APP_STORE_API_URL || "/StoreApi";
+    var footfallAIAPI = process.env.REACT_APP_FOOTFALL_API || "/FootfallApi";
     type DataItem = {
         id: number;
         name: string;
@@ -248,8 +248,6 @@ import {
     }
     function generateDataForVideo(cameraId: number, rtspurl: string, cameraName: string, x1: number, y1: number, x2: number, y2: number) {
         var dataforVideo = footfallAIAPI +  "/video_feed?data={\"x\" : " + x1.toString() + ", \"y\" : " + y1.toString() + ",\"w\" : " + x2.toString() + ", \"h\" : " + y2.toString() + ", \"debug\" : true, \"cameraName\" : \"" + cameraName +  "\", \"video_url\": \"" + rtspurl + "\" }";           
-        console.log('dataforVideo');
-        console.log(dataforVideo);
         return dataforVideo
       }      
     return (
