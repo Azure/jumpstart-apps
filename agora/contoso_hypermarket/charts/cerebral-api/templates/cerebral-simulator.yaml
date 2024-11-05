@@ -17,7 +17,6 @@ data:
   HVAC_COUNT: "3"
   LIGHTINGSYSTEM_COUNT: "3"
   AUTOMATEDCHECKOUT_COUNT: "3"
-  EVENTHUB_CONNECTION_STRING: "REPLACEME"
   ORDERS_EVENTHUB_NAME: ORDERS
   INVENTORY_EVENTHUB_NAME: INVENTORY
   HISTORICAL_DATA_DAYS: "1"
@@ -34,7 +33,6 @@ data:
   SQL_SERVER: "mssql-service.contoso-hypermarket.svc.cluster.local"
   SQL_DATABASE: "RetailDB"
   SQL_USERNAME: "sa"
-  SQL_PASSWORD: "ArcPassword123!!"
   STORE_ID: "SEA"
 ---
 
@@ -93,6 +91,18 @@ spec:
         envFrom: 
         - configMapRef:
             name: cerebral-simulator-config
+        env:
+        - name: EVENTHUB_CONNECTION_STRING
+          valueFrom:
+            secretKeyRef:
+              name: azure-eventhub-secret
+              key: azure-eventhub-connection-string
+        env:
+        - name: SQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: azure-sqlpassword-secret
+              key: azure-sqlpassword-secret
 ---
 
 apiVersion: v1
