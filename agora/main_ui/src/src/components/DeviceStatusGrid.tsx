@@ -257,7 +257,7 @@ const [metrics, setMetrics] = useState<DeviceData[]>();
 const [loading, setLoading] = useState(true);
 const [gridData, setGridData]= useState<HVACGridDataItem[]>();
 useEffect(() => {
-    fetch(`${baseApiUrl}/api/v1/devices`)
+    fetch(baseApiUrl + '/api/v1/devices')
       .then(response => response.json())
       .then(posts => {
         setPosts(posts);

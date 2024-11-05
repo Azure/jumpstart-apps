@@ -392,7 +392,7 @@ const CamerasZonesWizardReview = () => {
       const selectedCameraParameter = urlParams.get('selectedCamera');
       
       const saveDataAndNavigate   = () => {
-        var storeAPI = process.env.REACT_APP_STORE_API_URL || "/store_api";
+        var storeAPI = process.env.REACT_APP_STORE_API_URL || "/StoreApi";
         
         // Send data to the backend via POST - Create Zone
         fetch(storeAPI + '/zones', {
@@ -401,7 +401,6 @@ const CamerasZonesWizardReview = () => {
             'accept': 'application/json',
             'Content-Type': 'application/json'
           },
-          // body: '{\n  "name": "Camera3",\n  "description": "Camera3",\n  "rtspuri": "rtsp://rtsp_stream_container:8554/stream"\n}',
           body: JSON.stringify({
             "name": zoneLabelParameter,
             "description": "",

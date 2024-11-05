@@ -15,6 +15,3 @@ for var in $env_vars; do
     # Replace placeholders in nginx config
     sed -i "s|\${$var}|${escaped_value}|g" /etc/nginx/nginx.conf.default
 done
-
-# Ensure the file has proper newlines to avoid concatenation issues
-sed -i 's/\r//' /usr/share/nginx/html/.env

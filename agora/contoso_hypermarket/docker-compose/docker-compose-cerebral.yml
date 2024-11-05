@@ -107,13 +107,16 @@ services:
       dockerfile: Dockerfile
     container_name: cerebral_simulator  # Name of the container
     ports:
-      - "5000:8001"  # Expose container port 5000
+      - "8001:8001"  # Expose container port 5000
     environment:
       INFLUXDB_URL: "http://influxdb:8086"  # Environment variables
       INFLUXDB_TOKEN: "secret-token"
       INFLUXDB_ORG: "InfluxData"
       INFLUXDB_BUCKET: "hypermarket"
       VERBOSE: "true"
+      ENABLE_MQTT : "True"
+      ENABLE_INFLUXDB : "True"
+      ENABLE_STORE_SIMULATOR : "True"
     restart: always  # Optional: Restart policy
 
   cerebral-api:
@@ -126,7 +129,7 @@ services:
       - cerebral-api-init-model
       - cerebral-api-init-documents
     ports:
-      - "5003:5003"  # Map host port 5003 to container port 5003
+      - "5006:5003"  # Map host port 5003 to container port 5003
     environment:
       AZURE_OPENAI_API_KEY: ""
       CHATGPT_MODEL: "gpt-35-turbo"
