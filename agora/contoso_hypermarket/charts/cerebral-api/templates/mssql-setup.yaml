@@ -10,7 +10,7 @@ data:
     # Variables
     DB_HOST="mssql-service"
     DB_USER="SA"
-    DB_PASS="ArcPassword123!!"
+    DB_PASS="$SA_PASSWORD"
     DB_NAME="RetailDB"
 
     # Wait until the database is ready

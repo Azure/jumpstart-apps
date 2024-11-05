@@ -32,7 +32,10 @@ spec:
         - name: ACCEPT_EULA
           value: "Y"
         - name: SA_PASSWORD
-          value: "ArcPassword123!!"
+          valueFrom:
+            secretKeyRef:
+              name: azure-sqlpassword-secret
+              key: azure-sqlpassword-secret
         volumeMounts:
         - name: mssql-data
           mountPath: /mssql/data

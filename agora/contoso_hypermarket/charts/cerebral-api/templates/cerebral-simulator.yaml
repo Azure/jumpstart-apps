@@ -82,6 +82,12 @@ spec:
             done
 
             echo "Database is ready."
+        env:
+        - name: SQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: azure-sqlpassword-secret
+              key: azure-sqlpassword-secret
       containers:
       - name: cerebral-simulator
         ports:
