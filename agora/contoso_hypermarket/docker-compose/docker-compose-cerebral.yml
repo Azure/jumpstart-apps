@@ -107,7 +107,7 @@ services:
       dockerfile: Dockerfile
     container_name: cerebral_simulator  # Name of the container
     ports:
-      - "5000:5000"  # Expose container port 5000
+      - "5000:8001"  # Expose container port 5000
     environment:
       INFLUXDB_URL: "http://influxdb:8086"  # Environment variables
       INFLUXDB_TOKEN: "secret-token"
