@@ -12,6 +12,10 @@ from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 FLASK_PORT = int(os.getenv("FLASK_PORT", 5001))
 FLASK_DEBUG = os.getenv("FLASK_DEBUG", "false").lower() in ["true", "1", "t"]
 
+# Read ENABLE_SAVING environment variable
+ENABLE_SAVING = os.getenv("ENABLE_SAVING", "True").lower() in ["true", "1", "t"]
+
+
 app = Flask(__name__)
 
 # Global variables
@@ -27,7 +31,7 @@ def get_or_create_processor(video_url, data):
             name = f"camera_{index}"
         else:
             name = data['cameraName']
-        video_processors[video_url] = VideoProcessor(video_url, index, name, debug)
+        video_processors[video_url] = VideoProcessor(video_url, index, name, debug,enable_saving=ENABLE_SAVING)
 
         if(data.get('areas', None)):
             video_processors[video_url].set_restricted_area(data['areas'])
