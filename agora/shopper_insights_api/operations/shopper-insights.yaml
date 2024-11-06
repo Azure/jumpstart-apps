@@ -2,7 +2,7 @@ kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
   name: acsa-pvc
-  namespace: default
+  namespace: contoso-hypermarket
 spec:
   accessModes:
     - ReadWriteMany
@@ -10,19 +10,6 @@ spec:
     requests:
       storage: 10Gi
   storageClassName: cloud-backed-sc
----
-apiVersion: "arccontainerstorage.azure.net/v1"
-kind: EdgeSubvolume
-metadata:
-  name: videos
-spec:
-  edgevolume: acsa-pvc
-  path: videos #Don't use a preceding slash.
-  auth:
-    authType: MANAGED_IDENTITY
-  storageaccountendpoint: "https://{STORAGEACCOUNT}.blob.core.windows.net/"
-  container: shopper-videos
-  ingestPolicy: edgeingestpolicy-default
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -83,18 +70,20 @@ spec:
           value: "rtsp://rtsp-stream-aisle:8554/stream"
         - name: FLASK_PORT
           value: "5001"
+        - name: ENABLE_SAVING
+          value: "True"
         volumeMounts:
         - mountPath: /tmp/models
           name: models-volume
-        - mountPath: "/app/detected_persons"
-              name: blob
+        - mountPath: "detected_persons"
+          name: blob
       volumes:
       - name: models-volume
         persistentVolumeClaim:
           claimName: shopper-model-pvc
       - name: blob
-          persistentVolumeClaim:
-            claimName: acsa-pvc
+        persistentVolumeClaim:
+          claimName: acsa-pvc
 
 ---
 
