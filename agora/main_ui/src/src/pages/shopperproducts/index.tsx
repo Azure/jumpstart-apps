@@ -35,6 +35,8 @@ import {
 } from "@fluentui/react-components";
 import SideMenu from '../../components/ShopperFilterbox';
 import { registerIcons } from '@fluentui/react/lib/Styling';
+import { initializeIcons } from "@fluentui/react/lib/Icons";
+initializeIcons();
 
 registerIcons({
   icons: {

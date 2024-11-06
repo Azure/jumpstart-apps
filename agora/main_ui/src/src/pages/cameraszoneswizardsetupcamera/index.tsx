@@ -47,6 +47,8 @@ import { text } from 'stream/consumers';
 import CerebralChatWithAudio from '../../components/CerebralChat';
 import type { SliderProps } from "@fluentui/react-components";
 import CerebralHeader from '../../components/CerebralHeader';
+import { initializeIcons } from "@fluentui/react/lib/Icons";
+initializeIcons();
 
 const Main = (props: IStackProps) => (
     <Stack horizontal grow={1} disableShrink {...props} />

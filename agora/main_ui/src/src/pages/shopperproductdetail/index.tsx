@@ -33,6 +33,8 @@ import {
 import SideMenu from '../../components/ShopperFilterbox';
 import { registerIcons } from '@fluentui/react/lib/Styling';
 import CerebralHeader from '../../components/CerebralHeader';
+import { initializeIcons } from "@fluentui/react/lib/Icons";
+initializeIcons();
 
 registerIcons({
   icons: {
