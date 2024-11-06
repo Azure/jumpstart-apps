@@ -33,6 +33,9 @@ import '../../App.css';
 import Cameras from '../../components/Cameras';
 import CerebralChatWithAudio from '../../components/CerebralChat';
 import { Panel, PanelType, DefaultButton, ProgressIndicator } from '@fluentui/react';
+import { initializeIcons } from "@fluentui/react/lib/Icons";
+initializeIcons();
+
 const Main = (props: IStackProps) => (
     <Stack horizontal grow={1} disableShrink {...props} />
   );

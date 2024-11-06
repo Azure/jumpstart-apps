@@ -40,6 +40,8 @@ import { registerIcons } from '@fluentui/react/lib/Styling';
 import { MoreHorizontal20Regular } from "@fluentui/react-icons";
 import CerebralChatWithAudio from '../../components/CerebralChat';
 import CerebralHeader from '../../components/CerebralHeader';
+import { initializeIcons } from "@fluentui/react/lib/Icons";
+initializeIcons();
 
 const resolveAsset = (asset: string) => {
   const ASSET_URL =

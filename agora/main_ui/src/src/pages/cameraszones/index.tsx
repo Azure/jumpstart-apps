@@ -21,6 +21,8 @@ import MaintenanceZones from '../../components/MaintenanceZones';
 import VideoStream from '../../components/VideoStream';
 import CerebralChatWithAudio from '../../components/CerebralChat';
 import CerebralHeader from '../../components/CerebralHeader';
+import { initializeIcons } from "@fluentui/react/lib/Icons";
+initializeIcons();
 
 const Main = (props: IStackProps) => (
     <Stack horizontal grow={1} disableShrink {...props} />
