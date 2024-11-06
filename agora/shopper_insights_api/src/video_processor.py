@@ -40,7 +40,7 @@ class VideoProcessor:
             os.makedirs(self.person_image_dir)
         
         # Directory to store GIFs
-        self.videos_output_dir = "/app/detected_persons/videos"
+        self.videos_output_dir = "detected_persons/videos"
         if not os.path.exists(self.videos_output_dir):
             os.makedirs(self.videos_output_dir)
         
