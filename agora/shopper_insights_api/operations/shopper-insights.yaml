@@ -75,7 +75,7 @@ spec:
         volumeMounts:
         - mountPath: /tmp/models
           name: models-volume
-        - mountPath: "detected_persons"
+        - mountPath: /usr/src/app/detected_persons
           name: blob
       volumes:
       - name: models-volume
