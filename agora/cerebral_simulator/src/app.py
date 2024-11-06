@@ -1,3 +1,4 @@
+#app.py
 from influxdb_client import InfluxDBClient, Point, WritePrecision
 from influxdb_client.client.write_api import SYNCHRONOUS
 import time
@@ -17,9 +18,10 @@ from prometheus_client.core import CollectorRegistry
 from flask import Flask, Response, jsonify
 from flasgger import Swagger, swag_from
 
-from store_simulator import run_store_simulator
+from store_simulator import run_store_simulator, StoreSimulator, ProductInventory
+from flask_cors import CORS  # Import CORS
 
-#dev mode
+#DEV_MODE
 #from dotenv import load_dotenv
 #load_dotenv()
 
@@ -29,7 +31,7 @@ INFLUXDB_TOKEN = os.getenv("INFLUXDB_TOKEN")
 INFLUXDB_ORG = os.getenv("INFLUXDB_ORG")
 INFLUXDB_BUCKET = os.getenv("INFLUXDB_BUCKET")
 VERBOSE = bool(os.getenv("VERBOSE", "False"))
-PORT = int(os.getenv("PORT", "8000"))
+PORT = int(os.getenv("PORT", "8001"))
 UI_API_URL = os.getenv("UI_API_URL", "http://0.0.0.0:5002")
 
 # MQTT Settings
@@ -43,7 +45,14 @@ ENABLE_HISTORICAL = os.getenv("ENABLE_HISTORICAL", "True").lower() == "true"
 ENABLE_PROMETHEUS = os.getenv("ENABLE_PROMETHEUS", "True").lower() == "true"
 ENABLE_API = os.getenv("ENABLE_API", "True").lower() == "true"
 ENABLE_STORE_SIMULATOR = os.getenv("ENABLE_STORE_SIMULATOR", "True").lower() == "true"
+STORE_ID = os.getenv("STORE_ID", "SEA")
 
+
+
+store_simulator_instance = None
+mqtt_client = None
+influx_client = None
+write_api = None
 
 # Device Simulation Settings
 DEVICE_COUNTS = {
@@ -56,18 +65,13 @@ DEVICE_COUNTS = {
     "AutomatedCheckout": int(os.getenv("AUTOMATEDCHECKOUT_COUNT", 10))
 }
 
-# Connect to MQTT Broker
-client_id1 = f'python-mqtt-{random.randint(0, 1000)}'
-mqtt_client = mqtt.Client()
-
 MAX_CONSECUTIVE_ERRORS = 30
 consecutive_errors = 0
 
 REGISTRY = CollectorRegistry()
 CPU_USAGE = Gauge('cpu_usage_percent', 'CPU usage in percent', registry=REGISTRY)
 MEMORY_USAGE = Gauge('memory_usage_percent', 'Memory usage in percent', registry=REGISTRY)
-DATA_POINTS_GENERATED = Counter('data_points_generated', 'Number of data points generated', 
-                                ['equipment_type', 'device_id'], registry=REGISTRY)
+DATA_POINTS_GENERATED = Counter('data_points_generated', 'Number of data points generated', ['equipment_type', 'device_id'], registry=REGISTRY)
 LOG_MESSAGES = Counter('log_messages', 'Number of log messages', ['level'], registry=REGISTRY)
 
 # Refrigerator specific metrics
@@ -83,6 +87,7 @@ SCALE_TARE_WEIGHT = Gauge('scale_tare_weight_kg', 'Scale tare weight in kg', ['d
 POS_ITEMS_SOLD = Counter('pos_items_sold', 'Number of items sold', ['device_id'], registry=REGISTRY)
 POS_TOTAL_AMOUNT = Counter('pos_total_amount_usd', 'Total amount of sales in USD', ['device_id'], registry=REGISTRY)
 POS_PAYMENT_METHOD = Counter('pos_payment_method', 'Payment method used', ['method', 'device_id'], registry=REGISTRY)
+POS_FAILURE = Counter('pos_failure_count', 'Number of failures by type', ['failure_type', 'device_id'], registry=REGISTRY)
 
 # SmartShelf metrics
 SMART_SHELF_STOCK_LEVEL = Gauge('smart_shelf_stock_level', 'Smart shelf current stock level', ['product_id', 'device_id'], registry=REGISTRY)
@@ -109,6 +114,7 @@ EQUIPMENT_TYPES = ["Refrigerator", "Scale", "POS", "SmartShelf", "HVAC", "Lighti
 
 # Flask app and Swagger initialization
 app = Flask(__name__)
+CORS(app, resources={r"/*": {"origins": "*", "methods": ["GET", "POST", "PUT"]}})
 swagger = Swagger(app)
 
 # Store metrics data in memory
@@ -157,12 +163,26 @@ def generate_equipment_data(equipment_type, device_id, pk):
         })
     
     elif equipment_type == "POS":
+        has_failure = random.random() < 0.15
+        
         data.update({
             "transaction_id": f"txn_{random.randint(1000, 9999)}",
             "items_sold": float(random.randint(1, 10)),
             "total_amount_usd": round(random.uniform(10, 500), 2),
             "payment_method": random.choice(["credit_card", "cash", "mobile_payment"]),
+            "has_failure": has_failure,
         })
+
+        if has_failure:
+            data["failure_type"] = random.choice([
+                "printer_error",
+                "network_connection_lost",
+                "card_reader_error",
+                "cash_drawer_stuck",
+                "system_freeze"
+            ])
+        else:
+            data["failure_type"] = "none"
     
     elif equipment_type == "SmartShelf":
         data.update({
@@ -202,7 +222,8 @@ def generate_equipment_data(equipment_type, device_id, pk):
     return data
 
 def write_data_to_influxdb(equipment_type, device_id, measurement_name, timestamp, data):
-    if not ENABLE_INFLUXDB:
+    global write_api
+    if not ENABLE_INFLUXDB or write_api is None:
         return
     
     try:
@@ -214,8 +235,11 @@ def write_data_to_influxdb(equipment_type, device_id, measurement_name, timestam
                 point.field(key, value)
             elif isinstance(value, str):
                 point.tag(key, value)
+            elif value is None:
+                continue
             else:
-                logger.warning(f"Skipping field {key} with unsupported type {type(value)}")
+                if VERBOSE:
+                    logger.warning(f"Skipping field {key} with unsupported type {type(value)}")
                 
         write_api.write(bucket=INFLUXDB_BUCKET, record=point)
 
@@ -224,6 +248,8 @@ def write_data_to_influxdb(equipment_type, device_id, measurement_name, timestam
     
     except Exception as e:
         logger.error(f"Error writing data to InfluxDB for {device_id}: {str(e)}")
+        # try to reconnect
+        init_influxdb()
 
 def publish_data_to_mqtt(equipment_type, device_id, timestamp, data):
     if not ENABLE_MQTT:
@@ -231,16 +257,26 @@ def publish_data_to_mqtt(equipment_type, device_id, timestamp, data):
     try:
         mqtt_payload = json.dumps({
             "timestamp": timestamp,
+            "store_id": STORE_ID,
             "device_id": device_id,
             "equipment_type": equipment_type,
             "data": data
         })
-        mqtt_client.publish(f"{MQTT_TOPIC}/{equipment_type}/{device_id}", mqtt_payload)
+
+        mqtt_payload_for_event_hub = json.dumps({
+            "source": "simulator",
+            "subject": MQTT_TOPIC,
+            "event_data": json.loads(mqtt_payload)
+            })
+        
+        mqtt_client.publish(f"{MQTT_TOPIC}/{equipment_type}/{device_id}", mqtt_payload_for_event_hub)
 
         if VERBOSE:
-            logger.info(f"Data for {device_id} published to MQTT: {mqtt_payload}")
+            logger.info(f"Data for {device_id} published to MQTT: {mqtt_payload_for_event_hub}")
     except Exception as e:
         logger.error(f"Error publishing data to MQTT for {device_id}: {str(e)}")
+        # try to reconnect
+        init_mqtt()
 
 def update_system_metrics():
     while True:
@@ -270,6 +306,15 @@ def update_prometheus_metrics(equipment_type, device_id, data):
             POS_ITEMS_SOLD.labels(device_id=device_id).inc(data["items_sold"])
             POS_TOTAL_AMOUNT.labels(device_id=device_id).inc(data["total_amount_usd"])
             POS_PAYMENT_METHOD.labels(method=data["payment_method"], device_id=device_id).inc()
+            if data.get("has_failure") and data.get("failure_type"):
+                POS_FAILURE.labels(
+                    failure_type=data["failure_type"],
+                    device_id=device_id
+                ).inc()
+                
+                if VERBOSE:
+                    logger.warning(f"POS {device_id} reported failure: {data['failure_type']}")
+
         elif equipment_type == "SmartShelf":
             SMART_SHELF_STOCK_LEVEL.labels(product_id=data["product_id"], device_id=device_id).set(data["stock_level"])
             SMART_SHELF_THRESHOLD.labels(product_id=data["product_id"], device_id=device_id).set(data["threshold_stock_level"])
@@ -293,19 +338,45 @@ def update_prometheus_metrics(equipment_type, device_id, data):
         logger.error(f"Error updating metrics for {device_id}: {str(e)}")
         LOG_MESSAGES.labels(level="error").inc()
 
+
+
 def update_backend_api(equipment_type, pk, data):
-    url = UI_API_URL
+    """Update backend API for specific equipment"""
+    if not ENABLE_API:
+        return
+        
     if equipment_type == "HVAC":
-        url += f"/hvacs/{pk}"
         try:
+            url = f"{UI_API_URL}/api/hvacs/{pk}"
             payload = {
-                **data
+                "id": data.get("id"),
+                "deviceId": data.get("device_id"),
+                "temperature": data.get("temperature_celsius"),
+                "humidity": data.get("humidity_percent"),
+                "power": data.get("power_usage_kwh"),
+                "mode": data.get("operating_mode"),
+                "storeId": os.getenv("STORE_ID", "SEA")
             }
-            response = requests.put(url, json=payload)
-            response.raise_for_status()
-            logger.info(f"Successfully updated backend API for {pk}")
+
+            if VERBOSE:
+                logger.info(f"Sending HVAC update to {url} with payload: {payload}")
+
+            response = requests.put(
+                url=url,
+                json=payload,
+                timeout=5,
+                headers={'Content-Type': 'application/json'}
+            )
+            
+            if response.status_code != 200:
+                if VERBOSE:
+                    logger.warning(f"HVAC update failed with status {response.status_code}: {response.text}")
+            elif VERBOSE:
+                logger.info(f"Successfully updated HVAC {pk}")
+                
         except requests.exceptions.RequestException as e:
-            logger.error(f"Failed to update backend API for {pk}: {str(e)}")
+            if VERBOSE:
+                logger.warning(f"Failed to update backend API for {pk}: {str(e)}")
 
 def simulate_device(pk, equipment_type, device_id):
     while True:
@@ -328,8 +399,8 @@ def simulate_device(pk, equipment_type, device_id):
                 update_prometheus_metrics(equipment_type, device_id, data)
 
             # Update backend API
-            if ENABLE_API:
-                update_backend_api(equipment_type, pk, data)
+            #if ENABLE_API:
+            #    update_backend_api(equipment_type, pk, data)
 
             # Increment the data points counter
             increment_data_points(equipment_type, device_id)
@@ -491,13 +562,391 @@ app.config['SWAGGER'] = {
     'specs_route': '/apidocs/'
 }
 
-# Connect to InfluxDB
-client = InfluxDBClient(url=INFLUXDB_URL, token=INFLUXDB_TOKEN, org=INFLUXDB_ORG)
-write_api = client.write_api(write_options=SYNCHRONOUS)
+@app.route('/api/v1/orders/recent', methods=['GET'])
+@swag_from({
+    'responses': {
+        200: {
+            'description': 'List of recent orders',
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'orders': {
+                        'type': 'array',
+                        'items': {
+                            'type': 'object',
+                            'properties': {
+                                'timestamp': {'type': 'string', 'format': 'date-time'},
+                                'order_data': {
+                                    'type': 'object',
+                                    'properties': {
+                                        'sale_id': {'type': 'string'},
+                                        'sale_date': {'type': 'string', 'format': 'date-time'},
+                                        'store_id': {'type': 'string'},
+                                        'store_city': {'type': 'string'},
+                                        'product_id': {'type': 'string'},
+                                        'product_name': {'type': 'string'},
+                                        'quantity': {'type': 'integer'},
+                                        'item_total': {'type': 'number'},
+                                        'payment_method': {'type': 'string'}
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    'total_orders': {'type': 'integer'}
+                }
+            }
+        }
+    },
+    'summary': 'Returns the list of recent orders',
+    'tags': ['Orders']
+})
+def get_recent_orders():
+    if not store_simulator_instance:
+        return jsonify({'error': 'Store simulator not running'}), 503
+    
+    orders = store_simulator_instance.recent_orders
+    return jsonify({
+        'orders': orders,
+        'total_orders': len(orders)
+    })
+
+@app.route('/api/v1/orders/summary', methods=['GET'])
+@swag_from({
+    'responses': {
+        200: {
+            'description': 'Summary of recent orders',
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'total_orders': {'type': 'integer'},
+                    'total_sales': {'type': 'number'},
+                    'average_order_value': {'type': 'number'},
+                    'orders_by_store': {
+                        'type': 'object',
+                        'additionalProperties': {'type': 'integer'}
+                    },
+                    'payment_methods': {
+                        'type': 'object',
+                        'additionalProperties': {'type': 'integer'}
+                    }
+                }
+            }
+        }
+    },
+    'summary': 'Returns a summary of recent orders',
+    'tags': ['Orders']
+})
+def get_orders_summary():
+    if not store_simulator_instance:
+        return jsonify({'error': 'Store simulator not running'}), 503
+    
+    orders = store_simulator_instance.recent_orders
+    if not orders:
+        return jsonify({
+            'total_orders': 0,
+            'total_sales': 0,
+            'average_order_value': 0,
+            'orders_by_store': {},
+            'payment_methods': {}
+        })
+
+    total_sales = 0
+    orders_by_store = {}
+    payment_methods = {}
+    
+    for order in orders:
+        order_data = order['order_data']
+        total_sales += float(order_data['item_total'])
+        
+        store_id = order_data['store_id']
+        orders_by_store[store_id] = orders_by_store.get(store_id, 0) + 1
+        
+        payment = order_data['payment_method']
+        payment_methods[payment] = payment_methods.get(payment, 0) + 1
+
+    return jsonify({
+        'total_orders': len(orders),
+        'total_sales': round(total_sales, 2),
+        'average_order_value': round(total_sales / len(orders), 2),
+        'orders_by_store': orders_by_store,
+        'payment_methods': payment_methods
+    })
+
+@app.route('/api/v1/inventory', methods=['GET'])
+@swag_from({
+    'responses': {
+        200: {
+            'description': 'Current inventory for all stores',
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'inventory': {
+                        'type': 'array',
+                        'items': {
+                            'type': 'object',
+                            'properties': {
+                                'store_id': {'type': 'string'},
+                                'product_id': {'type': 'string'},
+                                'product_name': {'type': 'string'},
+                                'in_stock': {'type': 'integer'},
+                                'retail_price': {'type': 'number'},
+                                'reorder_threshold': {'type': 'integer'},
+                                'last_restocked': {'type': 'string', 'format': 'date-time'},
+                                'date_time': {'type': 'string', 'format': 'date-time'}
+                            }
+                        }
+                    },
+                    'total_items': {'type': 'integer'}
+                }
+            }
+        }
+    },
+    'summary': 'Returns current inventory for all stores',
+    'tags': ['Inventory']
+})
+def get_inventory():
+    if not store_simulator_instance:
+        return jsonify({'error': 'Store simulator not running'}), 503
+    
+    inventory_list = []
+    for key, inventory in store_simulator_instance.current_inventory.items():
+        inventory_list.append({
+            'store_id': inventory.store_id,
+            'product_id': inventory.product_id,
+            'product_name': inventory.product_name,
+            'in_stock': inventory.in_stock,
+            'retail_price': float(inventory.retail_price),
+            'reorder_threshold': inventory.reorder_threshold,
+            'last_restocked': inventory.last_restocked.isoformat(),
+            'date_time': inventory.date_time.isoformat()
+        })
+    
+    return jsonify({
+        'inventory': inventory_list,
+        'total_items': len(inventory_list)
+    })
+
+@app.route('/api/v1/inventory/summary', methods=['GET'])
+@swag_from({
+    'responses': {
+        200: {
+            'description': 'Summary of current inventory',
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'total_items': {'type': 'integer'},
+                    'items_by_store': {
+                        'type': 'object',
+                        'additionalProperties': {'type': 'integer'}
+                    },
+                    'low_stock_items': {
+                        'type': 'array',
+                        'items': {
+                            'type': 'object',
+                            'properties': {
+                                'store_id': {'type': 'string'},
+                                'product_id': {'type': 'string'},
+                                'product_name': {'type': 'string'},
+                                'in_stock': {'type': 'integer'},
+                                'reorder_threshold': {'type': 'integer'}
+                            }
+                        }
+                    },
+                    'total_value': {'type': 'number'}
+                }
+            }
+        }
+    },
+    'summary': 'Returns a summary of current inventory status',
+    'tags': ['Inventory']
+})
+def get_inventory_summary():
+    if not store_simulator_instance:
+        return jsonify({'error': 'Store simulator not running'}), 503
+    
+    items_by_store = {}
+    low_stock_items = []
+    total_value = 0
+    
+    for key, inventory in store_simulator_instance.current_inventory.items():
+        # Count items by store
+        items_by_store[inventory.store_id] = items_by_store.get(inventory.store_id, 0) + inventory.in_stock
+        
+        # Calculate total value
+        total_value += inventory.in_stock * inventory.retail_price
+        
+        # Check for low stock
+        if inventory.in_stock <= inventory.reorder_threshold:
+            low_stock_items.append({
+                'store_id': inventory.store_id,
+                'product_id': inventory.product_id,
+                'product_name': inventory.product_name,
+                'in_stock': inventory.in_stock,
+                'reorder_threshold': inventory.reorder_threshold
+            })
+    
+    return jsonify({
+        'total_items': sum(items_by_store.values()),
+        'items_by_store': items_by_store,
+        'low_stock_items': low_stock_items,
+        'total_value': round(float(total_value), 2)
+    })
+
+@app.route('/api/v1/inventory/<store_id>', methods=['GET'])
+@swag_from({
+    'parameters': [
+        {
+            'name': 'store_id',
+            'in': 'path',
+            'type': 'string',
+            'required': True,
+            'description': 'Store identifier'
+        }
+    ],
+    'responses': {
+        200: {
+            'description': 'Inventory for specific store',
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'store_id': {'type': 'string'},
+                    'items': {
+                        'type': 'array',
+                        'items': {
+                            'type': 'object',
+                            'properties': {
+                                'product_id': {'type': 'string'},
+                                'in_stock': {'type': 'integer'},
+                                'retail_price': {'type': 'number'},
+                                'last_restocked': {'type': 'string', 'format': 'date-time'}
+                            }
+                        }
+                    },
+                    'total_items': {'type': 'integer'},
+                    'total_value': {'type': 'number'}
+                }
+            }
+        },
+        404: {
+            'description': 'Store not found'
+        }
+    },
+    'summary': 'Get inventory for a specific store',
+    'tags': ['Inventory']
+})
+def get_store_inventory(store_id):
+    if not store_simulator_instance:
+        return jsonify({'error': 'Store simulator not running'}), 503
+    
+    store_inventory = []
+    total_value = 0
+    
+    for key, inventory in store_simulator_instance.current_inventory.items():
+        if inventory.store_id == store_id:
+            store_inventory.append({
+                'product_id': inventory.product_id,
+                'in_stock': inventory.in_stock,
+                'retail_price': float(inventory.retail_price),
+                'last_restocked': inventory.last_restocked.isoformat()
+            })
+            total_value += inventory.in_stock * inventory.retail_price
+    
+    if not store_inventory:
+        return jsonify({'error': 'Store not found'}), 404
+    
+    return jsonify({
+        'store_id': store_id,
+        'items': store_inventory,
+        'total_items': sum(item['in_stock'] for item in store_inventory),
+        'total_value': round(float(total_value), 2)
+    })
+
+@app.route('/api/v1/pos/failures', methods=['GET'])
+@swag_from({
+    'responses': {
+        200: {
+            'description': 'POS failures summary',
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'failures_by_type': {
+                        'type': 'object',
+                        'additionalProperties': {'type': 'integer'}
+                    },
+                    'failures_by_device': {
+                        'type': 'object',
+                        'additionalProperties': {'type': 'integer'}
+                    },
+                    'total_failures': {'type': 'integer'}
+                }
+            }
+        }
+    },
+    'summary': 'Returns a summary of POS failures',
+    'tags': ['POS']
+})
+def get_pos_failures():
+    failures_by_type = {}
+    failures_by_device = {}
+    total_failures = 0
+    
+    for device_data in devices_metrics.values():
+        if device_data['equipment_type'] == 'POS':
+            metrics = device_data['metrics']
+            if metrics.get('has_failure') and metrics.get('failure_type'):
+                failure_type = metrics['failure_type']
+                device_id = device_data['device_id']
+                
+                failures_by_type[failure_type] = failures_by_type.get(failure_type, 0) + 1
+                failures_by_device[device_id] = failures_by_device.get(device_id, 0) + 1
+                total_failures += 1
+    
+    return jsonify({
+        'failures_by_type': failures_by_type,
+        'failures_by_device': failures_by_device,
+        'total_failures': total_failures
+    })
+
+def init_influxdb():
+    """Initialize InfluxDB connection"""
+    global influx_client, write_api
+    if ENABLE_INFLUXDB:
+        try:
+            influx_client = InfluxDBClient(url=INFLUXDB_URL, token=INFLUXDB_TOKEN, org=INFLUXDB_ORG)
+            write_api = influx_client.write_api(write_options=SYNCHRONOUS)
+            logger.info("Successfully connected to InfluxDB")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to connect to InfluxDB: {str(e)}")
+            return False
+
+def init_mqtt():
+    """Initialize MQTT connection"""
+    global mqtt_client
+    if ENABLE_MQTT:
+        try:
+            # Connect to MQTT Broker
+            client_id1 = f'python-mqtt-{random.randint(0, 1000)}'
+            mqtt_client = mqtt.Client()
+            mqtt_client.connect(MQTT_BROKER, MQTT_PORT)
+            mqtt_client.loop_start()
+            logger.info("Successfully connected to MQTT broker")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to connect to MQTT broker: {str(e)}")
+            return False
 
 if __name__ == "__main__":
     from threading import Thread
     
+    if ENABLE_INFLUXDB:
+        # Connect to InfluxDB
+        init_influxdb()
+
+    if ENABLE_MQTT:
+        init_mqtt()
+
     # Start Flask app with Swagger UI
     if ENABLE_API:
         Thread(target=lambda: app.run(host="0.0.0.0", port=PORT, use_reloader=False)).start()
@@ -510,18 +959,16 @@ if __name__ == "__main__":
 
     # Start store simulator in a separate thread
     if ENABLE_STORE_SIMULATOR:
-        store_simulator_thread = Thread(target=run_store_simulator, daemon=True)
-        store_simulator_thread.start()
-        logger.info("Store simulator started")
-
-    if ENABLE_MQTT:
         try:
-            mqtt_client.connect(MQTT_BROKER, MQTT_PORT)
-            mqtt_client.loop_start()
+            simulator = StoreSimulator()
+            store_simulator_instance = simulator
+            store_simulator_thread = Thread(target=simulator.run, daemon=True)
+            store_simulator_thread.start()
+            logger.info("Store simulator started")
         except Exception as e:
-            logger.error(f"An unexpected error occurred: {str(e)}")
+            logger.error(f"Error starting store simulator: {str(e)}")
 
-    # Create a list of all devices to simulate
+   # Create a list of all devices to simulate
     devices_to_simulate = []
     pk = 1
     for equipment_type, count in DEVICE_COUNTS.items():
@@ -546,11 +993,14 @@ if __name__ == "__main__":
         except Exception as e:
             logger.error(f"An unexpected error occurred: {str(e)}")
         finally:
-            logger.info("Shutting down MQTT client...")
-            mqtt_client.loop_stop()
-            mqtt_client.disconnect()
+            logger.info("Cleaning up resources...")
+            if mqtt_client:
+                mqtt_client.loop_stop()
+                mqtt_client.disconnect()
             
-            logger.info("Shutting down InfluxDB client...")
-            client.close()
+            if write_api:
+                write_api.close()
+            if influx_client:
+                influx_client.close()
             
             logger.info("Program terminated.")

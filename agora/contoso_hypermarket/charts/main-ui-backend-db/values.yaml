@@ -10,7 +10,7 @@ replicaCount: 1
 image:
   repository: mcr.microsoft.com/cbl-mariner/base/postgres
   # This sets the pull policy for images.
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
   tag: "14"
 

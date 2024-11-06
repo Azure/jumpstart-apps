@@ -11,53 +11,40 @@ import {
 import { mergeStyleSets } from '@fluentui/react/lib/Styling';
 interface IGridItem {
   zoneName: string;
-  columnHeaderLabel: string;
+  zoneDescription: string;
   camera: string;
-  cameraStatus: string;
+  cameraDescription: string;
   dateUpdated: string;
 }
 
-const MaintenanceZonesGrid: React.FC = () => {
-  const [items, setItems] = useState<IGridItem[]>([
-    // Sample data - replace with your actual data
-    {
-      zoneName: 'Zone A',
-      columnHeaderLabel: 'Header A',
-      camera: 'Camera 1',
-      cameraStatus: 'Online',
-      dateUpdated: '11/2/2024 5:30 PM (GMT+8)',
-    },
-    {
-      zoneName: 'Zone B',
-      columnHeaderLabel: 'Header B',
-      camera: 'Camera 2',
-      cameraStatus: 'Offline',
-      dateUpdated: '11/2/2024 5:30 PM (GMT+8)',
-    },   
-    {
-      zoneName: 'Zone C',
-      columnHeaderLabel: 'Header C',
-      camera: 'Camera 3',
-      cameraStatus: 'Online',
-      dateUpdated: '11/2/2024 5:30 PM (GMT+8)',
-    },
-    {
-      zoneName: 'Zone D',
-      columnHeaderLabel: 'Header D',
-      camera: 'Camera 4',
-      cameraStatus: 'Offline',
-      dateUpdated: '11/2/2024 5:30 PM (GMT+8)',
-    },
-    {
-      zoneName: 'Zone E',
-      columnHeaderLabel: 'Header E',
-      camera: 'Camera 5',
-      cameraStatus: 'Online',
-      dateUpdated: '11/2/2024 5:30 PM (GMT+8)',
-    },
-      
-    // ... add more items
-  ]);
+interface ZoneCameraData {
+  zoneId: number;
+  cameraId: number;
+  zoneName: string;
+  zoneDescription: string;
+  cameraName: string;
+  cameraDescription: string;
+  rtspuri: string;
+}
+interface MaintenanceZonesGridProps {
+  zonesCameras: ZoneCameraData[];
+}
+const MaintenanceZonesGrid: React.FC<MaintenanceZonesGridProps> = (props) => {
+  var gridItems:IGridItem[] = [];
+  props.zonesCameras.forEach(
+    function(value: ZoneCameraData, index: number, array: ZoneCameraData[])  {
+      var newIGridItem: IGridItem = {
+        camera: value.cameraName,
+        cameraDescription: value.cameraDescription,
+        zoneDescription: value.zoneDescription,
+        zoneName: value.zoneName,
+        dateUpdated: (new Date()).toLocaleString()
+      }
+      gridItems.push(newIGridItem);
+    }
+  );
+
+  const [items, setItems] = useState<IGridItem[]>(gridItems);
 
   const columns: IColumn[] = [
     {
@@ -72,9 +59,9 @@ const MaintenanceZonesGrid: React.FC = () => {
       onColumnClick: onColumnClick,
     },
     {
-      key: 'columnHeaderLabel',
-      name: 'Column Header Label',
-      fieldName: 'columnHeaderLabel',
+      key: 'zoneDescription',
+      name: 'Zone Description',
+      fieldName: 'zoneDescription',
       minWidth: 100,
       maxWidth: 200,
       isResizable: true,
@@ -97,9 +84,9 @@ const MaintenanceZonesGrid: React.FC = () => {
       ),
     },
     {
-      key: 'cameraStatus',
-      name: 'Camera Status',
-      fieldName: 'cameraStatus',
+      key: 'cameraDescription',
+      name: 'Camera Description',
+      fieldName: 'cameraDescription',
       minWidth: 100,
       maxWidth: 200,
       isResizable: true,
@@ -109,7 +96,7 @@ const MaintenanceZonesGrid: React.FC = () => {
     },
     {
       key: 'dateUpdated',
-      name: 'Date Updated',
+      name: 'Date updated',
       fieldName: 'dateUpdated',
       minWidth: 100,
       maxWidth: 200,
@@ -158,24 +145,22 @@ const MaintenanceZonesGrid: React.FC = () => {
   // Custom class names for the grid
   const classNames = mergeStyleSets({
     grid: {
-      width: '100%',
+      width: '1104px',
       boxSizing: 'border-box',
       border: '1px solid #e0e0e0',
     },
   });
-
-
   return (
     <div className={classNames.grid}>
     <DetailsList
-      items={items}
+      items={gridItems}
       columns={columns}
       setKey="set"
       selectionMode={SelectionMode.none}
       layoutMode={DetailsListLayoutMode.justified}
       styles={{
         root: {
-          width: '100%',
+          width: '1104px',
           height: '100%',
         },
       }}

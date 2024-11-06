@@ -15,7 +15,7 @@ import {
   Dropdown
 } from "@fluentui/react-components";
 import { useNavigate } from "react-router-dom";
-import Header from '../../components/SuiteHeader';
+import Header from '../../components/MaintenanceWorkerHeader';
 import Footer from '../../components/SuiteFooter';
 import SideMenu from "../../components/MaintenanceMenu";
 import { ITag, Pivot, PivotItem, PrimaryButton, TagPicker, TextField } from '@fluentui/react';
@@ -32,6 +32,8 @@ import { useDropzone } from 'react-dropzone';
 import { useCallback } from 'react';
 import CerebralChatWithAudio from '../../components/CerebralChat';
 import WizardNavigation from '../../components/WizardNavigationStatus';
+import CerebralHeader from '../../components/CerebralHeader';
+
 const Main = (props: IStackProps) => (
     <Stack horizontal grow={1} disableShrink {...props} />
   );
@@ -390,7 +392,7 @@ const CamerasZonesWizardReview = () => {
       const selectedCameraParameter = urlParams.get('selectedCamera');
       
       const saveDataAndNavigate   = () => {
-        var storeAPI = process.env.REACT_APP_STORE_API_URL || "/store_api";
+        var storeAPI = process.env.REACT_APP_STORE_API_URL || "/StoreApi";
         
         // Send data to the backend via POST - Create Zone
         fetch(storeAPI + '/zones', {
@@ -399,7 +401,6 @@ const CamerasZonesWizardReview = () => {
             'accept': 'application/json',
             'Content-Type': 'application/json'
           },
-          // body: '{\n  "name": "Camera3",\n  "description": "Camera3",\n  "rtspuri": "rtsp://rtsp_stream_container:8554/stream"\n}',
           body: JSON.stringify({
             "name": zoneLabelParameter,
             "description": "",
@@ -444,6 +445,12 @@ const CamerasZonesWizardReview = () => {
             type={PanelType.custom}
             customWidth="30%"
             headerText=""
+            onRenderHeader={() => (
+              <CerebralHeader 
+                title="Cerebral" 
+                onClose={toggleCerebralDrawer} 
+              />
+            )}
             onRenderFooterContent={onRenderCerebralFooterContent}
             isFooterAtBottom={true}
             hasCloseButton={true}

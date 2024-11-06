@@ -13,7 +13,7 @@ import {
     CardPreview,
     Text,
   } from "@fluentui/react-components";
-  import { SingleSelect as DataGrid } from "./DataGrid";  
+  import { InventoryStatusGrid as DataGrid } from "./InventoryStatusGrid";  
 import PanelHeader from "./PanelHeader";
 
   const resolveAsset = (asset: string) => {
@@ -40,7 +40,6 @@ const InventoryStatus = () => {
     const styles = useStyles();
     return (
         <Stack className={styles.stack}>
-            <PanelHeader />
             <DataGrid />
         </Stack> 
     );

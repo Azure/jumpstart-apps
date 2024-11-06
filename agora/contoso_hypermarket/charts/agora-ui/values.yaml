@@ -9,7 +9,7 @@ replicaCount: 1
 image:
   repository: mcr.microsoft.com/jumpstart/agora/main_ui
   # This sets the pull policy for images.
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
   tag: "1.0.0"
 

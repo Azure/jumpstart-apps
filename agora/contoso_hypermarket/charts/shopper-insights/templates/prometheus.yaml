@@ -1,0 +1,14 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: shopper-insights-service-monitor
+  labels:
+    release: prometheus  
+spec:
+  endpoints:
+  - port: shopper-insights-metrics # Make sure this matches the port name of your service
+    interval: 30s
+    path: /metrics
+  selector:
+    matchLabels:
+      app: shopper-insights-service # Make sure this matches the label of your service

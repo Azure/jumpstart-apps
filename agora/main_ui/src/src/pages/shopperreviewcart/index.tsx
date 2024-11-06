@@ -39,6 +39,8 @@ import SideMenu from '../../components/ShopperFilterbox';
 import { registerIcons } from '@fluentui/react/lib/Styling';
 import { MoreHorizontal20Regular } from "@fluentui/react-icons";
 import CerebralChatWithAudio from '../../components/CerebralChat';
+import CerebralHeader from '../../components/CerebralHeader';
+
 const resolveAsset = (asset: string) => {
   const ASSET_URL =
     "https://raw.githubusercontent.com/microsoft/fluentui/master/packages/react-components/react-card/stories/src/assets/";
@@ -561,6 +563,12 @@ const useStyles = makeStyles({
             type={PanelType.custom}
             customWidth="30%"
             headerText=""
+            onRenderHeader={() => (
+              <CerebralHeader 
+                title="Cerebral" 
+                onClose={toggleCerebralDrawer} 
+              />
+            )}
             onRenderFooterContent={onRenderCerebralFooterContent}
             isFooterAtBottom={true}
             hasCloseButton={true}

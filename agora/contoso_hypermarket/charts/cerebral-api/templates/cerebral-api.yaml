@@ -12,18 +12,59 @@ spec:
       labels:
         app: cerebral-api
     spec:
+      initContainers: 
+        - name: init-documents
+          image: mcr.microsoft.com/cbl-mariner/base/core:2.0
+          command: 
+          - sh
+          - -c
+          - |
+            tdnf update -y
+            tdnf install wget -y
+            cd /app/docs
+            wget -O "SmartShelf_Manual.pdf" "https://download.microsoft.com/download/2b3927e0-5342-4d84-8b55-ab958281259b/SmartShelf%20System%20User%20Manual%20for%20Contoso%20Hypermarket.pdf" && \
+            wget -O "Scale_Manual.pdf" "https://download.microsoft.com/download/2b3927e0-5342-4d84-8b55-ab958281259b/Scale%20System%20User%20Manual%20for%20Contoso%20Hypermarket.pdf" && \
+            wget -O "Refrigeration_Manual.pdf" "https://download.microsoft.com/download/2b3927e0-5342-4d84-8b55-ab958281259b/Refrigeration%20System%20User%20Manual%20for%20Contoso%20Hypermarket.pdf" && \
+            wget -O "Checkout_Manual.pdf" "https://download.microsoft.com/download/2b3927e0-5342-4d84-8b55-ab958281259b/Automated%20Checkout%20System%20User%20Manual%20for%20Contoso%20Hypermarket.pdf" && \
+            wget -O "HVAC_Manual.pdf" "https://download.microsoft.com/download/2b3927e0-5342-4d84-8b55-ab958281259b/HVAC%20System%20User%20Manual%20for%20Contoso%20Hypermarket.pdf"
+          volumeMounts:
+          - name: cerebral-docs
+            mountPath: /app/docs
+        - name: init-slm-model
+          image: mcr.microsoft.com/azurelinux/base/python:3.12
+          command: 
+          - sh
+          - -c
+          - |
+              pip install -U "huggingface_hub[cli]"
+              huggingface-cli download microsoft/Phi-3-mini-4k-instruct-onnx \
+              --include "cpu_and_mobile/cpu-int4-rtn-block-32-acc-level-4/*" \
+              --local-dir /app/models
+              if [ ! -d "/app/models/phi3" ]; then
+                mkdir /app/models/phi3
+              fi
+          volumeMounts:
+          - name: cerebral-slm-model
+            mountPath: /app/models
       containers:
       - name: cerebral-api
         image: {{ .Values.images.cerebral.repository }}:{{ .Values.images.cerebral.tag }}
+        imagePullPolicy: {{ .Values.images.cerebral.pullPolicy }}
         ports:
         - containerPort: 5003
         env:
         - name: AZURE_OPENAI_API_KEY
-          value: "replaceme"
+          valueFrom:
+            secretKeyRef:
+              name: azure-openai-secret
+              key: azure-openai-key
         - name: CHATGPT_MODEL
           value: "gpt-35-turbo"
         - name: AZURE_OPENAI_ENDPOINT
-          value: "https://jsextoai.openai.azure.com"
+          valueFrom:
+            secretKeyRef:
+              name: azure-openai-secret
+              key: azure-openai-endpoint
         - name: OPENAI_API_VERSION
           value: "2024-03-01-preview"
         - name: INFLUXDB_URL
@@ -43,13 +84,36 @@ spec:
         - name: SQL_USERNAME
           value: "SA"
         - name: SQL_PASSWORD
-          value: "ArcPassword123!!"
+          valueFrom:
+            secretKeyRef:
+              name: azure-sqlpassword-secret
+              key: azure-sqlpassword-secret
         - name: WHISPER_MODEL_PATH
           value: ""
         - name: AZURE_AI_SPEECH_KEY
-          value: ""
+          valueFrom:
+            secretKeyRef:
+              name: azure-openai-secret
+              key: azure-openai-key
         - name: AZURE_AI_SPEECH_REGION
           value: ""
+        - name: USE_LOCAL_LLM
+          value: "false"
+        - name: MODEL_PATH
+          value: "/app/models"
+        - name: CHROMA_HOST
+          value: "chroma-db-service.contoso-hypermarket.svc.cluster.local"
+        - name: CHROMA_PORT
+          value: "8040"
+        - name: CHROMA_COLLECTION
+          value: "documents"
+      volumes:
+      - name: cerebral-docs
+        persistentVolumeClaim:
+          claimName: cerebral-docs
+      - name: cerebral-slm-model
+        persistentVolumeClaim:
+          claimName: cerebral-slm-model
 ---
 apiVersion: v1
 kind: Service
@@ -63,3 +127,27 @@ spec:
     - protocol: TCP
       port: 5003
       targetPort: 5003
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: cerebral-docs
+  namespace: contoso-hypermarket
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: cerebral-slm-model
+  namespace: contoso-hypermarket
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi

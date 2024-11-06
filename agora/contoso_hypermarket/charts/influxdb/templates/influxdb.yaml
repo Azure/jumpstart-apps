@@ -124,6 +124,7 @@ spec:
       containers:
       - name: influxdb
         image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
         resources:
           limits:
             memory: "2Gi"

@@ -27,7 +27,7 @@ import {
 } from "@fluentui/react-icons";
 import { Toggle } from '@fluentui/react/lib/Toggle';
 import { useNavigate } from "react-router-dom";
-import Header from '../../components/SuiteHeader';
+import Header from '../../components/MaintenanceWorkerHeader';
 import Footer from '../../components/SuiteFooter';
 import VideoStreamWizard from '../../components/VideoStreamWizard';
 import SideMenu from "../../components/MaintenanceMenu";
@@ -46,6 +46,8 @@ import { useCallback } from 'react';
 import { text } from 'stream/consumers';
 import CerebralChatWithAudio from '../../components/CerebralChat';
 import type { SliderProps } from "@fluentui/react-components";
+import CerebralHeader from '../../components/CerebralHeader';
+
 const Main = (props: IStackProps) => (
     <Stack horizontal grow={1} disableShrink {...props} />
   );
@@ -266,8 +268,8 @@ interface CameraPanelProps {
   onSave: () => void;
 }
 const CamerasZonesWizardSetupCamera = () => {
-    var storeAPI = process.env.REACT_APP_STORE_API_URL || "/store_api";
-    var footfallAIAPI = process.env.REACT_APP_FOOTFALL_API || "/footfall_api";
+    var storeAPI = process.env.REACT_APP_STORE_API_URL || "/StoreApi";
+    var footfallAIAPI = process.env.REACT_APP_FOOTFALL_API || "/FootfallApi";
     const styles = useStyles();
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [isCerebralDrawerOpen, setIsCerebralDrawerOpen] = useState(false);
@@ -445,6 +447,12 @@ const CamerasZonesWizardSetupCamera = () => {
             type={PanelType.custom}
             customWidth="30%"
             headerText=""
+            onRenderHeader={() => (
+              <CerebralHeader 
+                title="Cerebral" 
+                onClose={toggleCerebralDrawer} 
+              />
+            )}
             onRenderFooterContent={onRenderCerebralFooterContent}
             isFooterAtBottom={true}
             hasCloseButton={true}

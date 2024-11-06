@@ -7,7 +7,7 @@ data:
   INFLUXDB_TOKEN: "secret-token"
   INFLUXDB_ORG: "InfluxData"
   INFLUXDB_BUCKET: "hypermarket"
-  MQTT_BROKER: "localhost"
+  MQTT_BROKER: "aio-broker-insecure.azure-iot-operations.svc.cluster.local"
   MQTT_PORT: "1883"
   MQTT_TOPIC: "iot/devices"
   REFRIGERATOR_COUNT: "3"
@@ -17,13 +17,23 @@ data:
   HVAC_COUNT: "3"
   LIGHTINGSYSTEM_COUNT: "3"
   AUTOMATEDCHECKOUT_COUNT: "3"
-  EVENTHUB_CONNECTION_STRING: "https://aiohubns021ef.servicebus.windows.net:443/"
   ORDERS_EVENTHUB_NAME: ORDERS
   INVENTORY_EVENTHUB_NAME: INVENTORY
   HISTORICAL_DATA_DAYS: "1"
   ORDER_FREQUENCY: "10"
   PRODUCTS_FILE: "products.json"
   UI_API_URL: "http://backend-api.contoso-hypermarket.svc.cluster.local:5002"
+  ENABLE_MQTT: "true"
+  ENABLE_INFLUXDB: "true"
+  ENABLE_HISTORICAL: "true"
+  ENABLE_PROMETHEUS: "true"
+  ENABLE_API: "true"
+  ENABLE_STORE_SIMULATOR: "true"
+  ENABLE_SQL: "true"
+  SQL_SERVER: "mssql-service.contoso-hypermarket.svc.cluster.local"
+  SQL_DATABASE: "RetailDB"
+  SQL_USERNAME: "sa"
+  STORE_ID: "SEA"
 ---
 
 apiVersion: apps/v1
@@ -41,13 +51,63 @@ spec:
       labels:
         app: cerebral-simulator
     spec:
+      initContainers:
+      - name: init-sql-check
+        image: mcr.microsoft.com/mssql-tools:latest  # Correct image with sqlcmd
+        command:
+          - /bin/bash
+          - -c
+          - |
+            # Wait until database is ready
+            until /opt/mssql-tools/bin/sqlcmd \
+              -S mssql-service.contoso-hypermarket.svc.cluster.local \
+              -U SA \
+              -P "$SQL_PASSWORD" \
+              -Q "SELECT 1" > /dev/null 2>&1
+            do
+              echo "Waiting for database to be ready..."
+              sleep 10
+            done
+
+            # Check if Stores table has data
+            until /opt/mssql-tools/bin/sqlcmd \
+              -S mssql-service.contoso-hypermarket.svc.cluster.local \
+              -U SA \
+              -P "$SQL_PASSWORD" \
+              -d RetailDB \
+              -Q "SELECT COUNT(*) FROM Stores" | grep -q '[1-9]'
+            do
+              echo "Stores table is empty. Waiting..."
+              sleep 10
+            done
+
+            echo "Database is ready."
+        env:
+        - name: SQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: azure-sqlpassword-secret
+              key: azure-sqlpassword-secret
       containers:
       - name: cerebral-simulator
-        image: mcr.microsoft.com/jumpstart/agora/cerebral_simulator:1.0.0
+        ports:
+        - containerPort: 8001
+        image: {{ .Values.images.cerebral_simulator.repository }}:{{ .Values.images.cerebral_simulator.tag }}
+        imagePullPolicy: {{ .Values.images.cerebral_simulator.pullPolicy }}
         envFrom: 
         - configMapRef:
             name: cerebral-simulator-config
-
+        env:
+        - name: EVENTHUB_CONNECTION_STRING
+          valueFrom:
+            secretKeyRef:
+              name: azure-eventhub-secret
+              key: azure-eventhub-connection-string
+        - name: SQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: azure-sqlpassword-secret
+              key: azure-sqlpassword-secret
 ---
 
 apiVersion: v1

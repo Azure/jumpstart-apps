@@ -1,7 +1,7 @@
 services:
   store_api:
     build:
-      context: ../main_ui_backend_api/src  # This should point to the folder containing the Dockerfile and requirements.txt
+      context: ../../main_ui_backend_api/src  # This should point to the folder containing the Dockerfile and requirements.txt
       dockerfile: Dockerfile
     container_name: store_api_container
     ports:

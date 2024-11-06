@@ -13,7 +13,8 @@ CREATE TABLE IF NOT EXISTS zones (
     x1 int,
     y1 int,
     x2 int,
-    y2 int
+    y2 int,
+    camera_id INT REFERENCES cameras(id)
 );
 
 CREATE TABLE IF NOT EXISTS regions (
@@ -43,8 +44,8 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM cameras) THEN
         INSERT INTO cameras (name, description, rtspuri)
         VALUES
-            ('Camera 1', 'Aisle Camera', 'rtsp://rtsp-stream-aisle:8554/stream'),
-            ('Camera 2', 'Produce Camera', 'rtsp://rtsp-stream-zoom:8554/stream');
+            ('Freezer Aisle', 'Aisle Camera', 'rtsp://rtsp-stream-aisle:8554/stream'),
+            ('Produce Section', 'Produce Camera', 'rtsp://rtsp-stream-zoom:8555/stream');
     END IF;
 END $$;
 
@@ -54,8 +55,8 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM regions) THEN
         INSERT INTO regions (name, description, camera_id, x1, y1, x2, y2, threshold)
         VALUES
-            ('Region 1', 'Entrance Region', 1, 0, 0, 100, 100, 70),
-            ('Region 2', 'Aisle Region', 2, 0, 0, 100, 100, 70);
+            ('Freezer View', 'Entrance Region', 1, 0, 0, 1000, 1000, 70),
+            ('Produce View', 'Aisle Region', 2, 0, 0, 1000, 1000, 70);
     END IF;
 END $$;
 
@@ -63,13 +64,10 @@ END $$;
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM zones) THEN
-        INSERT INTO zones (name, description, x1, y1, x2, y2)
+        INSERT INTO zones (name, description, x1, y1, x2, y2, camera_id)
         VALUES
-            ('Zone 1', 'Fruit Section', 0, 0, 50, 50),
-            ('Zone 2', 'Vegetable Section', 50, 0, 100, 50),
-            ('Zone 3', 'Bread Section', 0, 50, 50, 100),
-            ('Zone 4', 'Dairy Section', 50, 50, 100, 100),
-            ('Zone 5', 'Beverage Section', 100, 50, 150, 100);
+            ('Frozen Food', 'Frozen', 0, 0, 200, 200, 1),
+            ('Produce Section', 'Vegetable', 0, 0, 200, 200, 2);
     END IF;
 END $$;
 

@@ -30,7 +30,7 @@ import {
 } from "@fluentui/react-icons";
 import type { ToolbarProps } from "@fluentui/react-components";
 import { useNavigate } from "react-router-dom";
-import Header from '../../components/SuiteHeader';
+import Header from '../../components/MaintenanceWorkerHeader';
 import Footer from '../../components/SuiteFooter';
 import SideMenu from "../../components/MaintenanceMenu";
 import { ITag, Pivot, PivotItem, PrimaryButton, TagPicker, TextField } from '@fluentui/react';
@@ -47,6 +47,8 @@ import { useDropzone } from 'react-dropzone';
 import { useCallback } from 'react';
 import CerebralChatWithAudio from '../../components/CerebralChat';
 import WizardNavigation from '../../components/WizardNavigationStatus';
+import CerebralHeader from '../../components/CerebralHeader';
+
 const Main = (props: IStackProps) => (
     <Stack horizontal grow={1} disableShrink {...props} />
   );
@@ -267,8 +269,8 @@ interface CameraPanelProps {
   onSave: () => void;
 }
 const CamerasZonesWizardFloor: React.FC = () => {
-    var storeAPI = process.env.REACT_APP_STORE_API_URL || "/store_api";
-    var footfallAIAPI = process.env.REACT_APP_FOOTFALL_API || "/footfall_api";
+    var storeAPI = process.env.REACT_APP_STORE_API_URL || "/StoreApi";
+    var footfallAIAPI = process.env.REACT_APP_FOOTFALL_API || "/FootfallApi";
     const styles = useStyles();
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [isCerebralDrawerOpen, setIsCerebralDrawerOpen] = useState(false);
@@ -472,6 +474,12 @@ const CamerasZonesWizardFloor: React.FC = () => {
             type={PanelType.custom}
             customWidth="30%"
             headerText=""
+            onRenderHeader={() => (
+              <CerebralHeader 
+                title="Cerebral" 
+                onClose={toggleCerebralDrawer} 
+              />
+            )}
             onRenderFooterContent={onRenderCerebralFooterContent}
             isFooterAtBottom={true}
             hasCloseButton={true}

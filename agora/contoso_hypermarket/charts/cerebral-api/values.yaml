@@ -10,9 +10,13 @@ replicaCount: 1
 images:
   cerebral:
     repository: mcr.microsoft.com/jumpstart/agora/cerebral_api
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
     tag: 1.0.0
-# This is for the secretes for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+  cerebral_simulator:
+    repository: mcr.microsoft.com/jumpstart/agora/cerebral_simulator
+    pullPolicy: Always
+    tag: 1.0.0
+# This is for the secretes for kubectl pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
 imagePullSecrets: []
 # This is to override the chart name.
 nameOverride: ""

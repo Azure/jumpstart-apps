@@ -19,7 +19,7 @@ spec:
           - wget 
           - "-O"
           - "/samples/aisle.mp4"
-          - https://download.microsoft.com/download/ad457769-60e2-4e4b-8756-8d9fada0b60a/supermarket-aisle.mp4
+          - https://download.microsoft.com/download/b89058d8-f51e-4cb9-a4e0-ec6a85a39863/supermarket-aisle.mp4
           volumeMounts:
           - name: video-storage
             mountPath: /samples
@@ -65,7 +65,7 @@ spec:
           - |
             tdnf update -y
             tdnf install wget -y
-            wget -O /samples/zoom.mp4 https://download.microsoft.com/download/ad457769-60e2-4e4b-8756-8d9fada0b60a/supermarket-zoom.mp4 --no-check-certificate
+            wget -O /samples/zoom.mp4 https://download.microsoft.com/download/b89058d8-f51e-4cb9-a4e0-ec6a85a39863/supermarket-zoom.mp4 --no-check-certificate
           volumeMounts:
           - name: video-storage
             mountPath: /samples

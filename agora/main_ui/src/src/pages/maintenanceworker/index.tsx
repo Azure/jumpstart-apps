@@ -4,7 +4,7 @@ import {
   webLightTheme,
   Text,
 } from "@fluentui/react-components";
-import Header from '../../components/SuiteHeader';
+import Header from '../../components/MaintenanceWorkerHeader';
 import Footer from '../../components/SuiteFooter';
 import SideMenu from "../../components/MaintenanceMenu";
 import { Default as Banner } from "../../components/Banner";
@@ -21,6 +21,8 @@ import '../../App.css';
 import Cameras from '../../components/Cameras';
 import CerebralChatWithAudio from '../../components/CerebralChat';
 import { Panel, PanelType, DefaultButton, ProgressIndicator } from '@fluentui/react';
+import CerebralHeader from '../../components/CerebralHeader';
+
 const Main = (props: IStackProps) => (
     <Stack horizontal grow={1} disableShrink {...props} />
   );
@@ -58,6 +60,12 @@ const MaintenanceWorker = () => {
             type={PanelType.custom}
             customWidth="30%"
             headerText=""
+            onRenderHeader={() => (
+              <CerebralHeader 
+                title="Cerebral" 
+                onClose={toggleCerebralDrawer} 
+              />
+            )}
             onRenderFooterContent={onRenderCerebralFooterContent}
             isFooterAtBottom={true}
             hasCloseButton={true}

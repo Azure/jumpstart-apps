@@ -29,7 +29,7 @@ class STT:
     def recognize_with_azure(audio_file_path):
         try:
             speech_key = os.environ.get('AZURE_AI_SPEECH_KEY', "")
-            speech_region = os.environ.get('AZURE_AI_SPEECH_REGION', "eastus")
+            speech_region = os.environ.get('AZURE_AI_SPEECH_REGION', "eastus2")
             speech_config = speechsdk.SpeechConfig(subscription=speech_key, region=speech_region)
             audio_input = speechsdk.audio.AudioConfig(filename=audio_file_path)
             speech_recognizer = speechsdk.SpeechRecognizer(speech_config=speech_config, audio_config=audio_input)

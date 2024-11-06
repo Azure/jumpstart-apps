@@ -32,14 +32,15 @@ class VideoProcessor:
 
         # Initialize save_lock for thread-safe operations
         self.save_lock = threading.Lock()
-        
-        #MNT PATH FOR ACSA SHOULD BE SET TO detected_persons
-        self.person_image_dir = "/tmp/detected_persons/frames"
+
+        # Directory to store person images
+        #MNT PATH FOR ACSA SHOULD BE SET TO /app/detected_persons
+        self.person_image_dir = "detected_persons/frames"
         if not os.path.exists(self.person_image_dir):
             os.makedirs(self.person_image_dir)
         
         # Directory to store GIFs
-        self.videos_output_dir = "/tmp/detected_persons/videos"
+        self.videos_output_dir = "/app/detected_persons/videos"
         if not os.path.exists(self.videos_output_dir):
             os.makedirs(self.videos_output_dir)
         
@@ -58,6 +59,10 @@ class VideoProcessor:
         self.reid_compiled_model = self.ie.compile_model(model=self.reid_model, device_name="GPU" if "GPU" in self.ie.available_devices else "CPU")
         self.age_compiled_model = self.ie.read_model(os.path.join(MODEL_PATH, "age-gender-recognition-retail-0013.xml"))
         self.age_compiled_model = self.ie.compile_model(model=self.age_compiled_model, device_name="GPU" if "GPU" in self.ie.available_devices else "CPU")
+
+        # Print model loading information
+        device_used = "GPU" if "GPU" in self.ie.available_devices else "CPU"
+        print(f"Model loaded in: {device_used}")
 
        # Get input and output layers
         self.det_input_layer = self.det_compiled_model.input(0)
@@ -165,6 +170,9 @@ class VideoProcessor:
                 self.age_stats[previous_age_group] -= 1
                 self.age_stats[age_group] += 1
                 self.age_stats[person_hash] = age_group
+
+    def update_debug(self, debug):
+        self.debug = debug
 
     def point_in_rectangle(self, point, rectangle):
         x, y = point

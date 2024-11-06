@@ -32,8 +32,6 @@ class VideoCapture:
                     return
             
             self.q.put(cv2.resize(frame, (640, 360)))
-
-            #self.q.put(frame)
             self.state=ret
 
     def read(self):
