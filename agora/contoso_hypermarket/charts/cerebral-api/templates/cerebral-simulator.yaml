@@ -103,7 +103,6 @@ spec:
             secretKeyRef:
               name: azure-eventhub-secret
               key: azure-eventhub-connection-string
-        env:
         - name: SQL_PASSWORD
           valueFrom:
             secretKeyRef:
