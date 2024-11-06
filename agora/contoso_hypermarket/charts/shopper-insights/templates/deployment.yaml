@@ -43,6 +43,8 @@ spec:
         volumeMounts:
         - name: models-volume
           mountPath: /tmp/models
+        - name: blob
+          mountPath: /usr/src/app/detected_persons
       containers:
       - name: shopper-insights-api
         image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
@@ -63,6 +65,8 @@ spec:
           name: models-volume
         - mountPath: /usr/src/app/detected_persons
           name: blob
+        - mountPath: /usr/src/app/detected_frames
+          name: frames-volume
       volumes:
       - name: models-volume
         persistentVolumeClaim:
@@ -70,3 +74,6 @@ spec:
       - name: blob
         persistentVolumeClaim:
           claimName: acsa-pvc
+      - name: frames-volume
+        persistentVolumeClaim:
+          claimName: frames-pvc
