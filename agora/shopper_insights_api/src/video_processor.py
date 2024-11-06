@@ -35,7 +35,7 @@ class VideoProcessor:
 
         # Directory to store person images
         #MNT PATH FOR ACSA SHOULD BE SET TO /app/detected_persons
-        self.person_image_dir = "/usr/src/app/detected_persons/frames"
+        self.person_image_dir = "/usr/src/app/detected_frames"
         if not os.path.exists(self.person_image_dir):
             os.makedirs(self.person_image_dir)
         
