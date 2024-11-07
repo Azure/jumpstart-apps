@@ -234,7 +234,7 @@ export const DeviceStatusGrid = () => {
   const defaultSelectedItems = React.useMemo(() => new Set([1]), []);
   const [data, setData] = useState([]);
   const [metricData, setMetricData] = useState([]);
-  const baseApiUrl = process.env.REACT_APP_CEREBRAL_SIMULATOR_API_URL || "/cerebralSimulator_api";
+  const baseApiUrl = process.env.REACT_APP_SIMULATOR_API_URL || "/DataSimulator";
 
 interface DeviceData {
     device_id: string;
@@ -257,7 +257,7 @@ const [metrics, setMetrics] = useState<DeviceData[]>();
 const [loading, setLoading] = useState(true);
 const [gridData, setGridData]= useState<HVACGridDataItem[]>();
 useEffect(() => {
-    fetch(`${baseApiUrl}/api/v1/devices`)
+    fetch(baseApiUrl + '/api/v1/devices')
       .then(response => response.json())
       .then(posts => {
         setPosts(posts);

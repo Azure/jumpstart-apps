@@ -40,6 +40,6 @@ spec:
         - name: MQTT_TOPIC
           value: "Store/Cameras/PeopleCount"
         - name: FOOTFALL_API
-          value: "http://footfall-ai-api.contoso-hypermarket.svc.cluster.local:5000/status"
+          value: "http://footfall-ai-api.contoso-hypermarket.svc.cluster.local:5000"
         - name: SI_API
-          value: "http://shopper-insights-api.contoso-hypermarket.svc.cluster.local:5001/status"
+          value: "http://shopper-insights-api.contoso-hypermarket.svc.cluster.local:5001"

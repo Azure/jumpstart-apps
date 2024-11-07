@@ -41,7 +41,9 @@ spec:
               huggingface-cli download microsoft/Phi-3-mini-4k-instruct-onnx \
               --include "cpu_and_mobile/cpu-int4-rtn-block-32-acc-level-4/*" \
               --local-dir /app/models
-              mkdir /app/models/phi3
+              if [ ! -d "/app/models/phi3" ]; then
+                mkdir /app/models/phi3
+              fi
           volumeMounts:
           - name: cerebral-slm-model
             mountPath: /app/models

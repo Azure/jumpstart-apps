@@ -31,6 +31,8 @@ import { useCallback } from 'react';
 import CerebralChatWithAudio from '../../components/CerebralChat';
 import WizardNavigation from '../../components/WizardNavigationStatus';
 import CerebralHeader from '../../components/CerebralHeader';
+import { initializeIcons } from "@fluentui/react/lib/Icons";
+initializeIcons();
 
 const Main = (props: IStackProps) => (
     <Stack horizontal grow={1} disableShrink {...props} />

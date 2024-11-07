@@ -24,6 +24,8 @@ import {
   CardPreview
 } from "@fluentui/react-components";
 import CerebralHeader from '../../components/CerebralHeader';
+import { initializeIcons } from "@fluentui/react/lib/Icons";
+initializeIcons();
 
 const useStyles = makeStyles({
     main: {

@@ -26,6 +26,7 @@ services:
       - MODEL_PATH=/tmp/models/
       - RTSP_URL=rtsp://rtsp-stream-aisle:8554/stream
       - FLASK_PORT=5001
+      - ENABLE_SAVING=True
 
   rtsp-stream-aisle:
     image: kerberos/virtual-rtsp:1.0.6

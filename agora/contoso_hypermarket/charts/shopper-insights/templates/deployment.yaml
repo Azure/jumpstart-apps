@@ -1,3 +1,16 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: acsa-pvc
+  namespace: contoso-hypermarket
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: cloud-backed-sc
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -30,6 +43,8 @@ spec:
         volumeMounts:
         - name: models-volume
           mountPath: /tmp/models
+        - name: blob
+          mountPath: /usr/src/app/detected_persons
       containers:
       - name: shopper-insights-api
         image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
@@ -43,10 +58,22 @@ spec:
           value: "rtsp://rtsp-stream-aisle.contoso-hypermarket.svc.cluster.local:8554/stream"
         - name: FLASK_PORT
           value: "5001"
+        - name: ENABLE_SAVING
+          value: "True"
         volumeMounts:
         - mountPath: /tmp/models
           name: models-volume
+        - mountPath: /usr/src/app/detected_persons
+          name: blob
+        - mountPath: /usr/src/app/detected_frames
+          name: frames-volume
       volumes:
       - name: models-volume
         persistentVolumeClaim:
           claimName: shopper-model-pvc
+      - name: blob
+        persistentVolumeClaim:
+          claimName: acsa-pvc
+      - name: frames-volume
+        persistentVolumeClaim:
+          claimName: frames-pvc

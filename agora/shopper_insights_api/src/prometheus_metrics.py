@@ -18,10 +18,10 @@ class PrometheusMetrics:
     
     def _get_age_metric(self, age, camera_name):
         """Get or create an age metric for a specific camera."""
-        metric_key = f'age_{age}_{camera_name}'
+        metric_key = f'age_{age}_{camera_name.replace(" ", "_")}'
         if metric_key not in self.age_groups:
             self.age_groups[metric_key] = Gauge(
-                f'shoppers_age_{age}',
+                f'shoppers_age_{age}_{camera_name.replace(" ", "_")}',
                 f'Number of shoppers in age group {age}',
                 ['camera']
             )
@@ -29,10 +29,10 @@ class PrometheusMetrics:
     
     def _get_area_metric(self, area_id, camera_name):
         """Get or create an area metric for a specific camera."""
-        metric_key = f'area_{area_id}_{camera_name}'
+        metric_key = f'area_{area_id}_{camera_name.replace(" ", "_")}'
         if metric_key not in self.area_stats:
             self.area_stats[metric_key] = Gauge(
-                f'area_stats_{area_id}',
+                f'area_stats_{area_id}_{camera_name.replace(" ", "_")}',
                 f'Statistics for area {area_id}',
                 ['camera']
             )
@@ -40,7 +40,7 @@ class PrometheusMetrics:
     
     def _get_proximity_metric(self, person_id, area_id, camera_name):
         """Get or create a proximity metric for a specific camera."""
-        metric_key = f'person_{person_id}_area_{area_id}_{camera_name}'
+        metric_key = f'person_{person_id}_area_{area_id}_{camera_name.replace(" ", "_")}'
         if metric_key not in self.people_near_areas:
             self.people_near_areas[metric_key] = Gauge(
                 f'person_near_area',
@@ -74,7 +74,7 @@ class PrometheusMetrics:
                 metric_key = f'time_in_area_{area_id}_{camera_name}'
                 if metric_key not in self.area_stats:
                     self.area_stats[metric_key] = Gauge(
-                        f'time_in_area_{area_id}',
+                        f'time_in_area_{area_id}_{camera_name.replace(" ", "_")}',
                         f'Time spent in area {area_id}',
                         ['camera']
                     )
@@ -88,4 +88,4 @@ class PrometheusMetrics:
                 total_time = sum(time.get('end_time', 0) - time.get('start_time', 0) for time in times if isinstance(time, dict))
                 total_entries = len(times)
                 average_time = total_time / total_entries if total_entries > 0 else 0
-                self.time_in_area_avg.labels(camera=camera_label, area_id=area_id).set(average_time)
+                self.time_in_area_avg.labels(camera=camera_name, area_id=area_id).set(average_time)
