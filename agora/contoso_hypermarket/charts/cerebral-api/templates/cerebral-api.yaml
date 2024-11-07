@@ -58,15 +58,21 @@ spec:
             secretKeyRef:
               name: azure-openai-secret
               key: azure-openai-key
-        - name: CHATGPT_MODEL
-          value: "gpt-35-turbo"
         - name: AZURE_OPENAI_ENDPOINT
           valueFrom:
             secretKeyRef:
               name: azure-openai-secret
               key: azure-openai-endpoint
+        - name: CHATGPT_MODEL
+          valueFrom:
+            secretKeyRef:
+              name: azure-openai-secret
+              key: azure-openai-model-name
         - name: OPENAI_API_VERSION
-          value: "2024-03-01-preview"
+          valueFrom:
+            secretKeyRef:
+              name: azure-openai-secret
+              key: azure-openai-model-version
         - name: INFLUXDB_URL
           value: "http://influxdb.contoso-hypermarket.svc.cluster.local:8086"
         - name: INFLUXDB_BUCKET
@@ -96,7 +102,10 @@ spec:
               name: azure-openai-secret
               key: azure-openai-key
         - name: AZURE_AI_SPEECH_REGION
-          value: ""
+          valueFrom:
+            secretKeyRef:
+              name: azure-openai-secret
+              key: region
         - name: USE_LOCAL_LLM
           value: "false"
         - name: MODEL_PATH
