@@ -5,8 +5,11 @@ from werkzeug.exceptions import BadRequest
 from flask_cors import CORS
 import random
 import logging
-import threading
 import os
+from typing import Union
+import threading
+import uuid
+import time
 from datetime import datetime
 import azure.cognitiveservices.speech as speechsdk
 
@@ -18,12 +21,36 @@ from SpeechToText import STT
 from indexer import DocumentIndexer
 import onnxruntime_genai as og
 
+from langchain_openai import ChatOpenAI
+from langchain_community.vectorstores import Chroma
+from langchain_community.embeddings import SentenceTransformerEmbeddings
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.runnables import RunnableParallel, RunnablePassthrough
+
+import atexit
+from indexer import cleanup_temp_dirs
+
+#DEV_MODE
+#from dotenv import load_dotenv
+#load_dotenv()
+
+# Global configuration variables
+VERBOSE = os.getenv("VERBOSE", "false").lower() == "true"
 USE_LOCAL_LLM = os.getenv('USE_LOCAL_LLM', 'false').lower() == 'true'
 MODEL_PATH = os.getenv('MODEL_PATH', './cpu_and_mobile/cpu-int4-rtn-block-32-acc-level-4')
+DOCUMENTS_PATH = os.getenv('DOCUMENTS_PATH')
+CHROMA_AVAILABLE = False  # Global flag for ChromaDB availability
+LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+PORT = int(os.getenv('PORT', 5000))
+DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
+REQUIRE_CHROMA_INDEX = True
+DEFAULT_PERSIST_DIR = os.path.join(os.getcwd(), 'chroma_data')
+PERSIST_DIRECTORY = os.getenv('CHROMA_PERSIST_DIR', DEFAULT_PERSIST_DIR)
+CHROMA_COLLECTION = os.getenv('CHROMA_COLLECTION', 'documents')
 
-# Configure logging
-logging.basicConfig(level=logging.INFO,
-                   format='%(asctime)s - %(levelname)s - %(message)s')
+#DOCUMENT_INDEXER = None
+
 
 # Initialize Flask and SocketIO
 app = Flask(__name__)
@@ -45,142 +72,321 @@ influx_handler = InfluxDBHandler()
 sql_handler = SqlDBHandler()
 stt = STT()
 
-logger = logging.getLogger(__name__)
+
+def configure_logging() -> None:
+    """Configure logging based on VERBOSE setting."""
+    # Configure basic logging
+    logging.basicConfig(
+        level=logging.DEBUG if VERBOSE else logging.INFO,
+        format=LOG_FORMAT
+    )
+    
+    # Create logger for this module
+    logger = logging.getLogger(__name__)
+    
+    # Log initial configuration
+    if VERBOSE:
+        logger.debug("Verbose logging enabled")
+    
+    return logger
+
+# Initialize logger
+logger = configure_logging()
+
+class LoggingMixin:
+    """Mixin to add logging capabilities to classes."""
+    
+    def __init__(self):
+        self.logger = logging.getLogger(self.__class__.__name__)
+        
+    def log(self, level: Union[str, int], message: str, *args, **kwargs) -> None:
+        """Log a message at the specified level."""
+        if isinstance(level, str):
+            level = getattr(logging, level.upper(), logging.INFO)
+        self.logger.log(level, message, *args, **kwargs)
+
 
 # RAG Assistant Class
 class RAGAssistant:
+    """RAG Assistant using LangChain components and local model."""
+    
     def __init__(self, model_path: str):
-        """Initialize RAG components: document indexer and language model."""
-        self.model_path = model_path
-        if not os.path.exists(self.model_path):
-            raise ValueError(f"Model path does not exist: {self.model_path}")
-
-        # Initialize document indexer
-        self.indexer = DocumentIndexer()
-        
-        # Initialize language model and tokenizer
-        self.model = og.Model(self.model_path)
-        self.tokenizer = og.Tokenizer(self.model)
-        self.tokenizer_stream = self.tokenizer.create_stream()
-
-        self.search_options = {
-            'max_length': 2048,
-            'temperature': 0.7,
-            'top_p': 0.9,
-            'top_k': 50,
-            'do_sample': True,
-            'repetition_penalty': 1.1,
-            'min_length': 1
-        }
-
-        self.rag_template = """<|user|>
-        Context information:
-        {context}
-
-        Using the context information above, please answer the following question:
-        {question}
-        <|end|>
-        <|assistant|>"""
-
-    def _retrieve_context(self, query: str, n_results: int = 3) -> str:
-        """Retrieve relevant context from the document store."""
+        """Initialize RAG components with LangChain."""
         try:
-            results = self.indexer.search_documents(query, n_results=n_results)
-            if not results or not results.get('documents'):
-                return "No relevant context found."
+            if not os.path.exists(model_path):
+                raise ValueError(f"Model path does not exist: {model_path}")
+
+            logger.info("Initializing RAG Assistant...")
+
+            # Initialize embeddings
+            self.embeddings = SentenceTransformerEmbeddings(
+                model_name='all-MiniLM-L6-v2',
+                cache_folder=os.path.join(PERSIST_DIRECTORY, 'embeddings_cache')
+            )
+            logger.info("Embeddings initialized")
+
+            # Initialize ONNX model
+            self.model = og.Model(model_path)
+            self.tokenizer = og.Tokenizer(self.model)
+            self.tokenizer_stream = self.tokenizer.create_stream()
+            logger.info("Local model initialized")
+
+            # Initialize Chroma and retriever
+            self.vectorstore = Chroma(
+                persist_directory=PERSIST_DIRECTORY,
+                embedding_function=self.embeddings,
+                collection_name=CHROMA_COLLECTION
+            )
+
+            logger.info(f"Vector store initialized with collection: {CHROMA_COLLECTION}")
+
+            # Verify collection has documents
+            if VERBOSE:
+                count = self.vectorstore._collection.count()
+                logger.debug(f"Collection contains {count} documents")
+
+            self.retriever = self.vectorstore.as_retriever(
+                search_kwargs={'k': 3}
+            )
+            logger.info("Vector store initialized")
+
+            # Setup prompt template
+            self.prompt_template = """You are an AI assistant that helps users by providing accurate responses based on the given context.
+            Always use the provided context to formulate your response. If the context doesn't contain enough
+            information, acknowledge this and provide the best possible answer based on the available context.
             
-            contexts = []
-            for doc, metadata in zip(results['documents'][0], results['metadatas'][0]):
-                source = metadata.get('source', 'Unknown source')
-                contexts.append(f"From {source}:\n{doc}")
+            Context information:
+            {context}
             
-            return "\n\n".join(contexts)
+            Question:
+            {question}
+            """
+            
+            # Search parameters
+            self.search_options = {
+                'max_length': 2048,
+                'temperature': 0.7,
+                'top_p': 0.9,
+                'top_k': 50,
+                'do_sample': True,
+                'repetition_penalty': 1.1,
+                'min_length': 1
+            }
+            
+            logger.info("RAG Assistant initialized successfully")
+
         except Exception as e:
-            logging.error(f"Error retrieving context: {str(e)}")
-            return "Error retrieving context information."
+            logger.error(f"Error initializing RAG Assistant: {str(e)}")
+            raise
 
-    def generate_response(self, question: str, industry: str, role: str, sid: str = None) -> str:
-        """
-        Generate a response using RAG with optional Socket.IO streaming.
-        Returns the complete response if sid is None, otherwise streams via websocket.
-        """
+    def generate_response_slm(self, question: str, industry: str = None, role: str = None, sid: str = None) -> str:
+        """Generate response using local model and retrieved context with improved socket handling."""
         try:
-            context = self._retrieve_context(question)
-            if sid:
-                socketio.emit('context', {'context': context}, room=sid)
+            if VERBOSE:
+                logger.debug(f"Generating response for question: {question}")
 
-            prompt = self.rag_template.format(
+            # Send initial status to keep connection alive
+            if sid:
+                socketio.emit('status', {'message': 'Searching relevant documents...'}, room=sid)
+
+            # Get context with timeout
+            try:
+                context = self._get_context(question)
+                
+                # Send context immediately when found
+                if sid:
+                    socketio.emit('context', {'context': context}, room=sid)
+                    socketio.emit('status', {'message': 'Generating response...'}, room=sid)
+            except Exception as e:
+                logger.error(f"Error retrieving context: {str(e)}")
+                context = "Error retrieving context. Proceeding with general response."
+                if sid:
+                    socketio.emit('error', {'error': 'Context retrieval error, proceeding with general response'}, room=sid)
+
+            # Format prompt
+            prompt = self.prompt_template.format(
                 context=context,
                 question=question
             )
 
+            # Keep connection alive during token generation
+            last_update = time.time()
+            update_interval = 2.0  # Send status update every 2 seconds
+
+            # Generate response
             input_tokens = self.tokenizer.encode(prompt)
             params = og.GeneratorParams(self.model)
             params.set_search_options(**self.search_options)
             params.input_ids = input_tokens
             generator = og.Generator(self.model, params)
 
-            generated_text = ""
-            while not generator.is_done():
-                generator.compute_logits()
-                generator.generate_next_token()
-                
-                new_token = generator.get_next_tokens()[0]
-                token_text = self.tokenizer_stream.decode(new_token)
-                generated_text += token_text
-                
-                if sid:
-                    socketio.emit('token', {'token': token_text}, room=sid)
-                    socketio.sleep(0)
+            try:
+                generated_text = ""
+                current_time = time.time()
 
-            if sid:
-                socketio.emit('complete', room=sid)
-            
-            del generator
-            return generated_text
+                while not generator.is_done():
+                    # Send keep-alive status periodically
+                    if sid and (current_time - last_update) > update_interval:
+                        socketio.emit('status', {'message': 'Still generating...'}, room=sid)
+                        last_update = current_time
+
+                    generator.compute_logits()
+                    generator.generate_next_token()
+                    
+                    new_token = generator.get_next_tokens()[0]
+                    token_text = self.tokenizer_stream.decode(new_token)
+                    generated_text += token_text
+                    
+                    if sid:
+                        socketio.emit('token', {'token': token_text}, room=sid)
+                        # Small sleep to prevent overwhelming the socket
+                        time.sleep(0.01)
+
+                    current_time = time.time()
+
+                if sid:
+                    socketio.emit('complete', room=sid)
+                
+                if VERBOSE:
+                    logger.debug(f"Generated response length: {len(generated_text)}")
+                    logger.debug(f"Response preview: {generated_text[:200]}...")
+
+                return generated_text
+
+            finally:
+                del generator
 
         except Exception as e:
             error_msg = f"Error generating response: {str(e)}"
-            logging.error(error_msg)
+            logger.error(error_msg)
             if sid:
                 socketio.emit('error', {'error': error_msg}, room=sid)
             return error_msg
-        
-    def generate_response_general(self, question: str, sid: str) -> None:
-        """Generate a response using RAG with Socket.IO streaming."""
-        try:
-            context = self._retrieve_context(question)
-            socketio.emit('context', {'context': context}, room=sid)
 
-            prompt = self.rag_template.format(
-                context=context,
-                question=question
+    def _get_context(self, query: str) -> str:
+        """Get relevant context from vector store with enhanced logging."""
+        try:
+            if VERBOSE:
+                logger.debug(f"Searching for context with query: '{query}'")
+                collection_info = self.vectorstore._collection.count()
+                logger.debug(f"Total documents in collection: {collection_info}")
+
+            # Try direct similarity search first
+            documents = self.vectorstore.similarity_search_with_relevance_scores(
+                query,
+                k=3
+            )
+            
+            if VERBOSE:
+                logger.debug(f"Found {len(documents)} documents")
+                for doc, score in documents:
+                    logger.debug(f"Document score: {score}")
+                    logger.debug(f"Document source: {doc.metadata.get('source', 'Unknown')}")
+                    logger.debug(f"Content preview: {doc.page_content[:100]}...")
+
+            if not documents:
+                logger.warning("No documents found in similarity search")
+                return "No relevant context found."
+            
+            # Format context with relevance information
+            contexts = []
+            for doc, score in documents:
+                if score > 0.3:  # Filtrar por relevancia
+                    source = os.path.basename(doc.metadata.get('source', 'Unknown source'))
+                    context_text = (
+                        f"[Relevance: {score:.2f}] From {source}:\n"
+                        f"{doc.page_content.strip()}"
+                    )
+                    contexts.append(context_text)
+                    
+                    if VERBOSE:
+                        logger.debug(f"Added context from {source} with score {score:.2f}")
+
+            if not contexts:
+                logger.warning("No contexts passed relevance threshold")
+                return "No sufficiently relevant context found."
+
+            final_context = "\n\n".join(contexts)
+            
+            if VERBOSE:
+                logger.debug(f"Final context length: {len(final_context)} characters")
+                logger.debug(f"Context preview: {final_context[:200]}...")
+                
+            return final_context
+                
+        except Exception as e:
+            logger.error(f"Error retrieving context: {str(e)}")
+            if VERBOSE:
+                import traceback
+                logger.debug(f"Full error traceback:")
+                logger.debug(traceback.format_exc())
+            return "Error retrieving context from the knowledge base."
+
+    def generate_response(self, question: str, industry: str = None, role: str = None, sid: str = None) -> str:
+        """Generate response using local model and retrieved context."""
+        try:
+            if VERBOSE:
+                logger.debug(f"Generating response for question: {question}")
+
+            # Get context from vector store
+            context = self._get_context(question)
+            
+            if VERBOSE:
+                logger.debug("Retrieved context:")
+                logger.debug(context)
+            
+            if sid:
+                socketio.emit('context', {'context': context}, room=sid)
+
+            # Format prompt with explicit instructions about context usage
+            prompt = (
+                "You are an AI assistant that provides accurate answers based on the given context. "
+                "Always reference and use the provided context in your response. "
+                "If the context doesn't contain enough information, acknowledge this explicitly.\n\n"
+                f"Context:\n{context}\n\n"
+                f"Question: {question}\n\n"
+                "Answer (using the above context): "
             )
 
+            # Generate response using local model
             input_tokens = self.tokenizer.encode(prompt)
             params = og.GeneratorParams(self.model)
             params.set_search_options(**self.search_options)
             params.input_ids = input_tokens
+            
             generator = og.Generator(self.model, params)
-
             generated_text = ""
-            while not generator.is_done():
-                generator.compute_logits()
-                generator.generate_next_token()
-                
-                new_token = generator.get_next_tokens()[0]
-                token_text = self.tokenizer_stream.decode(new_token)
-                generated_text += token_text
-                
-                socketio.emit('token', {'token': token_text}, room=sid)
-                socketio.sleep(0)
 
-            socketio.emit('complete', room=sid)
-            del generator
+            try:
+                while not generator.is_done():
+                    generator.compute_logits()
+                    generator.generate_next_token()
+                    
+                    new_token = generator.get_next_tokens()[0]
+                    token_text = self.tokenizer_stream.decode(new_token)
+                    generated_text += token_text
+                    
+                    if sid:
+                        socketio.emit('token', {'token': token_text}, room=sid)
+                
+                if sid:
+                    socketio.emit('complete', room=sid)
+                
+                if VERBOSE:
+                    logger.debug(f"Generated response length: {len(generated_text)}")
+                    logger.debug(f"Response preview: {generated_text[:200]}...")
+                
+                return generated_text
+
+            finally:
+                del generator
 
         except Exception as e:
-            logging.error(f"Error generating response: {str(e)}")
-            socketio.emit('error', {'error': str(e)}, room=sid)
+            error_msg = f"Error generating response: {str(e)}"
+            logger.error(error_msg)
+            if sid:
+                socketio.emit('error', {'error': error_msg}, room=sid)
+            return error_msg
 
 # Global RAG assistant instance
 rag_assistant = RAGAssistant(MODEL_PATH) if USE_LOCAL_LLM else None
@@ -197,86 +403,170 @@ industries = [
 # WebSocket routes
 @socketio.on('connect')
 def handle_connect():
-    """Handle WebSocket connection"""
-    logging.info("Client connected")
-    emit('connected', {'status': 'connected'})
+    """Handle WebSocket connection with error handling."""
+    try:
+        logger.info("Client connected")
+        if VERBOSE:
+            logger.debug(f"Connection details: {request.sid}")
+        emit('connected', {'status': 'connected'})
+    except Exception as e:
+        logger.error(f"Error handling connection: {str(e)}")
 
 @socketio.on('disconnect')
 def handle_disconnect():
-    """Handle WebSocket disconnection"""
-    logging.info("Client disconnected")
+    """Handle WebSocket disconnection with error handling."""
+    try:
+        logger.info("Client disconnected")
+        if VERBOSE:
+            logger.debug(f"Disconnection details: {request.sid}")
+    except Exception as e:
+        logger.error(f"Error handling disconnection: {str(e)}")
 
 @socketio.on('question')
 def handle_question(data):
     """Handle incoming questions via WebSocket"""
+    logger.info("Received question request")
+    
     question = data.get('question', '').strip()
     if not question:
+        logger.warning("Empty question received")
         emit('error', {'error': 'Question cannot be empty'})
         return
 
-    logging.info(f"Received question: {question}")
+    logger.info("Processing question: %s", question)
+    if VERBOSE:
+        logger.debug("Full question data: %s", data)
+    
     sid = request.sid
     
-    thread = threading.Thread(
-        target=rag_assistant.generate_response,
-        args=(question, sid)
-    )
-    thread.daemon = True
-    thread.start()
+    try:
+        thread = threading.Thread(
+            target=rag_assistant.generate_response,
+            args=(question, sid)
+        )
+        thread.daemon = True
+        thread.start()
+        if VERBOSE:
+            logger.debug("Started response generation thread")
+    except Exception as e:
+        logger.error("Error starting response thread: %s", str(e))
+        emit('error', {'error': 'Failed to process question'})
 
 # WebSocket process_question handler
 @socketio.on('process_question')
 def handle_process_question(data):
-    """Handle process_question via WebSocket with streaming response"""
+    """Handle process_question via WebSocket with streaming response and special cases"""
+    request_id = str(uuid.uuid4())
     try:
+        logger.info(f"[{request_id}] Processing question request")
+        
+        # Extract data
         question = data.get('question')
         industry = data.get('industry')
         role = data.get('role')
+        session_id = request.sid  # Get the Socket.IO session ID
+        
+        if VERBOSE:
+            logger.debug(f"[{request_id}] Question: {question}")
+            logger.debug(f"[{request_id}] Industry: {industry}")
+            logger.debug(f"[{request_id}] Role: {role}")
+            logger.debug(f"[{request_id}] Session ID: {session_id}")
         
         if not all([question, industry, role]):
+            logger.warning(f"[{request_id}] Missing required parameters")
             emit('error', {'error': 'Question, industry, and role parameters are required'})
             return
         
+        # Check for greetings or special cases using simple pattern matching
+        greeting_patterns = [
+            'hello', 'hi', 'hey', 'greetings', 'good morning', 'good afternoon',
+            'good evening', 'hola', 'help', 'what can you do'
+        ]
+
+        if any(pattern in question.lower() for pattern in greeting_patterns):
+            logger.info(f"[{request_id}] Detected greeting/help request, using chat_hello")
+            response = llm.chat_hello(industry, role, question, session_id)  
+            emit('result', {'result': response})
+            emit('complete')
+            return
+        
         # Step 1: Classify the question
+        logger.info(f"[{request_id}] Classifying question")
         category = llm.classify_question(question, industry, role)
+        logger.info(f"[{request_id}] Question classified as: {category}")
         emit('classification', {'category': category})
         
-        if category == 'documentation':
+        # Handle unknown category
+        if category == "unknown":
+            logger.info(f"[{request_id}] Unknown category, using chat_hello for general response")
+            response = llm.chat_hello(industry, role, question, session_id)  
+            emit('result', {'result': response})
+            emit('complete')
+            return
+
+        # Handle greetings category
+        if category == "greetings":
+            logger.info(f"[{request_id}] greetings category, using chat_hello for general response")
+            response = llm.chat_hello(industry, role, question, session_id)  
+            emit('result', {'result': response})
+            emit('complete')
+            return
+        
+        # Handle normal categories
+        elif category == 'documentation':
             if USE_LOCAL_LLM:
-                # Use local RAG Assistant
+                if not CHROMA_AVAILABLE:
+                    logger.warning(f"[{request_id}] ChromaDB not available")
+                    emit('error', {'error': 'RAG functionality is currently unavailable'})
+                    return
+                    
+                logger.info(f"[{request_id}] Using local RAG Assistant")
                 thread = threading.Thread(
-                    target=rag_assistant.generate_response,
+                    target=rag_assistant.generate_response_slm,
                     args=(question, industry, role, request.sid)
                 )
                 thread.daemon = True
                 thread.start()
             else:
-                # Use remote LLM
+                logger.info(f"[{request_id}] Using remote Azure OpenAI")
                 response = llm.chat_llm(question, industry, role)
                 emit('result', {'result': response})
                 emit('complete')
-        else:
-            # Handle data or relational queries as before
-            if category == 'data':
-                influx_query = llm.convert_question_query_influx(question, industry, role)
-                emit('query', {'query': influx_query})
-                query_result = influx_handler.execute_query_and_return_data(influx_query)
-                emit('result', {'result': query_result})
-                recommendations = llm.generate_recommendations(question, influx_query, query_result, industry, role)
-                emit('recommendations', {'recommendations': recommendations})
+        
+        elif category == 'data':
+            logger.info(f"[{request_id}] Processing data query")
+            influx_query = llm.convert_question_query_influx(question, industry, role)
+            emit('query', {'query': influx_query})
             
-            elif category == 'relational':
-                sql_query = llm.convert_question_query_sql(question, industry, role)
-                emit('query', {'query': sql_query})
-                query_result = sql_handler.test_data(sql_query)
-                emit('result', {'result': query_result})
-                recommendations = llm.generate_recommendations(question, sql_query, query_result, industry, role)
-                emit('recommendations', {'recommendations': recommendations})
+            query_result = influx_handler.execute_query_and_return_data(influx_query)
+            emit('result', {'result': query_result})
             
+            recommendations = llm.generate_recommendations(
+                question, influx_query, query_result, industry, role
+            )
+            emit('recommendations', {'recommendations': recommendations})
+            emit('complete')
+        
+        elif category == 'relational':
+            logger.info(f"[{request_id}] Processing relational query")
+            sql_query = llm.convert_question_query_sql(question, industry, role)
+            emit('query', {'query': sql_query})
+            
+            query_result = sql_handler.test_data(sql_query)
+            emit('result', {'result': query_result})
+            
+            recommendations = llm.generate_recommendations(
+                question, sql_query, query_result, industry, role
+            )
+            emit('recommendations', {'recommendations': recommendations})
             emit('complete')
         
     except Exception as e:
-        logging.error(f"Error in process_question: {str(e)}")
+        logger.error(f"[{request_id}] Error in process_question: {str(e)}")
+        if VERBOSE:
+            import traceback
+            logger.debug(f"[{request_id}] Full error traceback:")
+            logger.debug(traceback.format_exc())
         emit('error', {'error': str(e)})
 
 # REST API routes
@@ -609,82 +899,6 @@ integrated_query_model = ns.model('IntegratedQuery', {
     'role': fields.String(required=True, description='The role context')
 })
 
-@ns.route('/api/process_question')
-class ProcessQuestion(Resource):
-    @api.doc(responses={200: 'Success', 400: 'Missing required parameters', 500: 'Server error'})
-    @api.expect(api.model('IntegratedQuery', {
-        'question': fields.String(required=True, description='The question to process'),
-        'industry': fields.String(required=True, description='The industry context'),
-        'role': fields.String(required=True, description='The role context')
-    }))
-    def post(self):
-        """Process question based on classification and generate appropriate response"""
-        if request.content_type != 'application/json':
-            raise BadRequest('Content-Type must be application/json')
-        
-        try:
-            data = request.get_json(force=True)
-            question = data.get('question')
-            industry = data.get('industry')
-            role = data.get('role')
-            
-            if not all([question, industry, role]):
-                return jsonify({'error': 'Question, industry, and role parameters are required'}), 400
-            
-            # Step 1: Classify the question
-            category = llm.classify_question(question, industry, role)
-            
-            if category == 'documentation':
-                if USE_LOCAL_LLM:
-                    # Use local RAG Assistant
-                    response = rag_assistant.generate_response(question, industry, role)
-                    return jsonify({
-                        'question': question,
-                        'category': category,
-                        'response': response
-                    })
-                else:
-                    # Use remote LLM
-                    response = llm.chat_llm(question, industry, role)
-                    return jsonify({
-                        'question': question,
-                        'category': category,
-                        'response': response
-                    })
-            
-            elif category == 'data':
-                influx_query = llm.convert_question_query_influx(question, industry, role)
-                query_result = influx_handler.execute_query_and_return_data(influx_query)
-                recommendations = llm.generate_recommendations(question, influx_query, query_result, industry, role)
-                
-                return jsonify({
-                    'question': question,
-                    'category': category,
-                    'query': influx_query,
-                    'query_result': query_result,
-                    'recommendations': recommendations
-                })
-                
-            elif category == 'relational':
-                sql_query = llm.convert_question_query_sql(question, industry, role)
-                query_result = sql_handler.test_data(sql_query)
-                recommendations = llm.generate_recommendations(question, sql_query, query_result, industry, role)
-                
-                return jsonify({
-                    'question': question,
-                    'category': category,
-                    'query': sql_query,
-                    'query_result': query_result,
-                    'recommendations': recommendations
-                })
-            
-            else:
-                return jsonify({'error': 'Unknown question category'}), 400
-            
-        except Exception as e:
-            logging.error(f"Error in process_question route: {str(e)}")
-            return jsonify({'error': 'An unexpected error occurred'}), 500
-
 @ns.route('/api/stt', methods=['POST'])
 class SttDecode(Resource):
     @api.doc(responses={200: 'Success', 400: 'Missing required parameters', 500: 'Server error'})
@@ -743,31 +957,223 @@ class SttDecode(Resource):
             if audio_file_path and os.path.exists(audio_file_path):
                 os.remove(audio_file_path)
 
-def main():
-    """Initialize and run the application"""
+def initialize_and_validate_chroma() -> bool:
+    """
+    Initialize ChromaDB, create index if needed, and validate document count.
+    Returns True if the index exists and contains documents.
+    """
     try:
-        global rag_assistant
-        #model_path = os.getenv('MODEL_PATH', 'cpu_and_mobile/cpu-int4-rtn-block-32-acc-level-4')  # Set your default model path
-        #rag_assistant = RAGAssistant(MODEL_PATH)
-        logging.info("RAG Assistant initialized successfully")
+        from indexer import DocumentIndexer
         
-        port = int(os.getenv('PORT', 5000))
-        debug = os.getenv('DEBUG', 'False').lower() == 'true'
+        logger.info("Starting ChromaDB initialization and validation...")
         
-        logging.info(f"Starting server with USE_LOCAL_LLM={USE_LOCAL_LLM}")
-        if USE_LOCAL_LLM:
-            logging.info(f"Using local LLM with model path: {MODEL_PATH}")
+        # Initialize DocumentIndexer
+        indexer = DocumentIndexer()
         
-        
-        socketio.run(app, 
-                    host='0.0.0.0',
-                    port=port,
-                    debug=debug,
-                    allow_unsafe_werkzeug=True)
+        if VERBOSE:
+            logger.debug("DocumentIndexer initialized successfully")
+            
+        # Check if collection exists and has documents
+        try:
+            count = indexer.collection.count()
+            
+            if count == 0:
+                logger.warning(f"ChromaDB collection '{indexer.collection_name}' exists but contains no documents")
+                
+                if not DOCUMENTS_PATH:
+                    logger.error("DOCUMENTS_PATH environment variable is not set")
+                    return False
+                
+                if not os.path.exists(DOCUMENTS_PATH):
+                    logger.error(f"Documents directory does not exist: {DOCUMENTS_PATH}")
+                    return False
+                
+                logger.info(f"Starting document indexing from {DOCUMENTS_PATH}")
+                
+                # Index documents
+                try:
+                    indexer.index_documents(DOCUMENTS_PATH)
+                    
+                    # Verify documents were indexed
+                    new_count = indexer.collection.count()
+                    if new_count > 0:
+                        logger.info(f"Successfully indexed {new_count} documents")
+                        if VERBOSE:
+                            try:
+                                # Get a sample using a simple query
+                                sample_query = "Provide a sample of the documentation"
+                                results = indexer.collection.query(
+                                    query_texts=[sample_query],
+                                    n_results=min(5, new_count),
+                                    include=['documents', 'metadatas']
+                                )
+                                logger.debug("Sample of indexed documents:")
+                                if results['documents'] and results['documents'][0]:
+                                    logger.debug(f"- Number of documents retrieved: {len(results['documents'][0])}")
+                                    if results['metadatas'] and results['metadatas'][0]:
+                                        sources = [meta.get('source', 'Unknown') for meta in results['metadatas'][0]]
+                                        logger.debug(f"- Document sources: {sources}")
+                            except Exception as e:
+                                logger.debug(f"Sample retrieval skipped: {str(e)}")
+                        return True
+                    else:
+                        logger.error("No documents were indexed")
+                        return False
+                        
+                except Exception as e:
+                    logger.error(f"Error during document indexing: {str(e)}")
+                    return False
+            else:
+                logger.info(f"ChromaDB collection '{indexer.collection_name}' contains {count} documents")
+                if VERBOSE:
+                    try:
+                        # Get a sample using a simple query
+                        sample_query = "Provide a sample of the documentation"
+                        results = indexer.collection.query(
+                            query_texts=[sample_query],
+                            n_results=min(5, count),
+                            include=['documents', 'metadatas']
+                        )
+                        logger.debug("Sample of existing documents:")
+                        if results['documents'] and results['documents'][0]:
+                            logger.debug(f"- Number of documents retrieved: {len(results['documents'][0])}")
+                            if results['metadatas'] and results['metadatas'][0]:
+                                sources = [meta.get('source', 'Unknown') for meta in results['metadatas'][0]]
+                                logger.debug(f"- Document sources: {sources}")
+                    except Exception as e:
+                        logger.debug(f"Sample retrieval skipped: {str(e)}")
+                return True
+
+        except Exception as e:
+            logger.error(f"Error checking ChromaDB collection: {str(e)}")
+            return False
 
     except Exception as e:
-        logging.error(f"Application error: {str(e)}")
+        logger.error(f"Error initializing ChromaDB: {str(e)}")
+        return False
+
+def verify_chroma_setup():
+    """Verify ChromaDB setup and log detailed state."""
+    try:
+        from indexer import DocumentIndexer
+        
+        logger.info("Starting ChromaDB verification...")
+        indexer = DocumentIndexer()
+        
+        # Get collection info
+        collection_info = indexer.get_collection_info()
+        logger.info(f"Collection name: {collection_info.get('collection_name')}")
+        logger.info(f"Status: {collection_info.get('status')}")
+        logger.info(f"Indexed files: {collection_info.get('indexed_files', 0)}")
+        
+        # Verify collection functionality
+        return indexer.verify_collection()
+        
+    except Exception as e:
+        logger.error(f"ChromaDB verification failed: {str(e)}")
+        if VERBOSE:
+            import traceback
+            logger.debug(traceback.format_exc())
+        return False
+    
+def initialize_chroma() -> bool:
+    """
+    Initialize ChromaDB with a clean state:
+    1. Get indexer instance
+    2. Reinitialize to clear existing data
+    3. Index all documents
+    
+    Returns:
+        bool: True if initialization successful, False otherwise
+    """
+    try:
+        logger.info("Starting ChromaDB clean initialization...")
+        
+        # Get indexer instance
+        indexer = DocumentIndexer()
+        
+        # Reinitialize ChromaDB
+        if not indexer.reinitialize():
+            logger.error("Failed to reinitialize ChromaDB")
+            return False
+            
+        # Verify documents path
+        if not DOCUMENTS_PATH:
+            logger.error("DOCUMENTS_PATH environment variable not set")
+            return False
+            
+        if not os.path.exists(DOCUMENTS_PATH):
+            logger.error(f"Documents directory does not exist: {DOCUMENTS_PATH}")
+            return False
+        
+        # Index documents
+        logger.info(f"Starting document indexing from: {DOCUMENTS_PATH}")
+        if not indexer.index_documents(DOCUMENTS_PATH):
+            logger.error("Failed to index documents")
+            return False
+            
+        # Verify initialization
+        info = indexer.get_collection_info()
+        if not info.get("has_documents"):
+            logger.error("No documents were indexed")
+            return False
+            
+        logger.info(f"Successfully initialized with {info.get('total_documents', 0)} documents")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Error during ChromaDB initialization: {str(e)}")
+        if VERBOSE:
+            import traceback
+            logger.debug(traceback.format_exc())
+        return False
+
+def main():
+    try:
+        global rag_assistant
+        global CHROMA_AVAILABLE
+        
+        logger.info("Starting server with configuration:")
+        logger.info(f"USE_LOCAL_LLM={USE_LOCAL_LLM}")
+        logger.info(f"Port={PORT}")
+        logger.info(f"Debug={DEBUG}")
+        
+        if USE_LOCAL_LLM:
+            logger.info("Initializing ChromaDB...")
+            CHROMA_AVAILABLE = initialize_chroma()
+            
+            if not CHROMA_AVAILABLE:
+                logger.warning("ChromaDB initialization failed. RAG functionality will be disabled.")
+                if REQUIRE_CHROMA_INDEX:
+                    cleanup_temp_dirs()  # Limpiar antes de salir
+                    raise RuntimeError("ChromaDB initialization failed and REQUIRE_CHROMA_INDEX is set to true")
+            else:
+                logger.info("ChromaDB initialization successful")
+                logger.info(f"Initializing RAG assistant with model path: {MODEL_PATH}")
+                rag_assistant = RAGAssistant(MODEL_PATH)
+        
+        if VERBOSE:
+            logger.debug("Additional configuration details:")
+            logger.debug(f"Socket.IO mode: {socketio.async_mode}")
+            logger.debug(f"API version: {api.version}")
+            logger.debug(f"ChromaDB available: {CHROMA_AVAILABLE}")
+            
+        socketio.run(app, 
+                    host='0.0.0.0',
+                    port=PORT,
+                    debug=DEBUG,
+                    allow_unsafe_werkzeug=True)
+        
+    except Exception as e:
+        logger.critical(f"Application failed to start: {str(e)}")
+        if VERBOSE:
+            import traceback
+            logger.debug(traceback.format_exc())
+        cleanup_temp_dirs()  
         raise
+    finally:
+        cleanup_temp_dirs()  
+
 
 if __name__ == '__main__':
     main()

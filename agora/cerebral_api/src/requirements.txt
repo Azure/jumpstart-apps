@@ -45,3 +45,9 @@ tqdm==4.66.3
 prometheus_client
 fastapi==0.109.0
 uvicorn
+
+
+simsimd
+
+langchain 
+sentence-transformers
