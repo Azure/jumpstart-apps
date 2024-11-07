@@ -166,7 +166,11 @@ const CerebralChatWithAudio = (props: CopilotChatProps) => {
 
     socket.on('result', (data) => {
       setIsProcessing(false);
-      messageBuffer.result += " " + data.result;
+      if (typeof data.result === 'string') {
+        messageBuffer.result += " " + data.result;
+      } else {
+        messageBuffer.result += " " + JSON.stringify(data.result);
+      }
       flushBufferedMessages(false);
     });
 
