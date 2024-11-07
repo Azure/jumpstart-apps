@@ -68,7 +68,7 @@ class StoreSimulator:
         
         # DEV_MODE
         # Load environment variables from .env file
-        load_dotenv()
+        #load_dotenv()
         
         # Load configuration from environment variables
         self.EVENTHUB_CONNECTION_STRING = os.getenv('EVENTHUB_CONNECTION_STRING')
