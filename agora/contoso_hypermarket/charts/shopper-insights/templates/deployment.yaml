@@ -43,10 +43,9 @@ spec:
         volumeMounts:
         - name: models-volume
           mountPath: /tmp/models
-        - name: blob
+      - name: blob
           mountPath: /usr/src/app/detected_persons
-      containers:
-      - name: init-wait-for-volume
+            - name: init-wait-for-volume
         image: busybox
         command:
           - sh
@@ -60,6 +59,7 @@ spec:
         volumeMounts:
           - mountPath: /usr/src/app/detected_persons
             name: blob
+      containers:
       - name: shopper-insights-api
         image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
