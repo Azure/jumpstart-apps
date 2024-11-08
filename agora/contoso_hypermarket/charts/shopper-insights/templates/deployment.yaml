@@ -61,8 +61,8 @@ spec:
             name: blob
       containers:
       - name: shopper-insights-api
-        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
-        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        image: ldabate/shopper-insights-api:latest
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 5001
         env:
