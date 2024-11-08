@@ -9,7 +9,7 @@ spec:
   resources:
     requests:
       storage: 10Gi
-  storageClassName: cloud-backed-sc
+#  storageClassName: cloud-backed-sc
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -82,7 +82,7 @@ spec:
         volumeMounts:
         - mountPath: /tmp/models
           name: models-volume
-        - mountPath: /usr/src/app/detected_persons
+        - mountPath: /usr/src/app/detected_persons/videos
           name: blob
         - mountPath: /usr/src/app/detected_frames
           name: frames-volume
