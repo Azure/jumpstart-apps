@@ -22,11 +22,11 @@ spec:
             tdnf update -y
             tdnf install wget -y
             cd /app/docs
-            wget -O "SmartShelf_Manual.pdf" "https://download.microsoft.com/download/2b3927e0-5342-4d84-8b55-ab958281259b/SmartShelf%20System%20User%20Manual%20for%20Contoso%20Hypermarket.pdf" && \
-            wget -O "Scale_Manual.pdf" "https://download.microsoft.com/download/2b3927e0-5342-4d84-8b55-ab958281259b/Scale%20System%20User%20Manual%20for%20Contoso%20Hypermarket.pdf" && \
-            wget -O "Refrigeration_Manual.pdf" "https://download.microsoft.com/download/2b3927e0-5342-4d84-8b55-ab958281259b/Refrigeration%20System%20User%20Manual%20for%20Contoso%20Hypermarket.pdf" && \
-            wget -O "Checkout_Manual.pdf" "https://download.microsoft.com/download/2b3927e0-5342-4d84-8b55-ab958281259b/Automated%20Checkout%20System%20User%20Manual%20for%20Contoso%20Hypermarket.pdf" && \
-            wget -O "HVAC_Manual.pdf" "https://download.microsoft.com/download/2b3927e0-5342-4d84-8b55-ab958281259b/HVAC%20System%20User%20Manual%20for%20Contoso%20Hypermarket.pdf"
+            wget -O "Automated_Checkout_Manual.pdf" "https://download.microsoft.com/download/3ae1d7aa-a642-48cf-b848-67b4eaa81292/Automated Checkout System User Manual for Contoso Hypermarket.pdf" && \
+            wget -O "SmartShelf_Manual.pdf" "https://download.microsoft.com/download/3ae1d7aa-a642-48cf-b848-67b4eaa81292/SmartShelf System User Manual for Contoso Hypermarket.pdf" && \
+            wget -O "Refrigeration_Manual.pdf" "https://download.microsoft.com/download/3ae1d7aa-a642-48cf-b848-67b4eaa81292/Refrigeration System User Manual for Contoso Hypermarket.pdf" && \
+            wget -O "HVAC_Manual.pdf" "https://download.microsoft.com/download/3ae1d7aa-a642-48cf-b848-67b4eaa81292/HVAC System User Manual for Contoso Hypermarket.pdf" && \
+            wget -O "Scale_Manual.pdf" "https://download.microsoft.com/download/3ae1d7aa-a642-48cf-b848-67b4eaa81292/Scale System User Manual for Contoso Hypermarket.pdf"
           volumeMounts:
           - name: cerebral-docs
             mountPath: /app/docs
@@ -58,15 +58,21 @@ spec:
             secretKeyRef:
               name: azure-openai-secret
               key: azure-openai-key
-        - name: CHATGPT_MODEL
-          value: "gpt-35-turbo"
         - name: AZURE_OPENAI_ENDPOINT
           valueFrom:
             secretKeyRef:
               name: azure-openai-secret
               key: azure-openai-endpoint
+        - name: CHATGPT_MODEL
+          valueFrom:
+            secretKeyRef:
+              name: azure-openai-secret
+              key: azure-openai-model-name
         - name: OPENAI_API_VERSION
-          value: "2024-03-01-preview"
+          valueFrom:
+            secretKeyRef:
+              name: azure-openai-secret
+              key: azure-openai-model-version
         - name: INFLUXDB_URL
           value: "http://influxdb.contoso-hypermarket.svc.cluster.local:8086"
         - name: INFLUXDB_BUCKET
@@ -96,7 +102,10 @@ spec:
               name: azure-openai-secret
               key: azure-openai-key
         - name: AZURE_AI_SPEECH_REGION
-          value: ""
+          valueFrom:
+            secretKeyRef:
+              name: azure-openai-secret
+              key: region
         - name: USE_LOCAL_LLM
           value: "false"
         - name: MODEL_PATH
