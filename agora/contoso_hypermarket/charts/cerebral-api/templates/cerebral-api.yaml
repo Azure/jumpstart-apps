@@ -116,6 +116,11 @@ spec:
           value: "8040"
         - name: CHROMA_COLLECTION
           value: "documents"
+        {{- if (lookup "v1" "Namespace" "" "gpu-operator") }}
+        resources:
+          limits:
+            nvidia.com/gpu: "1"
+        {{- end }}
       volumes:
       - name: cerebral-docs
         persistentVolumeClaim:
