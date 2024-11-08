@@ -15,6 +15,8 @@ class VideoCapture:
         self.t.daemon = True
         self.skip_fps = skip_fps
         self.frame_count = 0
+        self.total_frames = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT)) 
+        self.frame_interval = int(self.cap.get(cv2.CAP_PROP_FPS) / self.skip_fps)
         self.t.start()
 
     def _reader(self):
@@ -32,12 +34,12 @@ class VideoCapture:
                 time.sleep(0.01)
                 if not self.running:
                     return
-            
-            self.frame_count += 1
-            if self.skip_fps > 0 and self.frame_count % (self.skip_fps + 1) == 0:
-                continue
+                
+            # Save the frame if it is at the specified interval
+            if self.frame_count % self.frame_interval == 0:
+                self.q.put(cv2.resize(frame, (640, 360)))
 
-            self.q.put(cv2.resize(frame, (640, 360)))
+            self.frame_count += 1
             self.state=ret
 
     def read(self):
