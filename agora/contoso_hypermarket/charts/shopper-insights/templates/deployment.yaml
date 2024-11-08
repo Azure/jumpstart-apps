@@ -44,7 +44,7 @@ spec:
         - name: models-volume
           mountPath: /tmp/models
         - name: blob
-            mountPath: /usr/src/app/detected_persons
+          mountPath: /usr/src/app/detected_persons
       - name: init-wait-for-volume
         image: busybox
         command:
