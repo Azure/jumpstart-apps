@@ -45,20 +45,6 @@ spec:
           mountPath: /tmp/models
         - name: blob
           mountPath: /usr/src/app/detected_persons
-      - name: init-wait-for-volume
-        image: busybox
-        command:
-          - sh
-          - -c
-          - |
-            echo "Waiting for volume to become writable..."
-            while ! touch /usr/src/app/detected_persons/testfile; do
-              sleep 5
-            done
-            rm /usr/src/app/detected_persons/testfile
-        volumeMounts:
-          - mountPath: /usr/src/app/detected_persons
-            name: blob
       containers:
       - name: shopper-insights-api
         image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
