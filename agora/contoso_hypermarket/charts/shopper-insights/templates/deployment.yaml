@@ -5,7 +5,7 @@ metadata:
   namespace: contoso-hypermarket
 spec:
   accessModes:
-    - ReadWriteMany
+    - ReadWriteOnce #This should be ReadWriteMany in production
   resources:
     requests:
       storage: 10Gi
