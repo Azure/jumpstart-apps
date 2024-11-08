@@ -80,11 +80,11 @@ services:
         tdnf update -y
         tdnf install wget -y
         cd /app/docs
-        wget -O "SmartShelf_Manual.pdf" "https://download.microsoft.com/download/2b3927e0-5342-4d84-8b55-ab958281259b/SmartShelf%20System%20User%20Manual%20for%20Contoso%20Hypermarket.pdf" && \
-        wget -O "Scale_Manual.pdf" "https://download.microsoft.com/download/2b3927e0-5342-4d84-8b55-ab958281259b/Scale%20System%20User%20Manual%20for%20Contoso%20Hypermarket.pdf" && \
-        wget -O "Refrigeration_Manual.pdf" "https://download.microsoft.com/download/2b3927e0-5342-4d84-8b55-ab958281259b/Refrigeration%20System%20User%20Manual%20for%20Contoso%20Hypermarket.pdf" && \
-        wget -O "Checkout_Manual.pdf" "https://download.microsoft.com/download/2b3927e0-5342-4d84-8b55-ab958281259b/Automated%20Checkout%20System%20User%20Manual%20for%20Contoso%20Hypermarket.pdf" && \
-        wget -O "HVAC_Manual.pdf" "https://download.microsoft.com/download/2b3927e0-5342-4d84-8b55-ab958281259b/HVAC%20System%20User%20Manual%20for%20Contoso%20Hypermarket.pdf"
+        wget -O "Automated_Checkout_Manual.pdf" "https://download.microsoft.com/download/3ae1d7aa-a642-48cf-b848-67b4eaa81292/Automated Checkout System User Manual for Contoso Hypermarket.pdf" && \
+        wget -O "SmartShelf_Manual.pdf" "https://download.microsoft.com/download/3ae1d7aa-a642-48cf-b848-67b4eaa81292/SmartShelf System User Manual for Contoso Hypermarket.pdf" && \
+        wget -O "Refrigeration_Manual.pdf" "https://download.microsoft.com/download/3ae1d7aa-a642-48cf-b848-67b4eaa81292/Refrigeration System User Manual for Contoso Hypermarket.pdf" && \
+        wget -O "HVAC_Manual.pdf" "https://download.microsoft.com/download/3ae1d7aa-a642-48cf-b848-67b4eaa81292/HVAC System User Manual for Contoso Hypermarket.pdf" && \
+        wget -O "Scale_Manual.pdf" "https://download.microsoft.com/download/3ae1d7aa-a642-48cf-b848-67b4eaa81292/Scale System User Manual for Contoso Hypermarket.pdf"
     volumes:
       - cerebral-docs:/app/docs
 
@@ -136,14 +136,13 @@ services:
       - "5006:5006"  # Map host port 5003 to container port 5003
     environment:
       AZURE_OPENAI_API_KEY: ""
-      CHATGPT_MODEL: "gpt-35-turbo"
+      CHATGPT_MODEL: "gpt-4o"
       AZURE_OPENAI_ENDPOINT: ""
-      OPENAI_API_VERSION: "2024-03-01-preview"
-      INFLUXDB_URL: "http://influxdb.contoso-hypermarket.svc.cluster.local:8086"
+      OPENAI_API_VERSION: "2024-08-01-preview"
+      INFLUXDB_URL: "http://influxdb:8086"
       INFLUXDB_BUCKET: "hypermarket"
       INFLUXDB_TOKEN: "secret-token"
       INFLUXDB_ORG: "InfluxData"
-      REDIS_URL: "redis://redis-service.contoso-hypermarket.svc.cluster.local:6379"
       SQL_DATABASENAME: "RetailDB"
       SQL_SERVER: "mssql-service"
       SQL_USERNAME: "SA"
