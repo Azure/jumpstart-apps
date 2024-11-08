@@ -2,7 +2,7 @@ services:
 
   mssql:
     image: mcr.microsoft.com/mssql/server:2019-latest
-    container_name: mssql
+    container_name: mssql-service
     ports:
       - "1433:1433"
     volumes:
@@ -15,13 +15,14 @@ services:
   mssql-setup-job:
     image: mcr.microsoft.com/mssql-tools
     container_name: mssql_setup_job
-    command: ["/bin/bash", "-c", "sleep 5s && chmod +x /tmp/sql-setup.sh && /tmp/sql-setup.sh"]
+    command: ["/bin/bash", "-c", "sleep 5s && chmod +x /tmp/setup-sql.sh && /tmp/setup-sql.sh"]
     restart : "no"
     environment:
-      - MSSQL_SA_PASSWORD=ArcPassword123!!
+      - SA_PASSWORD=ArcPassword123!!
+      
     volumes:
       - mssql-data:/var/opt/mssql
-      - ./cerebral_api/operations/sql-setup.sh:/tmp/sql-setup.sh
+      - ..\..\cerebral_api\operations\setup-sql.sh:/tmp/setup-sql.sh
     depends_on:
       mssql:
         condition: service_started
@@ -43,12 +44,13 @@ services:
   influxdb-setup-job:
     image: mcr.microsoft.com/azurelinux/base/influxdb:2.7
     container_name: influxdb_setup_job
+    command: ["/bin/bash", "-c", "sleep 5s && chmod +x /tmp/setup-influx.sh && /tmp/setup-influx.sh"]
+    restart : "no"
     volumes:
-      - ./cerebral_api/operations/influxdb-setup.sh:/docker-entrypoint-initdb.d/influxdb-setup.sh  # Mount the setup script
-    command: ["/bin/bash", "/docker-entrypoint-initdb.d/influxdb-setup.sh"]  # Run the script
+      - mssql-data:/var/opt/mssql
+      - ..\..\cerebral_api\operations\setup-influx.sh:/tmp/setup-influx.sh
     depends_on:
       - influxdb
-    restart: "no"
 
   chroma-db:
     image: chromadb/chroma:latest

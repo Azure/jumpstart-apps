@@ -8,7 +8,7 @@ from ultralytics.solutions import ObjectCounter
 from video_capture import VideoCapture
 
 class VideoProcessor:
-    def __init__(self, url, index, model, name, debug=False, x1=0, y1=0, w=0, h=0):
+    def __init__(self, url, index, model, name, skip_fps, debug=False, x1=0, y1=0, w=0, h=0, ):
         self.url = url
         self.index = index
         self.processed_frame_queue = Queue(maxsize=10)
@@ -16,6 +16,7 @@ class VideoProcessor:
         self.fps = 0
         self.counter = None
         self.name = name
+        self.skip_fps = skip_fps
         self.line_points = [
             (int(x1), int(y1)), 
             (int(x1) + int(w), int(y1)), 
@@ -71,7 +72,7 @@ class VideoProcessor:
     def start(self):
         if not self.running:
             self.running = True
-            self.vs = VideoCapture(self.url)
+            self.vs = VideoCapture(self.url, self.skip_fps, queue_size=150)
             self.process_thread = threading.Thread(target=self.process_frames)
             self.process_thread.start()
             print(f"Started processing thread for video {self.index}")
