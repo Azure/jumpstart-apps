@@ -19,10 +19,12 @@ import { CopilotProvider } from "@fluentui-copilot/react-copilot";
 import logo from './logo.svg';
 import '../../App.css';
 import Cameras from '../../components/Cameras';
-import CerebralChatWithAudio from '../../components/CerebralChat';
+import CerebralChatWithAudio from '../../components/Chatter';
 import { Panel, PanelType, DefaultButton, ProgressIndicator } from '@fluentui/react';
 import CerebralHeader from '../../components/CerebralHeader';
 import { initializeIcons } from "@fluentui/react/lib/Icons";
+import type { ChatInputProps } from "@fluentui-copilot/react-chat-input";
+
 initializeIcons();
 
 const Main = (props: IStackProps) => (
@@ -74,7 +76,7 @@ const MaintenanceWorker = () => {
             closeButtonAriaLabel="Close"
             isLightDismiss={true}            
             >
-              <CerebralChatWithAudio />
+              <CerebralChatWithAudio {...({} as ChatInputProps)}/>
           </Panel>             
           <Stack.Item>
               <SideMenu />

@@ -31,7 +31,9 @@ import { CopilotProvider } from "@fluentui-copilot/react-copilot";
 import logo from './logo.svg';
 import '../../App.css';
 import Cameras from '../../components/Cameras';
-import CerebralChatWithAudio from '../../components/CerebralChat';
+import CerebralChatWithAudio from '../../components/Chatter';
+import type { ChatInputProps } from "@fluentui-copilot/react-chat-input";
+import CerebralHeader from '../../components/CerebralHeader';
 import { Panel, PanelType, DefaultButton, ProgressIndicator } from '@fluentui/react';
 import { initializeIcons } from "@fluentui/react/lib/Icons";
 initializeIcons();
@@ -90,13 +92,19 @@ const MaintenanceWorkerDashboard = () => {
             type={PanelType.custom}
             customWidth="25%"
             headerText=""
+            onRenderHeader={() => (
+              <CerebralHeader 
+                title="Cerebral" 
+                onClose={toggleCerebralDrawer} 
+              />
+            )}
             onRenderFooterContent={onRenderCerebralFooterContent}
             isFooterAtBottom={true}
             hasCloseButton={true}
             closeButtonAriaLabel="Close"
             isLightDismiss={true}            
             >
-              <CerebralChatWithAudio />
+              <CerebralChatWithAudio {...({} as ChatInputProps)}/>
           </Panel>              
           <Stack.Item>
               <SideMenu />

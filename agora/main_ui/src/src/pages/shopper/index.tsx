@@ -15,7 +15,8 @@ import { CopilotProvider } from "@fluentui-copilot/react-copilot";
 import { useNavigate } from "react-router-dom";
 import { Panel, PanelType, DefaultButton } from '@fluentui/react';
 import { IDropdownOption, IImageProps, IStackProps, IStackTokens, Stack,   PrimaryButton, Image} from "@fluentui/react";
-import CerebralChatWithAudio from '../../components/CerebralChat';
+import CerebralChatWithAudio from '../../components/Chatter';
+import type { ChatInputProps } from "@fluentui-copilot/react-chat-input";
 import ActiveCart from '../../components/ActiveCart';
 import {
   Card,
@@ -258,7 +259,7 @@ const useStyles = makeStyles({
             closeButtonAriaLabel="Close"
             isLightDismiss={true}            
             >
-              <CerebralChatWithAudio />
+              <CerebralChatWithAudio {...({} as ChatInputProps)}/>
           </Panel>  
           <Panel
                 isOpen={isDrawerOpen}
