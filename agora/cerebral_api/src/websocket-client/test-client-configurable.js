@@ -2,6 +2,8 @@ const { io } = require('socket.io-client');
 const readline = require('readline');
 const config = require('./config');
 
+console.log('Config:', config);
+
 const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
