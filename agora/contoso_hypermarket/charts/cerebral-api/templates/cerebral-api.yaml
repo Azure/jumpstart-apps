@@ -72,7 +72,7 @@ spec:
           valueFrom:
             secretKeyRef:
               name: azure-openai-secret
-              key: azure-openai-model-version
+              key: azure-openai-api-version
         - name: INFLUXDB_URL
           value: "http://influxdb.contoso-hypermarket.svc.cluster.local:8086"
         - name: INFLUXDB_BUCKET
