@@ -24,9 +24,9 @@ import ActiveCart from '../../components/ActiveCart';
 import { CopilotProvider } from "@fluentui-copilot/react-copilot";
 import { IDropdownOption, IImageProps, IStackProps, IStackTokens, Stack,   PrimaryButton, Image, Text, IStackStyles} from "@fluentui/react";
 import { Panel, PanelType, DefaultButton } from '@fluentui/react';
-import CerebralChatWithAudio from '../../components/CerebralChat';
+import {CerebralChatWithAudio} from '../../components/Chatter';
 import CerebralHeader from '../../components/CerebralHeader';
-
+import type { ChatInputProps } from "@fluentui-copilot/react-chat-input";
 import {
   Card,
   CardFooter,
@@ -522,7 +522,7 @@ const onCancelCerebralDrawer = () => {
             closeButtonAriaLabel="Close"
             isLightDismiss={true}            
             >
-              <CerebralChatWithAudio />
+            <CerebralChatWithAudio {...({} as ChatInputProps)}/>
           </Panel>                        
                     <Panel
                       isOpen={isDrawerOpen}
