@@ -52,7 +52,7 @@ spec:
           - -c
           - |
             echo "Waiting for volume to become writable..."
-            while ! touch /usr/src/app/detected_persons/testfile; do
+            while ! touch /usr/src/app/detected_persons/videos/testfile; do
               sleep 5
             done
             rm /usr/src/app/detected_persons/testfile
@@ -82,7 +82,7 @@ spec:
         volumeMounts:
         - mountPath: /tmp/models
           name: models-volume
-        - mountPath: /usr/src/app/detected_persons/videos
+        - mountPath: /usr/src/app/detected_persons/videos #remove videos from here when done testing
           name: blob
         - mountPath: /usr/src/app/detected_frames
           name: frames-volume
