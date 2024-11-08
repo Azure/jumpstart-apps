@@ -36,6 +36,12 @@ spec:
           value: "/tmp/models/yolov8n.pt"
         - name: RTSP_URL
           value: "rtsp://rtsp-stream-aisle.contoso-hypermarket.svc.cluster.local:8554/stream"
+        {{- $gpu_ns := lookup "v1" "Namespace" "" "gpu-operator" }}
+        {{- if $gpu_ns }}
+        {{- $gpuResources := dict "limits" (dict "nvidia.com/gpu" "1") }}
+        resources:
+{{ $gpuResources | toYaml | indent 10 }}
+        {{- end }}
         volumeMounts:
         - mountPath: /tmp/models
           name: models-volume

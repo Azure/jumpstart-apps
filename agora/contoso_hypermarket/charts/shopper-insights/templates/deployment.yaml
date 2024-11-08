@@ -46,6 +46,20 @@ spec:
         - name: blob
           mountPath: /usr/src/app/detected_persons
       containers:
+      - name: init-wait-for-volume
+        image: busybox
+        command:
+          - sh
+          - -c
+          - |
+            echo "Waiting for volume to become writable..."
+            while ! touch /usr/src/app/detected_persons/testfile; do
+              sleep 5
+            done
+            rm /usr/src/app/detected_persons/testfile
+        volumeMounts:
+          - mountPath: /usr/src/app/detected_persons
+            name: blob
       - name: shopper-insights-api
         image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
@@ -60,6 +74,12 @@ spec:
           value: "5001"
         - name: ENABLE_SAVING
           value: "True"
+        {{- $gpu_ns := lookup "v1" "Namespace" "" "gpu-operator" }}
+        {{- if $gpu_ns }}
+        {{- $gpuResources := dict "limits" (dict "nvidia.com/gpu" "1") }}
+        resources:
+{{ $gpuResources | toYaml | indent 10 }}
+        {{- end }}
         volumeMounts:
         - mountPath: /tmp/models
           name: models-volume
