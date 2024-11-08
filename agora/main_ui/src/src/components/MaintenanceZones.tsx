@@ -205,7 +205,7 @@ import { useNavigate } from "react-router-dom";
                         { key: 'option3', text: 'Option 3' },
                     ]} /> 
                     <div className={classes.addcameracontainer}>
-                    <Button appearance="primary" className={classes.addcamerabutton}>+ Add Zone</Button>
+                    <Button appearance="primary" className={classes.addcamerabutton} onClick={navigotteToWizard}>+ Add Zone</Button>
                     </div>
                 </Stack>
                 <Stack id='searchboxcontainer' className={classes.searchboxcontainer}>

@@ -13,13 +13,13 @@ import { ITag, Pivot, PivotItem, PrimaryButton, TagPicker, TextField } from '@fl
 import { IStackProps, IStackTokens, Stack } from "@fluentui/react";
 import { Panel, PanelType, DefaultButton } from '@fluentui/react';
 import Footer from '../../components/SuiteFooter';
-import { CopilotProvider } from "@fluentui-copilot/react-copilot";
+import { ChatInputProps, CopilotProvider } from "@fluentui-copilot/react-copilot";
 import logo from './logo.svg';
 import '../../App.css';
 import MaintenanceCameras from '../../components/MaintenanceCameras';
 import MaintenanceZones from '../../components/MaintenanceZones';
 import VideoStream from '../../components/VideoStream';
-import CerebralChatWithAudio from '../../components/CerebralChat';
+import CerebralChatWithAudio from '../../components/Chatter';
 import CerebralHeader from '../../components/CerebralHeader';
 import { initializeIcons } from "@fluentui/react/lib/Icons";
 initializeIcons();
@@ -217,7 +217,7 @@ const CamerasZones: React.FC<CameraPanelProps> = ({ isOpen, onDismiss, onSave })
             closeButtonAriaLabel="Close"
             isLightDismiss={true}         
             >
-              <CerebralChatWithAudio />
+              <CerebralChatWithAudio {...({} as ChatInputProps)}/>
           </Panel>
           <Panel
             isOpen={isDrawerOpen}
