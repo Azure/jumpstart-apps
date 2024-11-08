@@ -74,11 +74,10 @@ spec:
           value: "5001"
         - name: ENABLE_SAVING
           value: "True"
-        {{- $gpu_ns := lookup "v1" "Namespace" "" "gpu-operator" }}
-        {{- if $gpu_ns }}
-        {{- $gpuResources := dict "limits" (dict "nvidia.com/gpu" "1") }}
+        {{- if (lookup "v1" "Namespace" "" "gpu-operator") }}
         resources:
-{{ $gpuResources | toYaml | indent 10 }}
+          limits:
+            nvidia.com/gpu: "1"
         {{- end }}
         volumeMounts:
         - mountPath: /tmp/models

@@ -107,11 +107,10 @@ spec:
           value: "8040"
         - name: CHROMA_COLLECTION
           value: "documents"
-        {{- $gpu_ns := lookup "v1" "Namespace" "" "gpu-operator" }}
-        {{- if $gpu_ns }}
-        {{- $gpuResources := dict "limits" (dict "nvidia.com/gpu" "1") }}
+        {{- if (lookup "v1" "Namespace" "" "gpu-operator") }}
         resources:
-{{ $gpuResources | toYaml | indent 10 }}
+          limits:
+            nvidia.com/gpu: "1"
         {{- end }}
       volumes:
       - name: cerebral-docs
