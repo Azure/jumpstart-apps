@@ -1,15 +1,15 @@
-kind: PersistentVolumeClaim
-apiVersion: v1
-metadata:
-  name: acsa-pvc
-  namespace: contoso-hypermarket
-spec:
-  accessModes:
-    - ReadWriteMany
-  resources:
-    requests:
-      storage: 10Gi
-  storageClassName: cloud-backed-sc
+# kind: PersistentVolumeClaim
+# apiVersion: v1
+# metadata:
+#   name: acsa-pvc
+#   namespace: contoso-hypermarket
+# spec:
+#   accessModes:
+#     - ReadWriteMany
+#   resources:
+#     requests:
+#       storage: 10Gi
+#   storageClassName: cloud-backed-sc
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -43,8 +43,8 @@ spec:
         volumeMounts:
         - name: models-volume
           mountPath: /tmp/models
-        - name: blob
-          mountPath: /usr/src/app/detected_persons
+        # - name: blob
+        #   mountPath: /usr/src/app/detected_persons
       containers:
       - name: shopper-insights-api
         image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
@@ -60,8 +60,6 @@ spec:
           value: "5001"
         - name: ENABLE_SAVING
           value: "False"
-        - name: PROCESSOR_SKIP_FPS
-          value: "12"
         {{- if (lookup "v1" "Namespace" "" "gpu-operator") }}
         resources:
           limits:
@@ -70,17 +68,17 @@ spec:
         volumeMounts:
         - mountPath: /tmp/models
           name: models-volume
-        - mountPath: /usr/src/app/detected_persons
-          name: blob
+        # - mountPath: /usr/src/app/detected_persons
+        #   name: blob
         - mountPath: /usr/src/app/detected_frames
           name: frames-volume
       volumes:
       - name: models-volume
         persistentVolumeClaim:
           claimName: shopper-model-pvc
-      - name: blob
-        persistentVolumeClaim:
-          claimName: acsa-pvc
+      # - name: blob
+      #   persistentVolumeClaim:
+      #     claimName: acsa-pvc
       - name: frames-volume
         persistentVolumeClaim:
           claimName: frames-pvc
