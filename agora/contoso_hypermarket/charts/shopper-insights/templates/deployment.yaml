@@ -60,6 +60,13 @@ spec:
           value: "5001"
         - name: ENABLE_SAVING
           value: "True"
+        - name: PROCESSOR_SKIP_FPS
+          value: "12"
+        {{- if (lookup "v1" "Namespace" "" "gpu-operator") }}
+        resources:
+          limits:
+            nvidia.com/gpu: "1"
+        {{- end }}
         volumeMounts:
         - mountPath: /tmp/models
           name: models-volume
