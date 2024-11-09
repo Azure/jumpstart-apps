@@ -1,8 +1,7 @@
-
 toolkit:
   env:
     - name: CONTAINERD_CONFIG
-      value: "/etc/containerd/config.toml.tmpl"
+      value: "/var/lib/rancher/k3s/agent/etc/containerd/config.toml.tmpl"
     - name: CONTAINERD_SOCKET
       value: "/run/k3s/containerd/containerd.sock"
     - name: CONTAINERD_RUNTIME_CLASS
