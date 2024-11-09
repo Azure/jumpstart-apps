@@ -26,7 +26,7 @@ const CerebralHeader: React.FC<CerebralHeaderProps> = ({
         flex: '1 1 auto',
       }}>
         <img 
-          src={`Cerebral logo_text_dark.svg`} 
+          src={`CerebralChatLogo.svg`} 
           alt="Cerebral Logo" 
           style={{ height: 50, marginRight: 12 }} 
         />
