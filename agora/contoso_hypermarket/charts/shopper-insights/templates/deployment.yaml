@@ -59,7 +59,7 @@ spec:
         - name: FLASK_PORT
           value: "5001"
         - name: ENABLE_SAVING
-          value: "True"
+          value: "False"
         - name: PROCESSOR_SKIP_FPS
           value: "12"
         {{- if (lookup "v1" "Namespace" "" "gpu-operator") }}
