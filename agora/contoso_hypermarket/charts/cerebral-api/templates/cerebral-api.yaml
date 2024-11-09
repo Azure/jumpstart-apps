@@ -67,7 +67,7 @@ spec:
           valueFrom:
             secretKeyRef:
               name: azure-openai-secret
-              key: azure-openai-model-name
+              key: azure-openai-deployment-name
         - name: OPENAI_API_VERSION
           valueFrom:
             secretKeyRef:
