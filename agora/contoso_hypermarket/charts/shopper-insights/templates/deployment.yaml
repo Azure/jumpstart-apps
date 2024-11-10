@@ -1,15 +1,15 @@
-kind: PersistentVolumeClaim
-apiVersion: v1
-metadata:
-  name: acsa-pvc
-  namespace: contoso-hypermarket
-spec:
-  accessModes:
-    - ReadWriteOnce #This should be ReadWriteMany in production
-  resources:
-    requests:
-      storage: 10Gi
-#  storageClassName: cloud-backed-sc
+# kind: PersistentVolumeClaim
+# apiVersion: v1
+# metadata:
+#   name: acsa-pvc
+#   namespace: contoso-hypermarket
+# spec:
+#   accessModes:
+#     - ReadWriteMany
+#   resources:
+#     requests:
+#       storage: 10Gi
+#   storageClassName: cloud-backed-sc
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -25,6 +25,11 @@ spec:
       labels:
         app: shopper-insights-api
     spec:
+    {{- if (lookup "v1" "Namespace" "" "gpu-operator") }}
+      nodeSelector:
+        nvidia.com/gpu.present: "true"     # Ensures pods are scheduled on GPU-enabled nodes
+      runtimeClassName: nvidia
+      {{- end }}
       initContainers:
       - name: init-download-model
         image: mcr.microsoft.com/cbl-mariner/base/core:2.0
@@ -43,22 +48,8 @@ spec:
         volumeMounts:
         - name: models-volume
           mountPath: /tmp/models
-        - name: blob
-          mountPath: /usr/src/app/detected_persons
-      # - name: init-wait-for-volume
-      #   image: busybox
-      #   command:
-      #     - sh
-      #     - -c
-      #     - |
-      #       echo "Waiting for volume to become writable..."
-      #       while ! touch /usr/src/app/detected_persons/videos/testfile; do
-      #         sleep 5
-      #       done
-      #       rm /usr/src/app/detected_persons/testfile
-      #   volumeMounts:
-      #     - mountPath: /usr/src/app/detected_persons
-      #       name: blob
+        # - name: blob
+        #   mountPath: /usr/src/app/detected_persons
       containers:
       - name: shopper-insights-api
         image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
@@ -73,7 +64,7 @@ spec:
         - name: FLASK_PORT
           value: "5001"
         - name: ENABLE_SAVING
-          value: "True"
+          value: "False"
         {{- if (lookup "v1" "Namespace" "" "gpu-operator") }}
         resources:
           limits:
@@ -82,17 +73,17 @@ spec:
         volumeMounts:
         - mountPath: /tmp/models
           name: models-volume
-        - mountPath: /usr/src/app/detected_persons/videos #remove videos from here when done testing
-          name: blob
+        # - mountPath: /usr/src/app/detected_persons
+        #   name: blob
         - mountPath: /usr/src/app/detected_frames
           name: frames-volume
       volumes:
       - name: models-volume
         persistentVolumeClaim:
           claimName: shopper-model-pvc
-      - name: blob
-        persistentVolumeClaim:
-          claimName: acsa-pvc
+      # - name: blob
+      #   persistentVolumeClaim:
+      #     claimName: acsa-pvc
       - name: frames-volume
         persistentVolumeClaim:
           claimName: frames-pvc
