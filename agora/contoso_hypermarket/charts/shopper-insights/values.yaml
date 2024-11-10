@@ -13,13 +13,13 @@ image:
   # Overrides the image tag whose default is the chart appVersion.
   tag: "1.0.0"
 
-# This is for the secretes for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+# This is for the secrets for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
 imagePullSecrets: []
 # This is to override the chart name.
 nameOverride: ""
 fullnameOverride: ""
 
-#This section builds out the service account more information can be found here: https://kubernetes.io/docs/concepts/security/service-accounts/
+# This section builds out the service account more information can be found here: https://kubernetes.io/docs/concepts/security/service-accounts/
 serviceAccount:
   # Specifies whether a service account should be created
   create: true
@@ -95,7 +95,7 @@ readinessProbe:
     path: /
     port: http
 
-#This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
+# This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
 autoscaling:
   enabled: false
   minReplicas: 1
@@ -121,3 +121,20 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+# GPU Toolkit and Device Plugin configuration
+toolkit:
+  env:
+    - name: CONTAINERD_CONFIG
+      value: "/etc/containerd/config.toml.tmpl"
+    - name: CONTAINERD_SOCKET
+      value: "/run/k3s/containerd/containerd.sock"
+    - name: CONTAINERD_RUNTIME_CLASS
+      value: "nvidia"
+    - name: CONTAINERD_SET_AS_DEFAULT
+      value: "true"
+
+devicePlugin:
+  config:
+    name: time-slicing-config-all
+    default: any
