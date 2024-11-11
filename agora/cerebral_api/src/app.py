@@ -539,12 +539,14 @@ def handle_process_question(data):
             emit('query', {'query': influx_query})
             
             query_result = influx_handler.execute_query_and_return_data(influx_query)
-            emit('result', {'result': query_result})
+            
+            html_formatted = llm.format_results_to_html(query_result, "influx", industry, role)
             
             recommendations = llm.generate_recommendations(
                 question, influx_query, query_result, industry, role
             )
             emit('recommendations', {'recommendations': recommendations})
+            emit('result', {'result': html_formatted})
             emit('complete')
         
         elif category == 'relational':
@@ -553,12 +555,15 @@ def handle_process_question(data):
             emit('query', {'query': sql_query})
             
             query_result = sql_handler.test_data(sql_query)
-            emit('result', {'result': query_result})
+            html_formatted = llm.format_results_to_html(query_result, "sql", industry, role)
+            
+            
             
             recommendations = llm.generate_recommendations(
                 question, sql_query, query_result, industry, role
             )
             emit('recommendations', {'recommendations': recommendations})
+            emit('result', {'result': html_formatted})
             emit('complete')
         
     except Exception as e:
@@ -839,28 +844,8 @@ class ExecuteQuery(Resource):
         if not query:
             return jsonify({'error': 'Query parameter is required'}), 400
         
-        #result = influx_handler.execute_query_and_return_data(query)
-        #TO DO 
-        result = [
-        {
-            "ProductID": 1,
-            "ProductName": "Bananas",
-            "Category": "Fruits",
-            "Description": "Fresh bananas",
-            "Price": 0.99,
-            "SupplierID": 1,
-            "DateAdded": "2024-09-22"
-        },
-        {
-            "ProductID": 2,
-            "ProductName": "Apples",
-            "Category": "Fruits",
-            "Description": "Red apples",
-            "Price": 1.49,
-            "SupplierID": 2,
-            "DateAdded": "2024-09-22"
-        }]
-
+        result = SqlDBHandler.execute_query_and_return_data(query)
+        
         print(result)
 
         return jsonify({'query': query, 'result': result})
