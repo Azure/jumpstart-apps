@@ -13,6 +13,7 @@ import os
 from datetime import datetime
 from PIL import Image
 from PIL import ImageOps
+from concurrent.futures import ThreadPoolExecutor
 
 class VideoProcessor:
     def __init__(self, url, index, name, skip_fps, debug=False, enable_saving=True):
@@ -102,6 +103,9 @@ class VideoProcessor:
         for age_group in range(10, 60, 10):
             self.age_stats[age_group] = 0
 
+        self.executor = ThreadPoolExecutor(max_workers=4)  # Adjust the number of workers as needed
+        self.executor.submit(self.cleanup_worker)
+
     def start(self):
         if not self.running:
             self.running = True
@@ -114,9 +118,7 @@ class VideoProcessor:
             if self.enable_saving:
                 # Start the video creation thread
                 if self.video_creation_thread is None or not self.video_creation_thread.is_alive():
-                    self.video_creation_thread = threading.Thread(target=self.video_creation_worker)
-                    self.video_creation_thread.daemon = True  # Daemon thread exits when main thread exits
-                    self.video_creation_thread.start()
+                    self.executor.submit(self.video_creation_worker)
                     print(f"Started video creation thread for video {self.index}")
     
     def stop(self):
@@ -127,6 +129,7 @@ class VideoProcessor:
             self.video_creation_thread.join()
         if self.vs:
             self.vs.stop()
+        self.executor.shutdown(wait=True)
         print(f"Stopped processing thread for video {self.index}")
 
     def extract_features(self, frame, bbox):
@@ -194,7 +197,7 @@ class VideoProcessor:
         images.sort()
 
         # Ensure there are enough images to process
-        if len(images) < 5:
+        if (len(images) < 5):
             print(f"Not enough images in {image_folder} to create a video. Skipping.")
             return
 
@@ -427,12 +430,29 @@ class VideoProcessor:
 
             if not self.processed_frame_queue.full():
                 self.processed_frame_queue.put(frame)
+            else:
+                # Discard the oldest frame if the queue is full
+                self.processed_frame_queue.get()
+                self.processed_frame_queue.put(frame)
 
             if time.time() - self.last_activity > self.inactivity_threshold:
                 if self.debug:
                     print(f"Video {self.index} inactive for {self.inactivity_threshold} seconds. Stopping thread.")
                 self.stop()
                 break
+
+        # Ensure the queue is cleared when stopping
+        while not self.processed_frame_queue.empty():
+            self.processed_frame_queue.get()
+
+    def cleanup_worker(self):
+        while self.running:
+            time.sleep(60)
+            # Perform cleanup tasks here
+            # For example, remove old frames from the queue
+            while not self.processed_frame_queue.empty():
+                self.processed_frame_queue.get()
+            # Add any other necessary cleanup tasks
 
     def set_restricted_area(self, areas):
         self.restricted_areas = []

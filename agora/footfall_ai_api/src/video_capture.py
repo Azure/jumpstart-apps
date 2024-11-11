@@ -49,3 +49,7 @@ class VideoCapture:
     def stop(self):
         self.running = False
         self.t.join()  # Wait for the thread to exit
+        # Clear the queue to free up memory
+        with self.q.mutex:
+            self.q.queue.clear()
+        self.cap.release()

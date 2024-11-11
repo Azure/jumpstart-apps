@@ -7,6 +7,8 @@ from ultralytics import YOLO
 import torch
 import json
 from video_processor import VideoProcessor
+from concurrent.futures import ThreadPoolExecutor
+from video_processor import thread_pool
 
 # Constants
 MODEL_PATH = os.getenv("MODEL_PATH", "./models/yolov8n.pt")
@@ -93,3 +95,7 @@ if __name__ == '__main__':
     finally:
         for processor in video_processors.values():
             processor.stop()
+        # Clear the video_processors dictionary to free up memory
+        video_processors.clear()
+        # Shutdown the thread pool
+        thread_pool.shutdown(wait=True)

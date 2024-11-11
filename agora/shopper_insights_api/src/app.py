@@ -7,6 +7,8 @@ import time
 import json
 from prometheus_metrics import PrometheusMetrics
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
+import atexit
+from concurrent.futures import ThreadPoolExecutor
 
 # Constants
 FLASK_PORT = int(os.getenv("FLASK_PORT", 5001))
@@ -21,6 +23,7 @@ app = Flask(__name__)
 # Global variables
 video_processors = {}
 ie = Core()
+executor = ThreadPoolExecutor(max_workers=10)  # Adjust the number of workers as needed
 
 def get_or_create_processor(camera_name, data):
     if camera_name not in video_processors:
@@ -68,7 +71,7 @@ def video_feed():
         return "Invalid JSON format", 400
     
     camera_name = data["cameraName"]       
-    return Response(generate(data, camera_name), mimetype='multipart/x-mixed-replace; boundary=frame')
+    return Response(executor.submit(generate, data, camera_name).result(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route('/set_restricted_areas', methods=['POST'])
 def set_restricted_areas():
@@ -122,6 +125,13 @@ def metrics():
     
     # Generate and return the metrics in Prometheus format
     return Response(generate_latest(), mimetype=CONTENT_TYPE_LATEST)
+
+def stop_all_processors():
+    for processor in video_processors.values():
+        processor.stop()
+    executor.shutdown(wait=True)
+
+atexit.register(stop_all_processors)
 
 if __name__ == '__main__':
     print(f"OpenVINO version: {ov_get_version()}")

@@ -41,6 +41,7 @@ class VideoCapture:
 
             self.frame_count += 1
             self.state=ret
+        self.cap.release()  # Ensure the video capture is released
 
     def read(self):
         return self.q.get(),self.state
@@ -48,3 +49,4 @@ class VideoCapture:
     def stop(self):
         self.running = False
         self.t.join()  # Wait for the thread to exit
+        self.cap.release()  # Ensure the video capture is released

@@ -6,6 +6,10 @@ from queue import Queue
 import threading
 from ultralytics.solutions import ObjectCounter
 from video_capture import VideoCapture
+from concurrent.futures import ThreadPoolExecutor
+
+# Global thread pool executor
+thread_pool = ThreadPoolExecutor(max_workers=10)
 
 class VideoProcessor:
     def __init__(self, url, index, model, name, skip_fps, debug=False, x1=0, y1=0, w=0, h=0, ):
@@ -73,16 +77,18 @@ class VideoProcessor:
         if not self.running:
             self.running = True
             self.vs = VideoCapture(self.url, self.skip_fps, queue_size=150)
-            self.process_thread = threading.Thread(target=self.process_frames)
-            self.process_thread.start()
+            self.process_thread = thread_pool.submit(self.process_frames)
             print(f"Started processing thread for video {self.index}")
 
     def stop(self):
         self.running = False
         if self.process_thread:
-            self.process_thread.join()
+            self.process_thread.result()  # Wait for the thread to finish
         if self.vs:
             self.vs.stop()
+        # Clear the queue to free up memory
+        with self.processed_frame_queue.mutex:
+            self.processed_frame_queue.queue.clear()
         print(f"Stopped processing thread for video {self.index}")
 
     def process_frames(self):
