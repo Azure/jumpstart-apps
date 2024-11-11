@@ -7,7 +7,7 @@ import chromadb
 import tempfile
 from langchain.document_loaders import PyPDFLoader, TextLoader, DirectoryLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from dotenv import load_dotenv
+#from dotenv import load_dotenv
 
 # Load environment variables
 #load_dotenv()

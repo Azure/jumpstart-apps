@@ -7,7 +7,7 @@ import time
 import logging
 
 #DEV_MODE
-#from dotenv import load_dotenv
+from dotenv import load_dotenv
 #load_dotenv()
 
 # Global configuration variables
@@ -413,3 +413,138 @@ class LLM:
         clean_string = text.replace("```sql", "").replace("```", "").strip()
         clean_string = clean_string.replace("Output:", "").replace("Query:", "").strip()
         return clean_string
+        
+
+    def format_results_to_html(self, results, query_type: str, industry: str, role: str) -> str:
+        """
+        Use OpenAI to format query results into an HTML table with analysis.
+        
+        Args:
+            results: Query results from SQL or InfluxDB
+            query_type (str): Type of query ('sql' or 'influx')
+            industry (str): The industry context
+            role (str): The user's role
+        
+        Returns:
+            str: HTML formatted table with results
+        """
+        request_id = str(uuid.uuid4())
+        logger.info(f"[{request_id}] Starting results formatting")
+        
+        try:
+            # Convert results to string representation for the prompt
+            results_str = json.dumps(results, default=str, indent=2)
+            
+            if VERBOSE:
+                logger.debug(f"[{request_id}] Results to format: {results_str[:200]}...")
+                logger.debug(f"[{request_id}] Query type: {query_type}")
+                logger.debug(f"[{request_id}] Industry: {industry}")
+                logger.debug(f"[{request_id}] Role: {role}")
+                
+            # Get and format the prompt
+            #system_content = self.get_prompt('format_results', industry, role).format(
+            #    query_type=query_type,
+            #    data_type="time series" if query_type == "influx" else "relational"
+            #)
+
+            system_content = f"You are a data presentation expert specializing in {query_type} data for the {industry} industry. Your task is to format query results into a clean, professional HTML table no styling.\n\nGuidelines:\n1. Create a responsive HTML table with clear headers\n2. Use appropriate styling (included in <style> tag)\n3. Format dates, numbers, and values appropriately\n4. Use color coding for status or threshold values if relevant\n5. Include a summary if the data shows trends or patterns\n6. Keep the formatting professional and consistent\n\nProvide only the HTML code without CSS styling.\n\nExample structure:<div class='results-container'> <style> </style> <table class='data-table'>    <!-- Your table content here -->  </table></div>"
+            
+            # Prepare conversation
+            conversation = [
+                {"role": "system", "content": system_content},
+                {"role": "user", "content": f"Format these {query_type} query results: {results_str}"}
+            ]
+            
+            # Request formatting from OpenAI
+            logger.debug(f"[{request_id}] Sending format request to OpenAI")
+            
+            
+            response = self.client.chat.completions.create(
+                model=self.CHATGPT_MODEL,
+                messages=conversation
+            )
+            
+            formatted_result = response.choices[0].message.content
+            formatted_result = self.clean_string_html(formatted_result)
+            formatted_result = self.clean_html_output(formatted_result)
+            
+            if VERBOSE:
+                logger.debug(f"[{request_id}] Formatted result preview: {formatted_result[:200]}...")
+            
+            return formatted_result
+            
+        except Exception as e:
+            logger.error(f"[{request_id}] Error formatting results: {str(e)}")
+            if VERBOSE:
+                import traceback
+                logger.debug(f"[{request_id}] Full error traceback:")
+                logger.debug(traceback.format_exc())
+            return f"<p>Error formatting results: {str(e)}</p>"
+
+
+    def clean_string_html(self, text: str) -> str:
+        """
+        Clean a string by removing code markers and normalizing line breaks.
+        
+        Args:
+            text (str): The input string to clean
+            
+        Returns:
+            str: Cleaned string with code markers and extra line breaks removed
+        """
+        try:
+            if not isinstance(text, str):
+                return str(text)
+                
+            # Remove language specific code markers
+            for lang in ['html', 'sql', 'python', 'json']:
+                text = text.replace(f"```{lang}", "")
+            
+            # Remove generic code markers
+            text = text.replace("```", "")
+            
+            # Remove extra newlines while preserving intended breaks in HTML
+            text = text.replace("\n\n", "\n")  # Reduce multiple newlines to single
+            text = text.strip()  # Remove leading/trailing whitespace
+            
+            return text
+            
+        except Exception as e:
+            logger.error(f"Error cleaning string: {str(e)}")
+            return str(text)
+
+    def clean_html_output(self, text: str) -> str:
+        """
+        Clean HTML output from LLM response.
+        
+        Args:
+            text (str): The HTML string to clean
+            
+        Returns:
+            str: Cleaned HTML string
+        """
+        try:
+            if not isinstance(text, str):
+                return str(text)
+                
+            # Remove code markers
+            text = self.clean_string(text)
+            
+            # Remove newlines between HTML tags while preserving content
+            lines = []
+            for line in text.split('\n'):
+                line = line.strip()
+                if line:  # Skip empty lines
+                    lines.append(line)
+                    
+            # Join lines, ensuring proper spacing around content
+            text = ' '.join(lines)
+            
+            # Cleanup extra spaces
+            text = ' '.join(text.split())
+            
+            return text
+            
+        except Exception as e:
+            logger.error(f"Error cleaning HTML output: {str(e)}")
+            return str(text)
