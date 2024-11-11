@@ -97,9 +97,12 @@ class VideoProcessor:
         last_time = time.time()
         while self.running:
             frame, success = self.vs.read()
-            original_frame = frame.copy()
             if not success:
                 continue
+
+            # Reduce input resolution
+            frame = cv2.resize(frame, (320, 180))  # Example resolution, adjust as needed
+            original_frame = frame.copy()
 
             frame_count += 1
             current_time = time.time()
