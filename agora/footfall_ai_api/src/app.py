@@ -11,8 +11,8 @@ from concurrent.futures import ThreadPoolExecutor
 from video_processor import thread_pool
 
 # Constants
-#MODEL_PATH = os.getenv("MODEL_PATH", "./models/yolov8n.pt")
-MODEL_PATH = os.getenv("MODEL_PATH", "./models/yolov5s.pt")
+MODEL_PATH = os.getenv("MODEL_PATH", "./models/yolov8n.pt")
+#MODEL_PATH = os.getenv("MODEL_PATH", "./models/yolov5s.pt")
 FLASK_PORT = int(os.getenv("FLASK_PORT", 5000))
 FLASK_DEBUG = os.getenv("FLASK_DEBUG", "false").lower() in ["true", "1", "t"]
 PROCESSOR_SKIP_FPS = int(os.getenv("PROCESSOR_SKIP_FPS", 2))
