@@ -106,6 +106,8 @@ class VideoProcessor:
         self.executor = ThreadPoolExecutor(max_workers=4)  # Adjust the number of workers as needed
         self.executor.submit(self.cleanup_worker)
 
+        self.font_scale = 0.75  # Default font scale
+
     def start(self):
         if not self.running:
             self.running = True
@@ -330,8 +332,11 @@ class VideoProcessor:
                 frame_count = 0
                 last_time = current_time
 
+            # Calculate font scale based on downsized frame resolution
+            self.font_scale = frame.shape[1] / 640  # Adjust the divisor as needed
+
             if self.debug:
-                cv2.putText(frame, f"FPS: {self.fps:.2f}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 0), 1, cv2.LINE_AA)
+                cv2.putText(frame, f"FPS: {self.fps:.2f}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, self.font_scale, (255, 255, 0), 1, cv2.LINE_AA)
 
             start_time = time.time()
 
@@ -410,14 +415,14 @@ class VideoProcessor:
                 color = (0, 0, 255) if is_shopper else (0, 255, 0)
                 cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), color, 2)
                 cv2.putText(frame, f"ID: {person_hash} - A: {age}", (bbox[0], bbox[1] - 10),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+                            cv2.FONT_HERSHEY_SIMPLEX, self.font_scale, color, 2)
 
             for i, area in enumerate(self.restricted_areas):
                 cv2.rectangle(frame, (int(area[0] * frame.shape[1]), int(area[1] * frame.shape[0])), 
                               (int(area[2] * frame.shape[1]), int(area[3] * frame.shape[0])), (255, 0, 0), 2)
                 cv2.putText(frame, f"Area {i}: {self.area_stats[i]['current_count']}", 
                             (int(area[0] * frame.shape[1]), int(area[1] * frame.shape[0]) - 10),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 0, 0), 2)
+                            cv2.FONT_HERSHEY_SIMPLEX, self.font_scale, (255, 0, 0), 2)
 
             processing_time = (time.time() - start_time) * 1000
             processing_times.append(processing_time)
@@ -426,7 +431,7 @@ class VideoProcessor:
 
             if self.debug:
                 cv2.putText(frame, f"Inference time: {avg_processing_time:.1f}ms ({inference_fps:.1f} FPS)", 
-                            (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 0), 1, cv2.LINE_AA)
+                            (10, 60), cv2.FONT_HERSHEY_SIMPLEX, self.font_scale, (255, 255, 0), 1, cv2.LINE_AA)
 
             if not self.processed_frame_queue.full():
                 self.processed_frame_queue.put(frame)

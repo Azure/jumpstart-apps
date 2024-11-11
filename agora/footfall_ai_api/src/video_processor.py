@@ -95,13 +95,18 @@ class VideoProcessor:
         processing_times = collections.deque(maxlen=200)
         frame_count = 0
         last_time = time.time()
+        original_width, original_height = 640, 360  # Original resolution
+        new_width, new_height = 320, 180  # New resolution
+        scaling_factor_x = new_width / original_width
+        scaling_factor_y = new_height / original_height
+
         while self.running:
             frame, success = self.vs.read()
             if not success:
                 continue
 
             # Reduce input resolution
-            frame = cv2.resize(frame, (320, 180))  # Example resolution, adjust as needed
+            frame = cv2.resize(frame, (new_width, new_height))
             original_frame = frame.copy()
 
             frame_count += 1
@@ -112,7 +117,10 @@ class VideoProcessor:
                 last_time = current_time
 
             if self.debug:
-                cv2.putText(frame, f"FPS: {self.fps:.2f}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 0), 1, cv2.LINE_AA)
+                font_scale = 0.75 * scaling_factor_y
+                cv2.putText(frame, f"FPS: {self.fps:.2f}", 
+                            (int(10 * scaling_factor_x), int(30 * scaling_factor_y)), 
+                            cv2.FONT_HERSHEY_SIMPLEX, font_scale, (255, 255, 0), 1, cv2.LINE_AA)
 
             if all(point == (0, 0) for point in self.line_points):
                 processed_frame = frame
@@ -128,7 +136,8 @@ class VideoProcessor:
 
                 if self.debug:
                     cv2.putText(processed_frame, f"Inference time: {avg_processing_time:.1f}ms ({inference_fps:.1f} FPS)", 
-                                (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 0), 1, cv2.LINE_AA)
+                                (int(10 * scaling_factor_x), int(60 * scaling_factor_y)), 
+                                cv2.FONT_HERSHEY_SIMPLEX, font_scale, (255, 255, 0), 1, cv2.LINE_AA)
 
             if not self.processed_frame_queue.full():
                 if self.debug:
