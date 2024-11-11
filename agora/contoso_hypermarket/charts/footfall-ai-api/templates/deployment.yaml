@@ -12,6 +12,11 @@ spec:
       labels:
         app: footfall-ai-api
     spec:
+      {{- if (lookup "v1" "Namespace" "" "gpu-operator") }}
+      nodeSelector:
+        nvidia.com/gpu.present: "true"     # Ensures pods are scheduled on GPU-enabled nodes
+      runtimeClassName: nvidia
+      {{- end }}
       initContainers:
       - name: init-download-model
         image: mcr.microsoft.com/cbl-mariner/base/core:2.0   

@@ -27,6 +27,9 @@ dependencies:
   - name: rtsp
     version: 0.1.0
     repository: "file://../rtsp"
+  - name: footfall-ai-api
+    version: 0.1.0
+    repository: "file://../footfall-ai-api"
   - name: shopper-insights
     version: 0.1.0
     repository: "file://../shopper-insights"
