@@ -288,7 +288,7 @@ import {
                         
                     </div>
                     <div id="activeCameras" className={styles.activeCameras}>
-                    <Text id="cameraInnerTextInIcon" className={styles.cameraInnerTextInIcon}>9 Cameras active</Text>
+                    <Text id="cameraInnerTextInIcon" className={styles.cameraInnerTextInIcon}>{dataItems.length} Cameras active</Text>
                     </div>
                 </Stack>
                 <Stack id='camerascollection'>
