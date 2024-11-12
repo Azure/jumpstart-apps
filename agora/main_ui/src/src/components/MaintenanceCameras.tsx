@@ -254,7 +254,7 @@ import {
     }
 
       function generateDataForVideo(cameraId: number, rtspurl: string, cameraName: string, x1: number, y1: number, x2: number, y2: number) {
-        var dataforVideo = footfallAIAPI +  "/video_feed?data={\"x\" : " + x1.toString() + ", \"y\" : " + y1.toString() + ",\"w\" : " + x2.toString() + ", \"h\" : " + y2.toString() + ", \"debug\" : true, \"cameraName\" : \"" + cameraName +  "\", \"video_url\": \"" + rtspurl + "\" }";           
+        var dataforVideo = footfallAIAPI +  "/video_feed?data={\"x\" : " + x1.toString() + ", \"y\" : " + y1.toString() + ",\"w\" : " + x2.toString() + ", \"h\" : " + y2.toString() + ", \"debug\" : false, \"cameraName\" : \"" + cameraName +  "\", \"video_url\": \"" + rtspurl + "\" }";           
         console.log('dataforVideo');
         console.log(dataforVideo);
         return dataforVideo

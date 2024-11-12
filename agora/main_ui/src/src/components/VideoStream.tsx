@@ -22,7 +22,6 @@ function VideoStream({ title, videoUrl }: VideoStreamProps) {
       textAlign: 'center',
       width: '100%'
     }}>
-      <h1>{title}</h1>
       <img 
         ref={imgRef}
         alt="Video stream"

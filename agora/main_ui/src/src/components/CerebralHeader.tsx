@@ -26,10 +26,18 @@ const CerebralHeader: React.FC<CerebralHeaderProps> = ({
         flex: '1 1 auto',
       }}>
         <img 
-          src={`CerebralChatLogo.svg`} 
+          src={`LogoCerebralChat.svg`} 
           alt="Cerebral Logo" 
-          style={{ height: 50, marginRight: 12 }} 
+          style={{ height: 45, marginRight: 12, marginBottom: 20 }} 
         />
+       <div style={{ marginLeft: 20, marginBottom: 30 }} >
+          <label htmlFor="debugModeToggle">Debug:</label>
+          <input 
+            type="checkbox" 
+            id="debugModeToggle" 
+            onChange={(e) => console.log('Debug mode:', e.target.checked)} 
+          />
+        </div>
       </div>
     </div>
   );

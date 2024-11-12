@@ -1,5 +1,4 @@
 import { routerType } from "../types/router.types";
-import Login from "./login";
 import Home from "./home";
 import StoreManager from "./storemanager";
 import MaintenanceWorker from "./maintenanceworker";
@@ -20,11 +19,6 @@ const pagesData: routerType[] = [
     path: "",
     element: <Home />,
     title: "Home"
-  },
-  {
-    path: "login",
-    element: <Login />,
-    title: "Login"
   },
   {
     path: "storemanager",
