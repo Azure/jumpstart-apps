@@ -28,11 +28,11 @@ import StoreOrdersGraph from "../../components/StoreOrdersGraph";
 import OEEPerPlantGraph from "../../components/OEEPerPlantGraph";
 import OEEByProductsGraph from "../../components/OEEByProductsGraph";
 import InPageFilter from "../../components/InPageFilter";
-import { CopilotProvider } from "@fluentui-copilot/react-copilot";
+import { ChatInputProps, CopilotProvider } from "@fluentui-copilot/react-copilot";
 import logo from './logo.svg';
 import '../../App.css';
 import Cameras from '../../components/Cameras';
-import CerebralChatWithAudio from '../../components/CerebralChat';
+import CerebralChatWithAudio from '../../components/Chatter';
 import { Panel, PanelType, DefaultButton, ProgressIndicator } from '@fluentui/react';
 import CerebralHeader from '../../components/CerebralHeader';
 import { initializeIcons } from "@fluentui/react/lib/Icons";
@@ -103,7 +103,7 @@ const InventoryDashboard = () => {
             closeButtonAriaLabel="Close"
             isLightDismiss={true}            
             >
-              <CerebralChatWithAudio />
+              <CerebralChatWithAudio {...({} as ChatInputProps)}/>
           </Panel>             
           <Stack.Item>
               <SideMenu />
@@ -114,7 +114,7 @@ const InventoryDashboard = () => {
                 <Text className={classes.frameheader}>Inventory</Text>
               </Stack>              
               <Stack>
-                <InPageFilter />
+                {/* <InPageFilter /> */}
               </Stack>              
               <Stack id='LineAndBarCharts'>
                 <Stack className={classes.container} horizontal>

@@ -17,7 +17,7 @@ from PIL import Image
 from PIL import ImageOps
 
 class VideoProcessor:
-    def __init__(self, url, index, name, debug=False, enable_saving=True):
+    def __init__(self, url, index, name, skip_fps, debug=False, enable_saving=True):
         self.url = url
         self.index = index
         self.processed_frame_queue = Queue(maxsize=10)
@@ -31,6 +31,7 @@ class VideoProcessor:
         self.inactivity_threshold = 30  # 30 seconds
         self.enable_saving = enable_saving  # Flag to enable/disable saving frames and videos
         self.debug = debug
+        self.skip_fps = skip_fps
 
         # Initialize save_lock for thread-safe operations
         self.save_lock = threading.Lock()
@@ -120,11 +121,14 @@ class VideoProcessor:
 
         # Age tracking
         self.age_stats = defaultdict(int)
+        # Initialize age groups
+        for age_group in range(10, 60, 10):
+            self.age_stats[age_group] = 0
 
     def start(self):
         if not self.running:
             self.running = True
-            self.vs = VideoCapture(self.url)
+            self.vs = VideoCapture(self.url, self.skip_fps)
             self.process_thread = threading.Thread(target=self.process_frames)
             self.process_thread.start()
             print(f"Started processing thread for video {self.index}")
@@ -492,5 +496,6 @@ class VideoProcessor:
             "fps": self.fps,
             "people_near_areas": {k: {int(area_id): v for area_id, v in areas.items()} 
                       for k, areas in self.people_near_areas.items()},
-            "age_stats": {age: count for age, count in self.age_stats.items() if isinstance(age, int)}
+            "age_stats": {age: count for age, count in self.age_stats.items() if isinstance(age, int)},
+            "areas" : self.restricted_areas
         }

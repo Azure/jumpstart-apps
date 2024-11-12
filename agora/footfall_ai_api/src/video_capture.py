@@ -6,13 +6,17 @@ import cv2, queue, threading, time
 
 # bufferless VideoCapture
 class VideoCapture:
-    def __init__(self, name):
+    def __init__(self, name, skip_fps=0, queue_size=150):
         self.cap = cv2.VideoCapture(name)
-        self.q = queue.Queue(maxsize=150)
+        self.q = queue.Queue(maxsize=queue_size)
         self.lock = threading.Lock()
         self.running = True  # Flag to indicate if the thread should keep running
+        self.skip_fps = skip_fps
+        self.frame_count = 0
         self.t = threading.Thread(target=self._reader)
         self.t.daemon = True
+        self.total_frames = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT)) 
+        self.frame_interval = int(self.cap.get(cv2.CAP_PROP_FPS) / self.skip_fps)
         self.t.start()
 
     def _reader(self):
@@ -31,7 +35,12 @@ class VideoCapture:
                 if not self.running:
                     return
             
-            self.q.put(cv2.resize(frame, (640, 360)))
+           # Save the frame if it is at the specified interval
+            if self.frame_count % self.frame_interval == 0:
+                self.q.put(cv2.resize(frame, (640, 360)))
+                self.state=ret
+
+            self.frame_count += 1
             self.state=ret
 
     def read(self):

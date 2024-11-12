@@ -35,7 +35,7 @@ import { ITag, Pivot, PivotItem, PrimaryButton, TagPicker, TextField } from '@fl
 import { IStackProps, IStackTokens, Stack } from "@fluentui/react";
 import { Panel, PanelType, DefaultButton, ProgressIndicator } from '@fluentui/react';
 import WizardNavigation from '../../components/WizardNavigationStatus';
-import { CopilotProvider } from "@fluentui-copilot/react-copilot";
+import { ChatInputProps, CopilotProvider } from "@fluentui-copilot/react-copilot";
 import logo from './logo.svg';
 import '../../App.css';
 import Cameras from '../../components/MaintenanceCameras';
@@ -44,7 +44,7 @@ import {  SearchBox, IconButton } from '@fluentui/react';
 import { useDropzone } from 'react-dropzone';
 import { useCallback } from 'react';
 import { text } from 'stream/consumers';
-import CerebralChatWithAudio from '../../components/CerebralChat';
+import CerebralChatWithAudio from '../../components/Chatter';
 import type { SliderProps } from "@fluentui/react-components";
 import CerebralHeader from '../../components/CerebralHeader';
 import { initializeIcons } from "@fluentui/react/lib/Icons";
@@ -461,7 +461,7 @@ const CamerasZonesWizardSetupCamera = () => {
             closeButtonAriaLabel="Close"
             isLightDismiss={true}            
             >
-              <CerebralChatWithAudio />
+              <CerebralChatWithAudio {...({} as ChatInputProps)}/>
           </Panel>               
           <Stack.Item>
               <SideMenu />

@@ -1,41 +1,89 @@
-# Python cache
-**/__pycache__
-**/*.pyc
-**/*.pyo
-**/*.pyd
-.Python
+### Python ###
+# Byte-compiled / optimized / DLL files
+__pycache__/
 *.py[cod]
 *$py.class
+*.pyc
+*.pyo
+*.pyd
+.Python
 
-# Cache directories
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
 .cache
-.pytest_cache
 .coverage
-.tox
+.coverage.*
+.pytest_cache/
+.tox/
+htmlcov/
+nosetests.xml
+coverage.xml
+*.cover
 
-# Model directories
-cpu_and_mobile/
+### Node.js ###
+# Dependencies
+websocket-client/node_modules/
+node_modules/
 
-# PDF files
-*.pdf
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# Environments
+# Test coverage
+websocket-client/coverage/
+websocket-client/test/coverage/
+tests/__pycache__/
+tests/.pytest_cache/
+
+### Environment ###
 .env
+.env.local
+.env.*
 .venv
 env/
 venv/
 ENV/
+.env.*.local
 
-# IDE files
-.idea/
+### IDE / Editors ###
+# VSCode
 .vscode/
+*.code-workspace
+
+# JetBrains
+.idea/
+
+# Vim
 *.swp
 *.swo
+*.swn
+*.bak
 
-# Logs
-*.log
+### Version Control ###
+.git/
+.gitattributes
 
-# Local development files
-.git
-.gitignore
+### Project Specific ###
+# Model directories
+cpu_and_mobile/
+
+# Documentation
+*.pdf
 README.md
+
+# Data directories
+chroma_data/*
+docs/*
+
+# Misc
+.DS_Store
+Thumbs.db

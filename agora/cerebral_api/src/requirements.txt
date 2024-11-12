@@ -30,6 +30,8 @@ whisper
 langchain-core
 langchain-community
 langchain
+langchain-openai==0.2.6
+
 python-magic==0.4.27
 pypdf==4.0.1
 
@@ -46,3 +48,9 @@ tqdm==4.66.3
 prometheus_client
 fastapi==0.109.0
 uvicorn
+
+
+simsimd
+
+langchain 
+sentence-transformers

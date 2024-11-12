@@ -2,7 +2,7 @@ services:
 
   mssql:
     image: mcr.microsoft.com/mssql/server:2019-latest
-    container_name: mssql
+    container_name: mssql-service
     ports:
       - "1433:1433"
     volumes:
@@ -15,13 +15,14 @@ services:
   mssql-setup-job:
     image: mcr.microsoft.com/mssql-tools
     container_name: mssql_setup_job
-    command: ["/bin/bash", "-c", "sleep 5s && chmod +x /tmp/sql-setup.sh && /tmp/sql-setup.sh"]
+    command: ["/bin/bash", "-c", "sleep 5s && chmod +x /tmp/setup-sql.sh && /tmp/setup-sql.sh"]
     restart : "no"
     environment:
-      - MSSQL_SA_PASSWORD=ArcPassword123!!
+      - SA_PASSWORD=ArcPassword123!!
+      
     volumes:
       - mssql-data:/var/opt/mssql
-      - ./cerebral_api/operations/sql-setup.sh:/tmp/sql-setup.sh
+      - ..\..\cerebral_api\operations\setup-sql.sh:/tmp/setup-sql.sh
     depends_on:
       mssql:
         condition: service_started
@@ -43,12 +44,13 @@ services:
   influxdb-setup-job:
     image: mcr.microsoft.com/azurelinux/base/influxdb:2.7
     container_name: influxdb_setup_job
+    command: ["/bin/bash", "-c", "sleep 5s && chmod +x /tmp/setup-influx.sh && /tmp/setup-influx.sh"]
+    restart : "no"
     volumes:
-      - ./cerebral_api/operations/influxdb-setup.sh:/docker-entrypoint-initdb.d/influxdb-setup.sh  # Mount the setup script
-    command: ["/bin/bash", "/docker-entrypoint-initdb.d/influxdb-setup.sh"]  # Run the script
+      - mssql-data:/var/opt/mssql
+      - ..\..\cerebral_api\operations\setup-influx.sh:/tmp/setup-influx.sh
     depends_on:
       - influxdb
-    restart: "no"
 
   chroma-db:
     image: chromadb/chroma:latest
@@ -78,11 +80,11 @@ services:
         tdnf update -y
         tdnf install wget -y
         cd /app/docs
-        wget -O "SmartShelf_Manual.pdf" "https://download.microsoft.com/download/2b3927e0-5342-4d84-8b55-ab958281259b/SmartShelf%20System%20User%20Manual%20for%20Contoso%20Hypermarket.pdf" && \
-        wget -O "Scale_Manual.pdf" "https://download.microsoft.com/download/2b3927e0-5342-4d84-8b55-ab958281259b/Scale%20System%20User%20Manual%20for%20Contoso%20Hypermarket.pdf" && \
-        wget -O "Refrigeration_Manual.pdf" "https://download.microsoft.com/download/2b3927e0-5342-4d84-8b55-ab958281259b/Refrigeration%20System%20User%20Manual%20for%20Contoso%20Hypermarket.pdf" && \
-        wget -O "Checkout_Manual.pdf" "https://download.microsoft.com/download/2b3927e0-5342-4d84-8b55-ab958281259b/Automated%20Checkout%20System%20User%20Manual%20for%20Contoso%20Hypermarket.pdf" && \
-        wget -O "HVAC_Manual.pdf" "https://download.microsoft.com/download/2b3927e0-5342-4d84-8b55-ab958281259b/HVAC%20System%20User%20Manual%20for%20Contoso%20Hypermarket.pdf"
+        wget -O "Automated_Checkout_Manual.pdf" "https://download.microsoft.com/download/3ae1d7aa-a642-48cf-b848-67b4eaa81292/Automated Checkout System User Manual for Contoso Hypermarket.pdf" && \
+        wget -O "SmartShelf_Manual.pdf" "https://download.microsoft.com/download/3ae1d7aa-a642-48cf-b848-67b4eaa81292/SmartShelf System User Manual for Contoso Hypermarket.pdf" && \
+        wget -O "Refrigeration_Manual.pdf" "https://download.microsoft.com/download/3ae1d7aa-a642-48cf-b848-67b4eaa81292/Refrigeration System User Manual for Contoso Hypermarket.pdf" && \
+        wget -O "HVAC_Manual.pdf" "https://download.microsoft.com/download/3ae1d7aa-a642-48cf-b848-67b4eaa81292/HVAC System User Manual for Contoso Hypermarket.pdf" && \
+        wget -O "Scale_Manual.pdf" "https://download.microsoft.com/download/3ae1d7aa-a642-48cf-b848-67b4eaa81292/Scale System User Manual for Contoso Hypermarket.pdf"
     volumes:
       - cerebral-docs:/app/docs
 
@@ -134,14 +136,13 @@ services:
       - "5006:5006"  # Map host port 5003 to container port 5003
     environment:
       AZURE_OPENAI_API_KEY: ""
-      CHATGPT_MODEL: "gpt-35-turbo"
+      CHATGPT_MODEL: "gpt-4o"
       AZURE_OPENAI_ENDPOINT: ""
-      OPENAI_API_VERSION: "2024-03-01-preview"
-      INFLUXDB_URL: "http://influxdb.contoso-hypermarket.svc.cluster.local:8086"
+      OPENAI_API_VERSION: "2024-08-01-preview"
+      INFLUXDB_URL: "http://influxdb:8086"
       INFLUXDB_BUCKET: "hypermarket"
       INFLUXDB_TOKEN: "secret-token"
       INFLUXDB_ORG: "InfluxData"
-      REDIS_URL: "redis://redis-service.contoso-hypermarket.svc.cluster.local:6379"
       SQL_DATABASENAME: "RetailDB"
       SQL_SERVER: "mssql-service"
       SQL_USERNAME: "SA"

@@ -14,13 +14,16 @@ import Cards from "../../components/Cards";
 import Greetings from "../../components/Greetings";
 import InventoryStatus from "../../components/InventoryStatus";
 import DeviceStatus from "../../components/DeviceStatus";
-import { IStackProps, IStackTokens, Stack } from "@fluentui/react";
+import { DefaultButton, IStackProps, IStackTokens, Panel, PanelType, Stack } from "@fluentui/react";
 
 import { CopilotProvider } from "@fluentui-copilot/react-copilot";
 import logo from './logo.svg';
 import '../../App.css';
 import Cameras from '../../components/Cameras';
-import CerebralChatWithAudio from '../../components/CerebralChat';
+import CerebralChatWithAudio from '../../components/Chatter';
+import CerebralHeader from '../../components/CerebralHeader';
+import type { ChatInputProps } from "@fluentui-copilot/react-chat-input";
+
 const Main = (props: IStackProps) => (
     <Stack horizontal grow={1} disableShrink {...props} />
   );
@@ -160,10 +163,43 @@ const StoreManager = () => {
   const toggleCerebralDrawer = () => {
     setIsCerebralDrawerOpen(!isCerebralDrawerOpen);
   }; 
+  const onRenderCerebralFooterContent = React.useCallback(
+    () => (
+      <Stack horizontal tokens={{ childrenGap: 10 }}>
+        {/* <PrimaryButton onClick={onSaveDrawer}>Save</PrimaryButton> */}
+        <DefaultButton onClick={onCancelCerebralDrawer}>Close</DefaultButton>
+      </Stack>
+    ),
+    []
+  );
+  const onCancelCerebralDrawer = () => {
+    setIsCerebralDrawerOpen(false);
+  };   
+
     return (
         <FluentProvider theme={webLightTheme}>
         <CopilotProvider mode='sidecar'>
           <Header callParentFunction={toggleCerebralDrawer}/>
+          <Panel
+            isOpen={isCerebralDrawerOpen}
+            onDismiss={toggleCerebralDrawer}
+            type={PanelType.custom}
+            customWidth="30%"
+            headerText=""
+            onRenderHeader={() => (
+              <CerebralHeader 
+                title="Cerebral" 
+                onClose={toggleCerebralDrawer} 
+              />
+            )}
+            onRenderFooterContent={onRenderCerebralFooterContent}
+            isFooterAtBottom={true}
+            hasCloseButton={true}
+            closeButtonAriaLabel="Close"
+            isLightDismiss={true}            
+            >
+              <CerebralChatWithAudio {...({} as ChatInputProps)}/>
+          </Panel>          
           <Main>
           <Stack.Item>
               <SideMenu />

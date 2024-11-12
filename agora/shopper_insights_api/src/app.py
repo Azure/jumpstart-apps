@@ -11,6 +11,7 @@ from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 # Constants
 FLASK_PORT = int(os.getenv("FLASK_PORT", 5001))
 FLASK_DEBUG = os.getenv("FLASK_DEBUG", "false").lower() in ["true", "1", "t"]
+PROCESSOR_SKIP_FPS = int(os.getenv("PROCESSOR_SKIP_FPS", 2))
 
 # Read ENABLE_SAVING environment variable
 ENABLE_SAVING = os.getenv("ENABLE_SAVING", "True").lower() in ["true", "1", "t"]
@@ -27,7 +28,7 @@ def get_or_create_processor(camera_name, data):
         x1, y1, w, h = data['x'], data['y'], data['w'], data['h']
         debug = bool(data['debug'])
         video_url = data['video_url']
-        video_processors[camera_name] = VideoProcessor(video_url, index, camera_name, debug,enable_saving=ENABLE_SAVING)
+        video_processors[camera_name] = VideoProcessor(video_url, index, camera_name, PROCESSOR_SKIP_FPS, debug,enable_saving=ENABLE_SAVING)
         if(data.get('areas', None)):
             video_processors[camera_name].set_restricted_area(data['areas'])
     else:

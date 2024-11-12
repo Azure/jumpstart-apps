@@ -12,6 +12,7 @@ from video_processor import VideoProcessor
 MODEL_PATH = os.getenv("MODEL_PATH", "./models/yolov8n.pt")
 FLASK_PORT = int(os.getenv("FLASK_PORT", 5000))
 FLASK_DEBUG = os.getenv("FLASK_DEBUG", "false").lower() in ["true", "1", "t"]
+PROCESSOR_SKIP_FPS = int(os.getenv("PROCESSOR_SKIP_FPS", 2))
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -34,7 +35,7 @@ def get_or_create_processor(camera_name, data):
         x1, y1, w, h = data['x'], data['y'], data['w'], data['h']
         debug = bool(data['debug'])
         video_url = data['video_url']
-        video_processors[camera_name] = VideoProcessor(video_url, index, det_model, camera_name, debug, x1, y1, w, h)
+        video_processors[camera_name] = VideoProcessor(video_url, index, det_model, camera_name, PROCESSOR_SKIP_FPS, debug, x1, y1, w, h)
     else:
         video_processors[camera_name].update_debug(bool(data['debug']))
         video_processors[camera_name].update_line(data['x'], data['y'], data['w'], data['h'])
