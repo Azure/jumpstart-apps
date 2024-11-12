@@ -32,7 +32,8 @@ spec:
       {{- end }}
       initContainers:
       - name: init-download-model
-        image: ldabas/shopper-insights-api:1.0.2
+        image: ldabas/shopper-insights-api:1.0.3
+        imagePullPolicy: Always
         command: 
           - sh
           - -c
