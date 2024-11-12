@@ -3,26 +3,44 @@ import json
 from dotenv import load_dotenv
 from openai import AzureOpenAI
 
+MODEL_PATH = os.getenv('MODEL_PATH', './cpu_and_mobile/cpu-int4-rtn-block-32-acc-level-4')
+
+# Conditionally import the appropriate onnxruntime package
+if MODEL_PATH.startswith('cuda'):
+    import onnxruntime_genai_cuda as og
+    print("Using CUDA-enabled onnxruntime")
+else:
+    import onnxruntime_genai as og
+    print("Using CPU onnxruntime")
+
 class LLM:
     def __init__(self):
         # Load environment variables from .env file
         #development
         #load_dotenv()
-        self.api_key = os.getenv('OPENAI_API_KEY')
-        self.AZURE_OPENAI_API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
-        self.CHATGPT_MODEL = os.getenv("CHATGPT_MODEL")
-        self.AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
-        self.OPENAI_API_VERSION = os.getenv("OPENAI_API_VERSION")
-        self.INFLUXDB_BUCKET = os.getenv("INFLUXDB_BUCKET")
-        self.SQL_DATABASE = os.getenv("SQL_DATABASE", "RetailDB")
-        self.REDIS_URL = os.getenv("REDIS_URL")
+        self.USE_LOCAL_LLM = os.getenv('USE_LOCAL_LLM', 'false').lower() == 'true'
+        self.MODEL_PATH = os.getenv('MODEL_PATH', 'cuda/cuda-int4-rtn-block-32')
+        
+        if self.USE_LOCAL_LLM:
+            # Initialize local Phi-3 model with GPU support
+            self.phi = og.Phi3(self.MODEL_PATH)
+            print(f"Local LLM initialized with model path: {self.MODEL_PATH}")
+        else:
+            self.api_key = os.getenv('OPENAI_API_KEY')
+            self.AZURE_OPENAI_API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
+            self.CHATGPT_MODEL = os.getenv("CHATGPT_MODEL")
+            self.AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
+            self.OPENAI_API_VERSION = os.getenv("OPENAI_API_VERSION")
+            self.INFLUXDB_BUCKET = os.getenv("INFLUXDB_BUCKET")
+            self.SQL_DATABASE = os.getenv("SQL_DATABASE", "RetailDB")
+            self.REDIS_URL = os.getenv("REDIS_URL")
 
-        # Initialize the AzureOpenAI client
-        self.client = AzureOpenAI(
-            azure_endpoint=self.AZURE_OPENAI_ENDPOINT, 
-            api_key=self.AZURE_OPENAI_API_KEY,  
-            api_version=self.OPENAI_API_VERSION
-        )
+            # Initialize the AzureOpenAI client
+            self.client = AzureOpenAI(
+                azure_endpoint=self.AZURE_OPENAI_ENDPOINT, 
+                api_key=self.AZURE_OPENAI_API_KEY,  
+                api_version=self.OPENAI_API_VERSION
+            )
 
         # Load prompts from JSON configuration file
         self.prompts = self.load_prompts('prompts.json')

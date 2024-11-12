@@ -37,6 +37,7 @@ pypdf==4.0.1
 tensorflow-text==2.14.0
 tensorflow-hub==0.15.0
 onnxruntime-genai
+onnxruntime-genai-cuda
 huggingface-hub[cli]
 
 # Utilities

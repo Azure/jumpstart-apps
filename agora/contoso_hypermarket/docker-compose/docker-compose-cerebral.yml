@@ -95,7 +95,7 @@ services:
       - |
         pip install -U "huggingface_hub[cli]"
         huggingface-cli download microsoft/Phi-3-mini-4k-instruct-onnx \
-        --include "cpu_and_mobile/cpu-int4-rtn-block-32-acc-level-4/*" \
+        --include "cuda/cuda-int4-rtn-block-32/*" \
         --local-dir /app/models
         if [ ! -d "/app/models/phi3" ]; then
           mkdir /app/models/phi3
@@ -124,7 +124,7 @@ services:
   cerebral-api:
     build:
         context: ../../cerebral_api/src  # This should point to the folder containing the Dockerfile and requirements.txt
-        dockerfile: Dockerfile
+        dockerfile: Dockerfile.gpu
     #image: mcr.microsoft.com/jumpstart/agora/cerebral_api:1.0.0
     container_name: cerebral_api  # Name of the container
     depends_on:
@@ -149,8 +149,8 @@ services:
       WHISPER_MODEL_PATH: ""
       AZURE_AI_SPEECH_KEY: ""
       AZURE_AI_SPEECH_REGION: ""
-      USE_LOCAL_LLM: "false" # Change to true if you want to use a local LLM model
-      MODEL_PATH: "/app/models/cpu_and_mobile/cpu-int4-rtn-block-32-acc-level-4"
+      USE_LOCAL_LLM: "true" # Change to true if you want to use a local LLM model
+      MODEL_PATH: "/app/models/cuda/cuda-int4-rtn-block-32/*"
       CHROMA_HOST: "chroma_db"
       CHROMA_PORT: "8000"
       CHROMA_COLLECTION: "documents"
