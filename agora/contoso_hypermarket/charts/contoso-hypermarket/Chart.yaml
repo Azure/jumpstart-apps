@@ -30,3 +30,6 @@ dependencies:
   - name: cerebral-api
     version: 0.1.0
     repository: "file://../cerebral-api"
+  - name: influxdb
+    version: 0.1.0
+    repository: "file://../influxdb"
