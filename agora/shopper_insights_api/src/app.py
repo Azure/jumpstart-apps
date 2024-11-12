@@ -1,7 +1,7 @@
 import os
 from flask import Flask, render_template, Response, request, jsonify
 import cv2
-from openvino.runtime import Core, get_version as ov_get_version
+import torch
 from video_processor import VideoProcessor
 import time
 import json
@@ -19,7 +19,7 @@ app = Flask(__name__)
 
 # Global variables
 video_processors = {}
-ie = Core()
+
 
 def get_or_create_processor(camera_name, data):
     if camera_name not in video_processors:
@@ -123,9 +123,13 @@ def metrics():
     return Response(generate_latest(), mimetype=CONTENT_TYPE_LATEST)
 
 if __name__ == '__main__':
-    print(f"OpenVINO version: {ov_get_version()}")
-    print(f"Available devices: {ie.available_devices}")  
-    
+    print(f"PyTorch version: {torch.__version__}")
+    print(f"CUDA available: {torch.cuda.is_available()}")
+    if torch.cuda.is_available():
+        print(f"Device count: {torch.cuda.device_count()}")
+        print(f"Current device: {torch.cuda.current_device()}")
+        print(f"Device name: {torch.cuda.get_device_name(torch.cuda.current_device())}")
+
     # Initialize the metrics
     prometheus_metrics = PrometheusMetrics()
     
