@@ -28,7 +28,7 @@ const Home = () => {
             <ul style={{ listStyleType: 'disc', paddingLeft: '20px' }}>
               <li style={{ listStyleType: 'none' }}><a href="/storemanager" style={{ color: 'white' }}>Store Manager</a></li>
               <li style={{ listStyleType: 'none' }}><a href="/shopper" style={{ color: 'white' }}>Shopper</a></li>
-              <li style={{ listStyleType: 'none' }}><a href="/maintenance" style={{ color: 'white' }}>Maintenance</a></li>
+              <li style={{ listStyleType: 'none' }}><a href="/maintenanceworker" style={{ color: 'white' }}>Maintenance Worker</a></li>
             </ul>
           </div>     
       </div>
