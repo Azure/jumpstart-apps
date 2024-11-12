@@ -4,7 +4,9 @@ import cv2
 import numpy as np
 import threading
 from queue import Queue
-from openvino.runtime import Core
+import torch
+import torchvision
+from torchvision import transforms
 import hashlib
 from scipy.spatial.distance import cosine
 from collections import defaultdict
@@ -50,19 +52,40 @@ class VideoProcessor:
         # Start the Video creation thread
         self.video_creation_thread = None
 
-        # OpenVINO setup
-        MODEL_PATH = os.getenv("MODEL_PATH", ".\\models")
-        self.ie = Core()
-        self.det_model = self.ie.read_model(os.path.join(MODEL_PATH, "person-detection-retail-0013.xml"))
-        self.det_compiled_model = self.ie.compile_model(model=self.det_model, device_name="CPU")
-        self.reid_model = self.ie.read_model(os.path.join(MODEL_PATH, "person-reidentification-retail-0287.xml"))
-        self.reid_compiled_model = self.ie.compile_model(model=self.reid_model, device_name="GPU" if "GPU" in self.ie.available_devices else "CPU")
-        self.age_compiled_model = self.ie.read_model(os.path.join(MODEL_PATH, "age-gender-recognition-retail-0013.xml"))
-        self.age_compiled_model = self.ie.compile_model(model=self.age_compiled_model, device_name="GPU" if "GPU" in self.ie.available_devices else "CPU")
+        # Device configuration
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+        # PyTorch model setup
+        MODEL_PATH = os.getenv("MODEL_PATH", "./models")
+        
+        # Load the person detection model
+        # Using a pre-trained Faster R-CNN model from torchvision
+        self.det_model = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=True)
+        self.det_model.to(self.device)
+        self.det_model.eval()
+
+        # Load the person re-identification model
+        # Assuming you have a custom model saved as 'person_reid_model.pth'
+        self.reid_model = torch.load(os.path.join(MODEL_PATH, "person_reid_model.pth"))
+        self.reid_model.to(self.device)
+        self.reid_model.eval()
+
+        # Load the age-gender recognition model
+        # Assuming you have a custom model saved as 'age_gender_model.pth'
+        self.age_model = torch.load(os.path.join(MODEL_PATH, "age_gender_model.pth"))
+        self.age_model.to(self.device)
+        self.age_model.eval()
+
+        # Define image transforms
+        self.transform = transforms.Compose([
+            transforms.ToTensor(),
+            # Add normalization if required by your models
+        ])
+
 
         # Print model loading information
-        device_used = "GPU" if "GPU" in self.ie.available_devices else "CPU"
-        print(f"Model loaded in: {device_used}")
+        device_used = "GPU" if self.device.type == 'cuda' else "CPU"
+        print(f"Model loaded on: {device_used}")
 
        # Get input and output layers
         self.det_input_layer = self.det_compiled_model.input(0)

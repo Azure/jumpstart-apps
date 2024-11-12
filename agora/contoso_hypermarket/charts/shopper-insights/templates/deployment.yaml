@@ -32,13 +32,13 @@ spec:
       {{- end }}
       initContainers:
       - name: init-download-model
-        image: mcr.microsoft.com/cbl-mariner/base/core:2.0
+        image: ldabas/shopper-insights-api:1.0.2
         command: 
           - sh
           - -c
           - |
-            tdnf update -y
-            tdnf install wget -y
+            apt-get update && apt-get install -y wget
+            mkdir -p /tmp/models
             wget -O /tmp/models/person-detection-retail-0013.bin https://download.microsoft.com/download/ad457769-60e2-4e4b-8756-8d9fada0b60a/person-detection-retail-0013.bin
             wget -O /tmp/models/person-detection-retail-0013.xml https://download.microsoft.com/download/ad457769-60e2-4e4b-8756-8d9fada0b60a/person-detection-retail-0013.xml
             wget -O /tmp/models/person-reidentification-retail-0287.bin https://download.microsoft.com/download/ad457769-60e2-4e4b-8756-8d9fada0b60a/person-reidentification-retail-0287.bin

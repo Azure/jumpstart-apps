@@ -1,20 +1,25 @@
-# Use a base Python image
-FROM mcr.microsoft.com/cbl-mariner/base/python:3
+# Use the official PyTorch image with CUDA support
+FROM pytorch/pytorch:2.0.1-cuda11.7-cudnn8-runtime
 
-# Copy application files to the container
+# Set the working directory
 WORKDIR /usr/src/app
 
 # Install necessary dependencies
 USER root
-RUN tdnf install -y mesa-libGL glib2
+RUN apt-get update && apt-get install -y \
+    mesa-utils \
+    libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
 
+# Copy requirements and install Python dependencies
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Copy application code
 COPY . .
 
-# Make port 80 available to the world outside this container
+# Expose port 80
 EXPOSE 80
 
-# Run main.py when the container launches
-CMD ["/usr/bin/python3", "app.py"]
+# Run the application when the container launches
+CMD ["python", "app.py"]
