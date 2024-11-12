@@ -106,7 +106,7 @@ const ShopperTopNav: React.FC = () => {
     };
     return (
     <Stack horizontal styles={containerStyles} tokens={stackTokens}>
-      <Stack.Item grow styles={itemStyles}>
+      {/* <Stack.Item grow styles={itemStyles}>
         <Dropdown 
           placeholder="Order ahead" 
           options={optionsOrderAhead} 
@@ -140,7 +140,7 @@ const ShopperTopNav: React.FC = () => {
             options={optionsOrderAhead} 
             className={classes.inputdropdown}
           />
-        </Stack.Item>
+        </Stack.Item> */}
     </Stack>
     );
 };
