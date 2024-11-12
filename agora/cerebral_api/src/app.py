@@ -49,6 +49,9 @@ DEFAULT_PERSIST_DIR = os.path.join(os.getcwd(), 'chroma_data')
 PERSIST_DIRECTORY = os.getenv('CHROMA_PERSIST_DIR', DEFAULT_PERSIST_DIR)
 CHROMA_COLLECTION = os.getenv('CHROMA_COLLECTION', 'documents')
 
+
+API_VERSION = "0.8"
+
 #DOCUMENT_INDEXER = None
 
 
@@ -672,6 +675,85 @@ class Applications(Resource):
         ]
         return jsonify(applications)
     
+def mask_sensitive_data(value: str, visible_chars: int = 3) -> str:
+    """
+    Mask sensitive data showing only the first few characters.
+    
+    Args:
+        value (str): The sensitive value to mask
+        visible_chars (int): Number of characters to show at the start
+        
+    Returns:
+        str: Masked string with only first few characters visible
+    """
+    if not value:
+        return ''
+        
+    value = str(value)  # Convert to string in case it's not
+    if len(value) <= visible_chars:
+        return value
+        
+    return value[:visible_chars] + '*' * (len(value) - visible_chars)
+
+environment_model = api.model('Environment', {
+    'api_version': fields.String(description='API version'),
+    'variables': fields.Raw(description='Environment variables')
+})
+
+@ns.route('/api/environment')
+class Environment(Resource):
+    @api.doc(responses={200: 'Success', 500: 'Server Error'})
+    @api.marshal_with(environment_model)
+    def get(self):
+        """Retrieve all environment variables used in the application"""
+        try:
+            # Variables from app.py
+            env_vars = {
+                'VERBOSE': os.getenv("VERBOSE"),
+                'USE_LOCAL_LLM': os.getenv('USE_LOCAL_LLM'),
+                'MODEL_PATH': os.getenv('MODEL_PATH'),
+                'DOCUMENTS_PATH': os.getenv('DOCUMENTS_PATH'),
+                'PORT': os.getenv('PORT'),
+                'DEBUG': os.getenv('DEBUG'),
+                'CHROMA_PERSIST_DIR': os.getenv('CHROMA_PERSIST_DIR'),
+                'CHROMA_COLLECTION': os.getenv('CHROMA_COLLECTION'),
+
+                # Variables from indexer.py
+                'DOCUMENTS_PATH': os.getenv('DOCUMENTS_PATH'),
+
+                # Variables from InfluxDBHandler.py
+                'INFLUXDB_URL': os.getenv("INFLUXDB_URL"),
+                'INFLUXDB_BUCKET': os.getenv("INFLUXDB_BUCKET"),
+                'INFLUXDB_TOKEN': mask_sensitive_data(os.getenv("INFLUXDB_TOKEN"),3),  
+                'INFLUXDB_ORG': os.getenv("INFLUXDB_ORG"),
+
+                # Variables from llm.py  
+                'AZURE_OPENAI_API_KEY': mask_sensitive_data(os.getenv("AZURE_OPENAI_API_KEY"),3),  
+                'CHATGPT_MODEL': os.getenv("CHATGPT_MODEL"),
+                'AZURE_OPENAI_ENDPOINT': os.getenv("AZURE_OPENAI_ENDPOINT"),
+                'OPENAI_API_VERSION': os.getenv("OPENAI_API_VERSION"),
+
+                # Variables from SqlDBHandler.py
+                'SQL_SERVER': os.getenv('SQL_SERVER'),
+                'SQL_DATABASE': os.getenv('SQL_DATABASE'),
+                'SQL_USERNAME': os.getenv('SQL_USERNAME'),
+                'SQL_PASSWORD': mask_sensitive_data(os.getenv("SQL_PASSWORD"),3),  
+
+                # Variables from speechToText.py
+                'WHISPER_MODEL_PATH': os.getenv('WHISPER_MODEL_PATH'),
+                'AZURE_AI_SPEECH_KEY': mask_sensitive_data(os.getenv("AZURE_AI_SPEECH_KEY"),3),  
+                'AZURE_AI_SPEECH_REGION': os.getenv('AZURE_AI_SPEECH_REGION'),
+            }
+
+            return {
+                'api_version': API_VERSION,
+                'variables': env_vars
+            }
+
+        except Exception as e:
+            logger.error(f"Error retrieving environment variables: {str(e)}")
+            api.abort(500, f"Error retrieving environment variables: {str(e)}")
+
 # Define the expected input model
 alert_model = ns.model('Alert', {
     'industry': fields.String(required=True, description='Specify the industry to retrieve alerts'),

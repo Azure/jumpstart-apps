@@ -7,7 +7,7 @@ import time
 import logging
 
 #DEV_MODE
-from dotenv import load_dotenv
+#from dotenv import load_dotenv
 #load_dotenv()
 
 # Global configuration variables
@@ -38,15 +38,12 @@ logger = configure_logging()
 class LLM:
     def __init__(self):
         
-        
-        self.api_key = os.getenv('OPENAI_API_KEY')
         self.AZURE_OPENAI_API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
         self.CHATGPT_MODEL = os.getenv("CHATGPT_MODEL")
         self.AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
         self.OPENAI_API_VERSION = os.getenv("OPENAI_API_VERSION")
         self.INFLUXDB_BUCKET = os.getenv("INFLUXDB_BUCKET")
         self.SQL_DATABASE = os.getenv("SQL_DATABASE", "RetailDB")
-        self.REDIS_URL = os.getenv("REDIS_URL")
 
         # Initialize the AzureOpenAI client
         self.client = AzureOpenAI(
@@ -139,49 +136,39 @@ class LLM:
                 categories=', '.join(categories),
                 question=question
             )
-            prompt_time = time.time() - start_time
+            #prompt_time = time.time() - start_time
             
             if VERBOSE:
                 logger.debug(f"[{request_id}] Generated prompt:")
                 logger.debug(f"[{request_id}] {prompt_text}")
-                logger.debug(f"[{request_id}] Prompt generation took: {prompt_time:.2f}s")
+                #logger.debug(f"[{request_id}] Prompt generation took: {prompt_time:.2f}s")
 
             # Make API request
-            
             logger.debug(f"[{request_id}] Sending request to OpenAI API")
             start_time = time.time()
+
+            conversation = [
+                {"role": "system", "content": prompt_text},
+                {"role": "user", "content": question}
+            ]
             
-            # Log request options if verbose
-            if VERBOSE:
-                request_options = {
-                    'model': "gpt-35-turbo",
-                    'prompt': prompt_text,
-                    'temperature': 0,
-                    'max_tokens': 10,
-                    'top_p': 1,
-                    'frequency_penalty': 0,
-                    'presence_penalty': 0,
-                    'stop': ["\n"]
-                }
-                logger.debug(f"[{request_id}] Request options: {request_options}")
-            
-            # Make API call
-            response = self.client.completions.create(
-                model="gpt-35-turbo",
-                prompt=prompt_text,
-                temperature=0,
-                max_tokens=10,
+            # Make API call using configured model
+            response = self.client.chat.completions.create(
+                model=self.CHATGPT_MODEL,
+                messages=conversation,
+                temperature=0,  # Keep temperature low for consistent classification
+                max_tokens=10,  # Short response needed
                 top_p=1,
                 frequency_penalty=0,
                 presence_penalty=0,
                 stop=["\n"]
             )
             
-            api_time = time.time() - start_time
-            logger.debug(f"[{request_id}] API request completed in {api_time:.2f}s")
+            #api_time = time.time() - start_time
+            #logger.debug(f"[{request_id}] API request completed in {api_time:.2f}s")
 
             # Process response
-            raw_response = response.choices[0].text.strip()
+            raw_response = response.choices[0].message.content
             cleaned_response = raw_response.replace('<|im_end|>', '').strip().lower()
             
             if VERBOSE:
@@ -195,7 +182,7 @@ class LLM:
                 return "unknown"
             
             logger.info(f"[{request_id}] Question classified as: {cleaned_response}")
-            logger.info(f"[{request_id}] Total classification time: {time.time() - start_time:.2f}s")
+            #logger.info(f"[{request_id}] Total classification time: {time.time() - start_time:.2f}s")
             
             return cleaned_response
 
@@ -381,7 +368,8 @@ class LLM:
                 model=self.CHATGPT_MODEL,
                 messages=conversation
             )
-            return response.choices[0].message.content
+            
+            return self.clean_html_output(response.choices[0].message.content) 
         except Exception as e:
             print(f"Error in generate_recommendations: {str(e)}")
             return "Error generating recommendations."
