@@ -99,7 +99,7 @@ const CamerasZones: React.FC<CameraPanelProps> = ({ isOpen, onDismiss, onSave })
     const [cameraEndpointInputValue, setCameraEndpointInputValue] = React.useState('');
     const handleCameraEndpointInputChange = (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
       setCameraEndpointInputValue(newValue || '');
-      setDataForVideo(footfallAIAPI + "/video_feed?data={\"x\" : 0, \"y\" : 0,\"w\" : 0, \"h\" : 0, \"debug\" : true, \"cameraName\" : \"Nabeel\", \"video_url\": \"" + newValue +"\" }");
+      setDataForVideo(footfallAIAPI + "/video_feed?data={\"x\" : 0, \"y\" : 0,\"w\" : 0, \"h\" : 0, \"debug\" : false, \"cameraName\" : \"Nabeel\", \"video_url\": \"" + newValue +"\" }");
     };
     const [tags, setTags] = React.useState<ITag[]>([]);
 
