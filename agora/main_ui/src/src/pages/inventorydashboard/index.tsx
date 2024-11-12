@@ -114,7 +114,7 @@ const InventoryDashboard = () => {
                 <Text className={classes.frameheader}>Inventory</Text>
               </Stack>              
               <Stack>
-                <InPageFilter />
+                {/* <InPageFilter /> */}
               </Stack>              
               <Stack id='LineAndBarCharts'>
                 <Stack className={classes.container} horizontal>

@@ -263,17 +263,17 @@ import {
         <Stack id='maincontainer'>
             <Stack id='camerasheader' horizontal style={{width: "100%"}}>
                 <Stack horizontal>
-                    <Dropdown placeholder="Sorty by" className={classes.dropdown} options={[
+                    {/* <Dropdown placeholder="Sorty by" className={classes.dropdown} options={[
                         { key: 'option1', text: 'Option 1' },
                         { key: 'option2', text: 'Option 2' },
                         { key: 'option3', text: 'Option 3' },
-                    ]} /> 
+                    ]} />  */}
                     <div className={classes.addcameracontainer}>
                     <Button appearance="primary" className={classes.addcamerabutton} onClick={callParentFunction}>+ Add Camera</Button>
                     </div>
                 </Stack>
                 <Stack id='searchboxcontainer' className={classes.searchboxcontainer}>
-                <SearchBox placeholder="Search camera feeds" className={classes.searchbox} />
+                {/* <SearchBox placeholder="Search camera feeds" className={classes.searchbox} /> */}
                 </Stack>
             </Stack>
             { (dataItems.length == 0) ? (

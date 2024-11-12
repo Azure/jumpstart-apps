@@ -390,7 +390,7 @@ const CamerasZonesWizard = () => {
                         ? 'Drop the files here'
                         : 'Drag and drop files here or'}
                         </Text>
-                        <PrimaryButton text="Browse files" onClick={() => {}} />
+                        <PrimaryButton disabled text="Browse files" onClick={() => {}} />
                     </Stack>
                     </div>
                         </Stack>                        

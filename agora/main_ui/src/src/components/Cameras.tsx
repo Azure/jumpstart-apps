@@ -31,11 +31,9 @@ import {
         marginLeft: "16px",
         marginTop: "10px",
         marginBottom: "10px",
-
     },
     cameraHeader: {
         margin:"0 auto"
-
     },
     cameraInnerTextInIcon: {
         marginLeft: "7px",
@@ -55,6 +53,18 @@ import {
         marginBottom: "12x",
         width:"40px",
         height:"40px",
+    },
+    cameraLabel: {
+        marginLeft: "7px",
+        marginTop: "20px",
+        alignContent: "start",
+        color: "var(--Text-Primary, #323130)",
+        fontFamily: "Segoe UI",
+        fontSize: "12px",
+        fontStyle: "normal",
+        fontWeight: "400",
+        lineHeight: "16px", /* 142.857% */       
+        verticalAlign: "top", 
     },
     activeCameras: {
         float:"right",
@@ -86,15 +96,12 @@ import {
         background: "#FFF"        
     },
     card: {
-        margin: "auto",
         width: "268px",
-        maxWidth: "100%",
-        paddingLeft: "40px"
       },
       cameracard: {
-          width: "537px",
           maxWidth: "100%",
-          marginTop: "15px",
+          padding: "0px",
+          marginLeft: "5px"
         },
     text: {
         paddingTop: "30px",
@@ -288,7 +295,7 @@ import {
                         
                     </div>
                     <div id="activeCameras" className={styles.activeCameras}>
-                    <Text id="cameraInnerTextInIcon" className={styles.cameraInnerTextInIcon}>9 Cameras active</Text>
+                    <Text id="cameraInnerTextInIcon" className={styles.cameraInnerTextInIcon}>{dataItems.length} Cameras active</Text>
                     </div>
                 </Stack>
                 <Stack id='camerascollection'>
@@ -303,11 +310,11 @@ import {
                                     </CardPreview>
                                     <CardFooter>
                                         <Stack>
-                                        <Text><b>{item.name}</b></Text>
+                                        <Text className={styles.cameracard} style={{fontSize: "14px", fontWeight: "600"}}>{item.name}</Text>
                                         <Stack horizontal>
-                                        <Text>Zone label </Text>
-                                        <Text>&nbsp; | Status: Active | </Text>
-                                        <Text>&nbsp;People count: {item.currentCount}</Text>
+                                        <Text className={styles.cameraLabel} style={{color: "#616161"}}>Zone label </Text>
+                                        <Text className={styles.cameraLabel}>&nbsp; | Status: Active | </Text>
+                                        <Text className={styles.cameraLabel}>&nbsp;People count: {item.currentCount}</Text>
                                         </Stack>
                                         </Stack>
                                     </CardFooter>
