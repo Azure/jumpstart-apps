@@ -1,4 +1,3 @@
-include /etc/nginx/mime.types;
 server_tokens off;
 server {
     listen       8080;
