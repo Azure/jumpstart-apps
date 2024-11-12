@@ -11,6 +11,8 @@ class PrometheusMetrics:
         
         # Gauges for age demographics per camera
         self.age_groups = {}
+        for age in [10, 20, 30, 40, 50, 60]:
+            self.age_groups[f'age_{age}'] = 0
         
         # Gauges for area statistics per camera
         self.area_stats = {}
