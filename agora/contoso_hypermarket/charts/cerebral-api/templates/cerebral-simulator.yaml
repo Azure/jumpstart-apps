@@ -42,6 +42,11 @@ metadata:
   name: cerebral-simulator
   namespace: contoso-hypermarket
 spec:
+  {{- if (lookup "v1" "Namespace" "" "gpu-operator") }}
+  nodeSelector:
+    nvidia.com/gpu.present: "true"     # Ensures pods are scheduled on GPU-enabled nodes
+  runtimeClassName: nvidia
+  {{- end }}
   replicas: 1
   selector:
     matchLabels:
