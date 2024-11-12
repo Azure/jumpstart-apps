@@ -208,7 +208,8 @@ export const CerebralChatWithAudio = (props: ChatInputProps) => {
     // Socket event handlers
     socket.on('classification', (data) => {
       setIsProcessing(false);
-      messageBuffer.classification += " " + data.category;
+      const category = !data.category || data.category === "unknown" ? "general" : data.category;
+      messageBuffer.classification += " " + category;
       flushBufferedMessages(false);
     });
 
@@ -280,7 +281,7 @@ export const CerebralChatWithAudio = (props: ChatInputProps) => {
     // Send message to server
     socketRef.current?.emit('process_question', {
       question: message,
-      industry: "retail",
+      industry: serverConfig.current.industry,
       role: serverConfig.current.role
     });
     controlRef.current?.setInputText("");
