@@ -16,7 +16,15 @@ from InfluxDBHandler import InfluxDBHandler
 from SqlDBHandler import SqlDBHandler
 from SpeechToText import STT
 from indexer import DocumentIndexer
-import onnxruntime_genai as og
+MODEL_PATH = os.getenv('MODEL_PATH', './cpu_and_mobile/cpu-int4-rtn-block-32-acc-level-4')
+
+# Conditionally import the appropriate onnxruntime package
+if MODEL_PATH.startswith('cuda'):
+    import onnxruntime_genai_cuda as og
+    print("Using CUDA-enabled onnxruntime")
+else:
+    import onnxruntime_genai as og
+    print("Using CPU onnxruntime")
 
 USE_LOCAL_LLM = os.getenv('USE_LOCAL_LLM', 'false').lower() == 'true'
 MODEL_PATH = os.getenv('MODEL_PATH', './cpu_and_mobile/cpu-int4-rtn-block-32-acc-level-4')
