@@ -1,0 +1,173 @@
+services:
+
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: mssql
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql-data:/var/opt/mssql
+    environment:
+      - ACCEPT_EULA="Y"
+      - MSSQL_SA_PASSWORD=ArcPassword123!!
+    restart: always
+
+  mssql-setup-job:
+    image: mcr.microsoft.com/mssql-tools
+    container_name: mssql_setup_job
+    command: ["/bin/bash", "-c", "sleep 5s && chmod +x /tmp/sql-setup.sh && /tmp/sql-setup.sh"]
+    restart : "no"
+    environment:
+      - MSSQL_SA_PASSWORD=ArcPassword123!!
+    volumes:
+      - mssql-data:/var/opt/mssql
+      - ./cerebral_api/operations/sql-setup.sh:/tmp/sql-setup.sh
+    depends_on:
+      mssql:
+        condition: service_started
+
+  influxdb:
+    image: mcr.microsoft.com/azurelinux/base/influxdb:2.7
+    container_name: influxdb
+    ports:
+      - "9999:9999"
+      - "8086:8086"
+    environment:
+      - INFLUXDB_ADMIN_USER=admin
+      - INFLUXDB_ADMIN_PASSWORD=password
+    volumes:
+      - influxdb-storage:/var/lib/influxdb2
+    deploy:
+    restart: always
+
+  influxdb-setup-job:
+    image: mcr.microsoft.com/azurelinux/base/influxdb:2.7
+    container_name: influxdb_setup_job
+    volumes:
+      - ./cerebral_api/operations/influxdb-setup.sh:/docker-entrypoint-initdb.d/influxdb-setup.sh  # Mount the setup script
+    command: ["/bin/bash", "/docker-entrypoint-initdb.d/influxdb-setup.sh"]  # Run the script
+    depends_on:
+      - influxdb
+    restart: "no"
+
+  chroma-db:
+    image: chromadb/chroma:latest
+    container_name: chroma_db
+    ports:
+      - "8040:8040"
+    environment:
+      - CHROMA_SERVER_HTTP_PORT=8040
+      - CHROMA_SERVER_HOST=0.0.0.0
+      - CHROMA_SERVER_CORS_ALLOW_ORIGINS=["*"]
+      - CHROMA_SERVER_AUTH_CREDENTIALS=false
+      - PERSIST_DIRECTORY=/chroma/data
+      - CHROMA_SERVER_AUTH_BASIC_ENABLE=false
+      - CHROMA_SERVER_AUTH_DISABLE=true
+      - ALLOW_RESET=true
+    volumes:
+      - chroma-data:/chroma/data
+    restart: always
+
+  cerebral-api-init-documents:
+    container_name: init-documents
+    image: mcr.microsoft.com/cbl-mariner/base/core:2.0
+    command: 
+      - sh
+      - -c
+      - |
+        tdnf update -y
+        tdnf install wget -y
+        cd /app/docs
+        wget -O "SmartShelf_Manual.pdf" "https://download.microsoft.com/download/2b3927e0-5342-4d84-8b55-ab958281259b/SmartShelf%20System%20User%20Manual%20for%20Contoso%20Hypermarket.pdf" && \
+        wget -O "Scale_Manual.pdf" "https://download.microsoft.com/download/2b3927e0-5342-4d84-8b55-ab958281259b/Scale%20System%20User%20Manual%20for%20Contoso%20Hypermarket.pdf" && \
+        wget -O "Refrigeration_Manual.pdf" "https://download.microsoft.com/download/2b3927e0-5342-4d84-8b55-ab958281259b/Refrigeration%20System%20User%20Manual%20for%20Contoso%20Hypermarket.pdf" && \
+        wget -O "Checkout_Manual.pdf" "https://download.microsoft.com/download/2b3927e0-5342-4d84-8b55-ab958281259b/Automated%20Checkout%20System%20User%20Manual%20for%20Contoso%20Hypermarket.pdf" && \
+        wget -O "HVAC_Manual.pdf" "https://download.microsoft.com/download/2b3927e0-5342-4d84-8b55-ab958281259b/HVAC%20System%20User%20Manual%20for%20Contoso%20Hypermarket.pdf"
+    volumes:
+      - cerebral-docs:/app/docs
+
+  cerebral-api-init-model:
+    container_name: init-slm-model
+    image: mcr.microsoft.com/azurelinux/base/python:3.12
+    command: 
+      - sh
+      - -c
+      - |
+        pip install -U "huggingface_hub[cli]"
+        huggingface-cli download microsoft/Phi-3-mini-4k-instruct-onnx \
+        --include "cpu_and_mobile/cpu-int4-rtn-block-32-acc-level-4/*" \
+        --local-dir /app/models
+        if [ ! -d "/app/models/phi3" ]; then
+          mkdir /app/models/phi3
+        fi
+    volumes:
+      - cerebral-slm-model:/app/models
+
+  cerebral-simulator:
+    build:
+      context: ../../cerebral_simulator/src  # This should point to the folder containing the Dockerfile
+      dockerfile: Dockerfile
+    container_name: cerebral_simulator  # Name of the container
+    ports:
+      - "8001:8001"  # Expose container port 5000
+    environment:
+      INFLUXDB_URL: "http://influxdb:8086"  # Environment variables
+      INFLUXDB_TOKEN: "secret-token"
+      INFLUXDB_ORG: "InfluxData"
+      INFLUXDB_BUCKET: "hypermarket"
+      VERBOSE: "true"
+      ENABLE_MQTT : "True"
+      ENABLE_INFLUXDB : "True"
+      ENABLE_STORE_SIMULATOR : "True"
+    restart: always  # Optional: Restart policy
+
+  cerebral-api:
+    build:
+        context: ../../cerebral_api/src  # This should point to the folder containing the Dockerfile and requirements.txt
+        dockerfile: Dockerfile
+    #image: mcr.microsoft.com/jumpstart/agora/cerebral_api:1.0.0
+    container_name: cerebral_api  # Name of the container
+    depends_on:
+      - cerebral-api-init-model
+      - cerebral-api-init-documents
+    ports:
+      - "5006:5006"  # Map host port 5003 to container port 5003
+    environment:
+      AZURE_OPENAI_API_KEY: ""
+      CHATGPT_MODEL: "gpt-35-turbo"
+      AZURE_OPENAI_ENDPOINT: ""
+      OPENAI_API_VERSION: "2024-03-01-preview"
+      INFLUXDB_URL: "http://influxdb.contoso-hypermarket.svc.cluster.local:8086"
+      INFLUXDB_BUCKET: "hypermarket"
+      INFLUXDB_TOKEN: "secret-token"
+      INFLUXDB_ORG: "InfluxData"
+      REDIS_URL: "redis://redis-service.contoso-hypermarket.svc.cluster.local:6379"
+      SQL_DATABASENAME: "RetailDB"
+      SQL_SERVER: "mssql-service"
+      SQL_USERNAME: "SA"
+      SQL_PASSWORD: "ArcPassword123!!"
+      WHISPER_MODEL_PATH: ""
+      AZURE_AI_SPEECH_KEY: ""
+      AZURE_AI_SPEECH_REGION: ""
+      USE_LOCAL_LLM: "true" # Change to true if you want to use a local LLM model
+      MODEL_PATH: "/app/models/cpu_and_mobile/cpu-int4-rtn-block-32-acc-level-4/*"
+      CHROMA_HOST: "chroma_db"
+      CHROMA_PORT: "8000"
+      CHROMA_COLLECTION: "documents"
+      PORT : "5006"
+    restart: always  # Optional: Restart policy
+    volumes:
+      - cerebral-docs:/app/docs
+      - cerebral-slm-model:/app/models
+
+volumes:
+  mssql-data:
+    driver: local
+  influxdb-storage:
+    driver: local
+  cerebral-docs:
+    driver: local
+  cerebral-slm-model:
+    driver: local
+  chroma-data:
+    driver: local
