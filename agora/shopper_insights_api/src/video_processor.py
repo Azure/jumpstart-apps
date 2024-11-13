@@ -145,13 +145,13 @@ class VideoProcessor:
         age = int(outputs[self.age_output_layer][0] * 100)
         return age
 
-    def update_area_presence(self, person_hash, bbox, frame_shape, current_time, is_new=False):
+    def update_area_presence(self, person_hash, age,  bbox, frame_shape, current_time, is_new=False):
         center = ((bbox[0] + bbox[2]) // 2 / frame_shape[1], (bbox[1] + bbox[3]) // 2 / frame_shape[0])
         
         for i, area in enumerate(self.restricted_areas):
             if self.point_in_rectangle(center, area):
                 if is_new or i not in self.people_near_areas[person_hash]:
-                    self.people_near_areas[person_hash][i] = {"start_time": current_time, "end_time": current_time}
+                    self.people_near_areas[person_hash][i] = {"start_time": current_time, "end_time": current_time, "age": age}
                     self.area_stats[i]["current_count"] += 1
                     self.area_stats[i]["total_count"] += 1
                 else:
@@ -359,7 +359,7 @@ class VideoProcessor:
                 if best_match[0] is not None and best_match[1] < self.max_distance_threshold:
                     bbox, features, age = current_frame_detections.pop(best_match[0])
                     new_person_tracker[person_id] = (bbox, features, frames_tracked + 1, is_shopper, person_hash, age)
-                    self.update_area_presence(person_hash, bbox, frame.shape, current_time)
+                    self.update_area_presence(person_hash, age, bbox, frame.shape, current_time)
                     self.update_age_stats(person_hash, age)
 
                     # Calculate the center point of the bounding box in normalized coordinates
@@ -384,7 +384,7 @@ class VideoProcessor:
             for bbox, features, age in current_frame_detections:
                 person_hash = hashlib.md5(features.tobytes()).hexdigest()[:8]
                 new_person_tracker[self.next_person_id] = (bbox, features, 1, False, person_hash, age)
-                self.update_area_presence(person_hash, bbox, frame.shape, current_time, is_new=True)
+                self.update_area_presence(person_hash, age, bbox, frame.shape, current_time, is_new=True)
                 self.next_person_id += 1
 
             frame_shoppers = set()
