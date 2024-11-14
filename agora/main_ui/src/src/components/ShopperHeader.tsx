@@ -259,7 +259,6 @@ const useStyles = makeStyles({
     productname: {
       "display": "flex",
       "align-items": "center",
-      marginLeft: "45px",
       marginBottom: "11px"
     },
     contosohypermarketdark: {
