@@ -492,6 +492,12 @@ def handle_process_question(data):
             emit('result', {'result': response})
             emit('complete')
             return
+
+        if question.lower() == "$version":
+            logger.info(f"[{request_id}] Version request, sending API version")
+            emit('result', {'result': API_VERSION})
+            emit('complete')
+            return
         
         # Step 1: Classify the question
         logger.info(f"[{request_id}] Classifying question")
@@ -558,9 +564,8 @@ def handle_process_question(data):
             emit('query', {'query': sql_query})
             
             query_result = sql_handler.test_data(sql_query)
+
             html_formatted = llm.format_results_to_html(query_result, "sql", industry, role)
-            
-            
             
             recommendations = llm.generate_recommendations(
                 question, sql_query, query_result, industry, role
