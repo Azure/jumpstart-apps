@@ -378,7 +378,7 @@ const CamerasZonesWizardSetupCamera = () => {
     const [selectedCamera, setSelectedCamera] = React.useState('');
     const handleCameraDropdownChange = (event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption, index?: number) =>{
       //setCameraEndpointInputValue(newValue || '');
-      setDataForVideo(footfallAIAPI + "/video_feed?data={\"x\" : 0, \"y\" : 0,\"w\" : 0, \"h\" : 0, \"debug\" : true, \"cameraName\" : \"Nabeel\", \"video_url\": \"" + option?.key +"\" }");
+      setDataForVideo(footfallAIAPI + "/video_feed?data={\"x\" : 0, \"y\" : 0,\"w\" : 0, \"h\" : 0, \"debug\" : false, \"cameraName\" : \"Nabeel\", \"video_url\": \"" + option?.key +"\" }");
       setSelectedCamera(option?.text || '');
     };
     const toggleCerebralDrawer = () => {

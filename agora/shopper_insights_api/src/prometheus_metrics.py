@@ -6,16 +6,19 @@ class PrometheusMetrics:
         self.total_persons = Gauge('detected_total_persons', 'Total number of detected persons', ['camera'])
         self.total_shoppers = Gauge('total_shoppers', 'Total number of shoppers', ['camera'])
         self.current_shoppers = Gauge('current_shoppers', 'Current number of shoppers', ['camera'])
+        self.time_in_area_avg_age = Gauge('time_in_area_avg_age', 'Average time spent in area', ['camera'])
         self.fps = Gauge('detection_fps', 'Current FPS of detection system', ['camera'])
-        self.time_in_area_avg = Gauge('time_in_area_avg', 'Average time shoppers spend in an area', ['camera', 'area_id'])
         
         # Gauges for age demographics per camera
         self.age_groups = {}
-        
+
+        # Gauges for average time spent in area per age group per camera
+        self.time_in_area_avg_age = {}
+
         # Gauges for area statistics per camera
         self.area_stats = {}
         self.people_near_areas = {}
-    
+   
     def _get_age_metric(self, age, camera_name):
         """Get or create an age metric for a specific camera."""
         metric_key = f'age_{age}_{camera_name.replace(" ", "_")}'
@@ -25,6 +28,27 @@ class PrometheusMetrics:
                 f'Number of shoppers in age group {age}',
                 ['camera']
             )
+
+        for age_group in [10, 20, 30, 40, 50, 60]:
+            aux_metric_key = f'age_{age_group}_{camera_name.replace(" ", "_")}'
+            if aux_metric_key not in self.age_groups:
+                self.age_groups[aux_metric_key] = Gauge(
+                    f'shoppers_age_{age_group}_{camera_name.replace(" ", "_")}',
+                    f'Number of shoppers in age group {age_group}',
+                    ['camera']
+                )
+                self.age_groups[aux_metric_key].labels(camera=camera_name).set(0)
+        
+        for age_group in [10, 20, 30, 40, 50, 60]:
+            aux_metric_key = f'time_avg_age_{age_group}_{camera_name.replace(" ", "_")}'
+            if aux_metric_key not in self.time_in_area_avg_age:
+                self.time_in_area_avg_age[aux_metric_key] = Gauge(
+                    f'time_avg_age_{age_group}_{camera_name.replace(" ", "_")}',
+                    f'Average time spent by shoppers in age group {age_group}',
+                    ['camera']
+                )
+                self.time_in_area_avg_age[aux_metric_key].labels(camera=camera_name).set(0)
+                
         return self.age_groups[metric_key]
     
     def _get_area_metric(self, area_id, camera_name):
@@ -69,23 +93,22 @@ class PrometheusMetrics:
                 metric.labels(camera=camera_name).set(stats['current_count'])
                 metric.labels(camera=camera_name).set(stats['total_count'])
 
-            # Update time inside area metrics
-            for area_id, times in detection_data['people_near_areas'].items():
-                metric_key = f'time_in_area_{area_id}_{camera_name}'
-                if metric_key not in self.area_stats:
-                    self.area_stats[metric_key] = Gauge(
-                        f'time_in_area_{area_id}_{camera_name.replace(" ", "_")}',
-                        f'Time spent in area {area_id}',
-                        ['camera']
-                    )
-                metric = self.area_stats[metric_key]
-                metric.labels(camera=camera_name).set(times[0]['end_time'] - times[0]['start_time'])
-                
-            # Update average time in area metrics
-            for area_id, times in detection_data['people_near_areas'].items():
-                if not times or len(times) == 0:
-                    continue
-                total_time = sum(time.get('end_time', 0) - time.get('start_time', 0) for time in times if isinstance(time, dict))
-                total_entries = len(times)
-                average_time = total_time / total_entries if total_entries > 0 else 0
-                self.time_in_area_avg.labels(camera=camera_name, area_id=area_id).set(average_time)
+            # Update average time in area metrics per age group
+            for area_id, age_data in detection_data['people_near_areas'].items():
+                for times in age_data.items():
+                    if not times or len(times) == 0:
+                        continue
+                    total_time = sum(time.get('end_time', 0) - time.get('start_time', 0) for time in times if isinstance(time, dict))
+                    total_entries = len(times)
+                    age = times[1].get('age', 0)
+                    age_group = int(age // 10) * 10
+                    average_time = total_time / total_entries if total_entries > 0 else 0
+                    metric_key = f'time_avg_age_{age_group}_{camera_name.replace(" ", "_")}'
+                    if metric_key not in self.time_in_area_avg_age:
+                        self.time_in_area_avg_age[metric_key] = Gauge(
+                            f'time_avg_age_{age_group}_{camera_name.replace(" ", "_")}',
+                            f'Average time spent by shoppers in age group {age_group}',
+                            ['camera']
+                        )
+                    metric = self.time_in_area_avg_age[metric_key]
+                    metric.labels(camera=camera_name).set(average_time)

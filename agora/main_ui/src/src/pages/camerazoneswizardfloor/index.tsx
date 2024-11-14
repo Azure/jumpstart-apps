@@ -349,7 +349,6 @@ const CamerasZonesWizardFloor: React.FC = () => {
       const handleCameraDropdownChange = (event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption, index?: number) =>{
         setCameraEndpointInputValue(option?.key.toString() || '');
         document.getElementById('txtCameraStorage')?.setAttribute("value", option?.text.toString() || '');        
-        //setDataForVideo(footfallAIAPI + "/video_feed?data={\"x\" : 0, \"y\" : 0,\"w\" : 0, \"h\" : 0, \"debug\" : true, \"cameraName\" : \"Nabeel\", \"video_url\": \"" + option?.key +"\" }");
       };
       const onRenderCerebralFooterContent = React.useCallback(
         () => (
