@@ -201,7 +201,7 @@ const MaintenanceCards = () => {
                                         </div>
                                         <Text className={styles.cardpreviewtext}>93%</Text>
                                     </Stack>
-                                <Text className={styles.learnMore}>Learn more</Text>
+                                {/* <Text className={styles.learnMore}>Learn more</Text> */}
                                 </Stack>
                             </Stack>
                         </Stack>
@@ -235,7 +235,7 @@ const MaintenanceCards = () => {
                                         </div>
                                         <Text className={styles.cardpreviewtext}>93%</Text>
                                     </Stack>
-                                <Text className={styles.learnMore}>Learn more</Text>
+                                {/* <Text className={styles.learnMore}>Learn more</Text> */}
                                 </Stack>
                             </Stack>
                         </Stack>
@@ -269,7 +269,7 @@ const MaintenanceCards = () => {
                                         </div>
                                         <Text className={styles.cardpreviewtext}>97%</Text>
                                     </Stack>
-                                <Text className={styles.learnMore}>Learn more</Text>
+                                {/* <Text className={styles.learnMore}>Learn more</Text> */}
                                 </Stack>
                             </Stack>
                         </Stack>
@@ -303,7 +303,7 @@ const MaintenanceCards = () => {
                                         </div>
                                         <Text className={styles.cardpreviewtext}>30%</Text>
                                     </Stack>
-                                <Text className={styles.learnMore}>Learn more</Text>
+                                {/* <Text className={styles.learnMore}>Learn more</Text> */}
                                 </Stack>
                             </Stack>
                         </Stack>
