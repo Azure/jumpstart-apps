@@ -12,6 +12,7 @@ import {
   Mic20Filled,
   TextClearFormatting20Regular,
   RecordStopRegular,
+  CheckmarkRegular
 } from "@fluentui/react-icons";
 import { useCopilotMode } from "@fluentui-copilot/react-provider";
 import { io, Socket } from "socket.io-client";
@@ -42,6 +43,12 @@ interface ServerConfig {
   industry: string;
   role: string;
 }
+
+interface CopyButtonProps {
+  msg: { content: string };
+  copilotMode: "canvas" | "other"; // Adjust as per your actual type
+}
+
 const Apps20 = bundleIcon(Apps20Filled, Apps20Regular);
 const Mic20 = bundleIcon(Mic20Filled, Mic20Regular);
 export const CerebralChatWithAudio = (props: ChatInputProps) => {
@@ -50,6 +57,7 @@ export const CerebralChatWithAudio = (props: ChatInputProps) => {
   const [isProcessing, setIsProcessing] = React.useState(false);
   const [isConnected, setIsConnected] = React.useState(false);
   const [messages, setMessages] = React.useState<ChatMessage[]>([]);
+  const [isCopied, setIsCopied] = React.useState(false);
   const recorderRef = React.useRef<any>(null);
   const socketRef = React.useRef<Socket | null>(null);
   const isMounted = React.useRef(false);
@@ -157,17 +165,33 @@ export const CerebralChatWithAudio = (props: ChatInputProps) => {
     }
   }
 
+  const handleCopy = (msg: string) => {
+    // Copy content to clipboard
+    navigator.clipboard.writeText(msg).then(() => {
+      // Show "copied" state
+      setIsCopied(true);
+      
+      // Reset state after 1.5 seconds
+      setTimeout(() => {
+        setIsCopied(false);
+      }, 1500);
+    });
+  };
+
   const flushBufferedMessages = (isCompleted: Boolean, eventName: String) => {
     const debugModeToggle = document.getElementById("debugModeToggle") as HTMLInputElement;
     const debuggerMode = debugModeToggle && debugModeToggle.checked;
 
-    const formattedMessage = `
+    let formattedMessage = `
           ${messageBuffer.classification && debuggerMode ? `<strong>Category:</strong> ${messageBuffer.classification.trim()}<br/>` : ''}
           ${messageBuffer.message && debuggerMode ? `<strong>Message:</strong> ${messageBuffer.message.trim()}<br/>` : ''}
           ${messageBuffer.query && debuggerMode ? `<strong>Generated Query:</strong> ${messageBuffer.query.trim()}<br/>` : ''}
           ${messageBuffer.result ? `${debuggerMode ? "<strong>Result:</strong>" : ""} ${messageBuffer.result.trim()}` : ''}
           ${messageBuffer.recommendations ? `${debuggerMode ? "<strong>Recommendations:</strong>" : ""} ${messageBuffer.recommendations.trim()}` : ''}
     `.trim();
+
+    // Remove trailing <br/> or </br> from the formatted message
+    formattedMessage = formattedMessage.replace(/<br\/?>$/, '');
 
     if (!formattedMessage) return; // Skip if there's nothing to update
 
@@ -202,8 +226,8 @@ export const CerebralChatWithAudio = (props: ChatInputProps) => {
         // Clear the message buffer after completion
         messageBuffer = { classification: '', message: '', query: '', result: '', recommendations: '' };
     }
-};
-
+  };
+  
   // Initialize Socket.IO connection
   React.useEffect(() => {
     const serverUrl = process.env.REACT_APP_CEREBRAL_WS_URL || '/';
@@ -447,13 +471,11 @@ export const CerebralChatWithAudio = (props: ChatInputProps) => {
         defaultFocused={index === messages.length - 1}
         actions={
           <Button
-            onClick={() => {
-              navigator.clipboard.writeText(msg.content);
-            }}
+            onClick={() => handleCopy(msg.content)}
             appearance={copilotMode === "canvas" ? "secondary" : "transparent"}
-            icon={<CopyRegular />}
-              >
-            {copilotMode === "canvas" ? "Copy" : ""}
+            icon={isCopied ? <CheckmarkRegular /> : <CopyRegular />}
+          >
+            {copilotMode === "canvas" ? (isCopied ? "Copied!" : "Copy") : ""}
           </Button>
         }
       >
@@ -499,9 +521,11 @@ export const CerebralChatWithAudio = (props: ChatInputProps) => {
                 appearance="transparent"
                 icon={<TextClearFormatting20Regular />}
                 onClick={() => {
-                  setMessages([]);
-                  controlRef.current?.setInputText("");
-                  addBotMessage("Hi, I'm here to help! You can ask me questions using text or voice.");
+                  if (!isProcessing) {
+                    setMessages([]);
+                    controlRef.current?.setInputText("");
+                    addBotMessage("Hi, I'm here to help! You can ask me questions using text or voice.");
+                  }
                 }}
             />
             <Divider style={{ margin: "0 4px" }} vertical />
