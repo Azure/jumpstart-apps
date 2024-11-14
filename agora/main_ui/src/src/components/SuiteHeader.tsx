@@ -327,7 +327,7 @@ const SuiteHeader: React.FC<{ callParentFunction: () => void }> = ({ callParentF
     return(
       <Stack horizontal tokens={horizontalStackTokens} className={classes.instance26Suiteheade}>
       <Stack.Item align="start">
-        <Stack horizontal onClick={() => navigate('/storemanager')} >
+        <Stack horizontal onClick={() => navigate('/.')} >
           <div id='ProductName+Breadcrumb' className={classes.productnameandbreadcrumb}>
             <div id='ProduceName' className={classes.productname}>
               <div id='ContosoHypermarketDark' className={classes.contosohypermarketdark}>
