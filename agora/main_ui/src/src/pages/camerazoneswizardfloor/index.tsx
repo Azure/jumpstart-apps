@@ -481,7 +481,6 @@ const CamerasZonesWizardFloor: React.FC = () => {
                 onClose={toggleCerebralDrawer} 
               />
             )}
-            onRenderFooterContent={onRenderCerebralFooterContent}
             isFooterAtBottom={true}
             hasCloseButton={true}
             closeButtonAriaLabel="Close"

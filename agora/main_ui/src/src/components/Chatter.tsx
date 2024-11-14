@@ -10,10 +10,12 @@ import {
   CopyRegular,
   Mic20Regular,
   Mic20Filled,
+  TextClearFormatting20Regular,
   RecordStopRegular,
 } from "@fluentui/react-icons";
 import { useCopilotMode } from "@fluentui-copilot/react-provider";
 import { io, Socket } from "socket.io-client";
+import ReactMarkdown from 'react-markdown';
 import {
   CopilotChat,
   CopilotMessageV2 as CopilotMessage,
@@ -27,6 +29,7 @@ import {
   ImperativeControlPlugin,
 } from "@fluentui-copilot/react-chat-input-plugins";
 declare const RecordRTC: any;
+
 
 interface ChatMessage {
   content: string;
@@ -68,6 +71,48 @@ export const CerebralChatWithAudio = (props: ChatInputProps) => {
     return { industry, role };
   };
   const serverConfig = React.useRef<ServerConfig>(getServerConfigFromUrl());
+  
+  function detectFormat(text: string): "HTML" | "Markdown" | "String" {
+    // Patterns to detect HTML
+    const htmlPatterns: RegExp[] = [
+      /<\s*html[^>]*>/i,          // Matches HTML document structure
+      /<\s*head[^>]*>.*<\/head>/i, // Matches <head>...</head> block
+      /<\s*body[^>]*>.*<\/body>/i, // Matches <body>...</body> block
+      /<\s*div[^>]*>/i,            // Matches <div> tag
+      /<\s*p[^>]*>/i,              // Matches <p> tag
+      /<\s*a[^>]*>.*<\/a>/i,       // Matches <a>...</a> link
+      /<\s*h[1-6][^>]*>/i          // Matches <h1> to <h6> headers
+    ];
+  
+    // Patterns to detect Markdown
+    const markdownPatterns: RegExp[] = [
+      /^#{1,6}\s/m,                // Matches Markdown headers (#, ##, ###, etc.)
+      /\*\*[^*]+\*\*/,             // Matches bold text **bold**
+      /\*[^*]+\*/,                 // Matches italic text *italic*
+      /\[(.*?)\]\((.*?)\)/,        // Matches Markdown links [text](url)
+      /^\s*[-+*]\s+/m,             // Matches unordered lists (-, *, +)
+      /^\s*\d+\.\s+/m,             // Matches ordered lists (1., 2., 3.)
+      /`[^`]+`/,                   // Matches inline code `code`
+      /^>\s+/m                     // Matches blockquotes
+    ];
+  
+    // Check if text matches any HTML patterns
+    for (const pattern of htmlPatterns) {
+      if (pattern.test(text)) {
+        return 'HTML';
+      }
+    }
+  
+    // Check if text matches any Markdown patterns
+    for (const pattern of markdownPatterns) {
+      if (pattern.test(text)) {
+        return 'Markdown';
+      }
+    }
+  
+    // If no patterns matched, return 'Unknown'
+    return 'String';
+  }
 
   const handleOnClick = async () => {
     if (!isRecording) {
@@ -112,53 +157,52 @@ export const CerebralChatWithAudio = (props: ChatInputProps) => {
     }
   }
 
-  const flushBufferedMessages = (isCompleted: Boolean) => {
-
+  const flushBufferedMessages = (isCompleted: Boolean, eventName: String) => {
     const debugModeToggle = document.getElementById("debugModeToggle") as HTMLInputElement;
-    const debuggerMode = debugModeToggle && debugModeToggle.checked ? true : false;
+    const debuggerMode = debugModeToggle && debugModeToggle.checked;
 
     const formattedMessage = `
           ${messageBuffer.classification && debuggerMode ? `<strong>Category:</strong> ${messageBuffer.classification.trim()}<br/>` : ''}
           ${messageBuffer.message && debuggerMode ? `<strong>Message:</strong> ${messageBuffer.message.trim()}<br/>` : ''}
           ${messageBuffer.query && debuggerMode ? `<strong>Generated Query:</strong> ${messageBuffer.query.trim()}<br/>` : ''}
-          ${messageBuffer.result ? `${debuggerMode ? "<strong>Result:</strong>" : ""} ${messageBuffer.result.trim()}<br/>` : ''}
-          ${messageBuffer.recommendations ? `${debuggerMode ? "<strong>Recommendations:</strong>" : ""} ${messageBuffer.recommendations.trim()}<br/>` : ''}
-        `.trim();
+          ${messageBuffer.result ? `${debuggerMode ? "<strong>Result:</strong>" : ""} ${messageBuffer.result.trim()}` : ''}
+          ${messageBuffer.recommendations ? `${debuggerMode ? "<strong>Recommendations:</strong>" : ""} ${messageBuffer.recommendations.trim()}` : ''}
+    `.trim();
 
-    if (!formattedMessage) return; // Skip if nothing to update
+    if (!formattedMessage) return; // Skip if there's nothing to update
 
-    setMessages(prevMessages => {
-      if (isCompleted) {
+    setMessages((prevMessages) => {
         const updatedMessages = [...prevMessages];
         const lastMessage = updatedMessages[updatedMessages.length - 1];
-        if (lastMessage && !lastMessage.isCompleted) {
-          lastMessage.isCompleted = true;
-          return updatedMessages;
-        }
-        return prevMessages;
-      } else {
-        const lastMessage = prevMessages[prevMessages.length - 1];
-        if (lastMessage && !lastMessage.isCompleted) {
-          lastMessage.content = formattedMessage;
-          return [...prevMessages];
-        } else {
-          return [
-            ...prevMessages,
-            {
-              content: formattedMessage,
-              isUser: false,
-              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-              isCompleted: false
+
+        if (isCompleted) {
+            // Mark last message as completed without adding a duplicate
+            if (lastMessage && !lastMessage.isCompleted) {
+                lastMessage.isCompleted = true;
             }
-          ];
+        } else {
+            if (lastMessage && !lastMessage.isCompleted) {
+                // Update content of the last message if it's not completed
+                lastMessage.content = formattedMessage;
+            } else {
+                // Otherwise, add a new message
+                updatedMessages.push({
+                    content: formattedMessage,
+                    isUser: false,
+                    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                    isCompleted: false
+                });
+            }
         }
-      }
+
+        return updatedMessages;
     });
 
     if (isCompleted) {
-      messageBuffer = { classification: '', message: '', query: '', result: '', recommendations: '' };
+        // Clear the message buffer after completion
+        messageBuffer = { classification: '', message: '', query: '', result: '', recommendations: '' };
     }
-  };
+};
 
   // Initialize Socket.IO connection
   React.useEffect(() => {
@@ -207,39 +251,37 @@ export const CerebralChatWithAudio = (props: ChatInputProps) => {
 
     // Socket event handlers
     socket.on('classification', (data) => {
-      setIsProcessing(false);
       const category = !data.category || data.category === "unknown" ? "general" : data.category;
       messageBuffer.classification += " " + category;
-      flushBufferedMessages(false);
+      flushBufferedMessages(false, 'classification');
     });
 
     socket.on('message', (data) => {
-      setIsProcessing(false);
       messageBuffer.message += " " + data.message;
-      flushBufferedMessages(false);
+      flushBufferedMessages(false, 'message');
     });
 
     socket.on('query', (data) => {
-      setIsProcessing(false);
       messageBuffer.query += " " + data.query;
-      flushBufferedMessages(false);
+      flushBufferedMessages(false, 'query');
     });
 
     socket.on('result', (data) => {
-      setIsProcessing(false);
       messageBuffer.result += " " + data.result;
-      flushBufferedMessages(false);
+      flushBufferedMessages(false, 'result');
     });
 
     socket.on('recommendations', (data) => {
-      setIsProcessing(false);
       messageBuffer.recommendations = data.recommendations;
-      flushBufferedMessages(false);
+      flushBufferedMessages(false, 'recommendations');
     });
 
     // Handle 'complete' event to flush buffered messages
     socket.on('complete', () => {
-      flushBufferedMessages(true);
+      setTimeout(() => {
+        flushBufferedMessages(true, 'complete');
+        setIsProcessing(false);
+      }, 500);
     });
 
     // Load RecordRTC script
@@ -395,24 +437,33 @@ export const CerebralChatWithAudio = (props: ChatInputProps) => {
         key={index}
         avatar={
           <Avatar
-            size={20}
-            image={{
-              src: "LogoCerebralRound.png",
-            }}
+        size={20}
+        image={{
+          src: "LogoCerebralRound.png",
+        }}
           />
         }
         name="Cerebral"
         defaultFocused={index === messages.length - 1}
         actions={
           <Button
+            onClick={() => {
+              navigator.clipboard.writeText(msg.content);
+            }}
             appearance={copilotMode === "canvas" ? "secondary" : "transparent"}
             icon={<CopyRegular />}
-          >
+              >
             {copilotMode === "canvas" ? "Copy" : ""}
           </Button>
         }
       >
-        <div dangerouslySetInnerHTML={{ __html: msg.content }} />
+        {detectFormat(msg.content) === "HTML" ? (
+          <div dangerouslySetInnerHTML={{ __html: msg.content }} />
+        ) : detectFormat(msg.content) === "Markdown" ? (
+          <ReactMarkdown>{msg.content}</ReactMarkdown>
+        ) : (
+          <div>{msg.content}</div>
+        )}
       </CopilotMessage>
     );
   };
@@ -443,6 +494,17 @@ export const CerebralChatWithAudio = (props: ChatInputProps) => {
         style={{ marginTop: "15px" }}
         actions={
           <span style={{ display: "flex", alignItems: "center" }}>
+            <Button
+                aria-label="voice-input"
+                appearance="transparent"
+                icon={<TextClearFormatting20Regular />}
+                onClick={() => {
+                  setMessages([]);
+                  controlRef.current?.setInputText("");
+                  addBotMessage("Hi, I'm here to help! You can ask me questions using text or voice.");
+                }}
+            />
+            <Divider style={{ margin: "0 4px" }} vertical />
             <Button
               aria-label="voice-input"
               appearance="transparent"

@@ -70,7 +70,6 @@ const MaintenanceWorker = () => {
                 onClose={toggleCerebralDrawer} 
               />
             )}
-            onRenderFooterContent={onRenderCerebralFooterContent}
             isFooterAtBottom={true}
             hasCloseButton={true}
             closeButtonAriaLabel="Close"

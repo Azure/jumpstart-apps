@@ -180,7 +180,7 @@ const StoreManager = () => {
         <FluentProvider theme={webLightTheme}>
         <CopilotProvider mode='sidecar'>
           <Header callParentFunction={toggleCerebralDrawer}/>
-          <Panel
+            <Panel
             isOpen={isCerebralDrawerOpen}
             onDismiss={toggleCerebralDrawer}
             type={PanelType.custom}
@@ -188,18 +188,17 @@ const StoreManager = () => {
             headerText=""
             onRenderHeader={() => (
               <CerebralHeader 
-                title="Cerebral" 
-                onClose={toggleCerebralDrawer} 
+              title="Cerebral" 
+              onClose={toggleCerebralDrawer} 
               />
             )}
-            onRenderFooterContent={onRenderCerebralFooterContent}
             isFooterAtBottom={true}
             hasCloseButton={true}
             closeButtonAriaLabel="Close"
             isLightDismiss={true}            
             >
               <CerebralChatWithAudio {...({} as ChatInputProps)}/>
-          </Panel>          
+            </Panel>          
           <Main>
           <Stack.Item>
               <SideMenu />
