@@ -244,7 +244,7 @@ class LLM:
                 self.add_to_conversation(session_id, "user", question)
                 self.add_to_conversation(session_id, "assistant", response.choices[0].message.content)
             
-            return response.choices[0].message.content
+            return self.clean_html_output(response.choices[0].message.content) 
             
         except Exception as e:
             logger.error(f"Error in chat_hello: {str(e)}")
