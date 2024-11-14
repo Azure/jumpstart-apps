@@ -86,9 +86,10 @@ class VideoProcessor:
 
         # Load YOLOv8 model
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.yolo_model = YOLO(MODEL_PATH + "\\yolov8n.pt", task='detect').to("cpu")
+        yolo_model_path = os.path.join(MODEL_PATH, "yolov8n.pt")
+        self.yolo_model = YOLO(yolo_model_path, task='detect').to(device)
 
-        print("Model: {MODEL_PATH}")
+        print(f"Model: {MODEL_PATH}")
         print(f"Using device: {device}")
         print(f"Model loaded on: {next(self.yolo_model.parameters()).device}")
 

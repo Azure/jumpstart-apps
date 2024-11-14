@@ -31,6 +31,7 @@ class VideoProcessor:
         self.last_activity = time.time()
         self.inactivity_threshold = 30  # 30 seconds
         self.debug = debug
+        self.last_reset = time.time()
 
         if any(point != (0, 0) for point in self.line_points):
             self.initialize_counter()
@@ -45,6 +46,7 @@ class VideoProcessor:
             view_in_counts=self.debug,
             view_out_counts=self.debug
         )
+        self.last_reset = time.time()
 
     def update_debug(self, debug):
         self.debug = debug 
@@ -110,6 +112,11 @@ class VideoProcessor:
             else:
                 start_time = time.time()
                 tracks = self.model.track(frame, persist=True, classes=self.classes_to_count, verbose=False)
+
+                # Rese to avoid keeping history
+                if time.time() - self.last_reset > 5:
+                    self.initialize_counter()
+
                 processed_frame = self.counter.start_counting(frame, tracks)
 
                 processing_time = (time.time() - start_time) * 1000
