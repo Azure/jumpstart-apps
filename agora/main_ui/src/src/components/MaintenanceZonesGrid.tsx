@@ -79,9 +79,9 @@ const MaintenanceZonesGrid: React.FC<MaintenanceZonesGridProps> = (props) => {
       isSorted: false,
       isSortedDescending: false,
       onColumnClick: onColumnClick,
-      onRender: (item: IGridItem) => (
-        <Link href={`#/camera/${item.camera}`}>{item.camera}</Link>
-      ),
+      // onRender: (item: IGridItem) => (
+      //   <Link href={`#/camera/${item.camera}`}>{item.camera}</Link>
+      // ),
     },
     {
       key: 'cameraDescription',
