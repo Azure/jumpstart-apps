@@ -211,7 +211,6 @@ const CamerasZones: React.FC<CameraPanelProps> = ({ isOpen, onDismiss, onSave })
                 onClose={toggleCerebralDrawer} 
               />
             )}
-            onRenderFooterContent={onRenderCerebralFooterContent}
             isFooterAtBottom={true}
             hasCloseButton={true}
             closeButtonAriaLabel="Close"
