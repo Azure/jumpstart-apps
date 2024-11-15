@@ -36,9 +36,8 @@ class VideoCapture:
                     return
             
            # Save the frame if it is at the specified interval
-            if self.frame_count % self.frame_interval == 0:
+            if self.skip_fps == -1 or self.frame_count % self.frame_interval == 0:
                 self.q.put(cv2.resize(frame, (640, 360)))
-                self.state=ret
 
             self.frame_count += 1
             self.state=ret
@@ -48,4 +47,5 @@ class VideoCapture:
 
     def stop(self):
         self.running = False
+        self.cap.release()
         self.t.join()  # Wait for the thread to exit

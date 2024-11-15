@@ -5,3 +5,5 @@ openvino==2024.4.0
 scipy==1.13.1
 prometheus_client==0.21.0
 Pillow==11.0.0
+ultralytics==8.3.4
+lapx==0.5.11

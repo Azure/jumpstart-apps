@@ -34,10 +34,7 @@ spec:
           - |
             tdnf update -y
             tdnf install wget -y
-            wget -O /tmp/models/person-detection-retail-0013.bin https://download.microsoft.com/download/ad457769-60e2-4e4b-8756-8d9fada0b60a/person-detection-retail-0013.bin
-            wget -O /tmp/models/person-detection-retail-0013.xml https://download.microsoft.com/download/ad457769-60e2-4e4b-8756-8d9fada0b60a/person-detection-retail-0013.xml
-            wget -O /tmp/models/person-reidentification-retail-0287.bin https://download.microsoft.com/download/ad457769-60e2-4e4b-8756-8d9fada0b60a/person-reidentification-retail-0287.bin
-            wget -O /tmp/models/person-reidentification-retail-0287.xml https://download.microsoft.com/download/ad457769-60e2-4e4b-8756-8d9fada0b60a/person-reidentification-retail-0287.xml
+            wget -O /tmp/models/yolov8n.pt download.microsoft.com/download/ad457769-60e2-4e4b-8756-8d9fada0b60a/yolov8n.pt
             wget -O /tmp/models/age-gender-recognition-retail-0013.bin https://download.microsoft.com/download/ad457769-60e2-4e4b-8756-8d9fada0b60a/age-gender-recognition-retail-0013.bin
             wget -O /tmp/models/age-gender-recognition-retail-0013.xml https://download.microsoft.com/download/ad457769-60e2-4e4b-8756-8d9fada0b60a/age-gender-recognition-retail-0013.xml
         volumeMounts:

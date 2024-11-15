@@ -23,7 +23,7 @@ CORS(app, resources={r"/*": {"origins": "*", "methods": ["GET", "POST", "PUT"]}}
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 det_model = YOLO(MODEL_PATH).to(device)
 
-print("Model: {MODEL_PATH}")
+print(f"Model: {MODEL_PATH}")
 print(f"Using device: {device}")
 print(f"Model loaded on: {next(det_model.model.parameters()).device}")
 

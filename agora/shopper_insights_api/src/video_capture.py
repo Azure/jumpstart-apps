@@ -11,10 +11,10 @@ class VideoCapture:
         self.q = queue.Queue(maxsize=queue_size)
         self.lock = threading.Lock()
         self.running = True  # Flag to indicate if the thread should keep running
-        self.t = threading.Thread(target=self._reader)
-        self.t.daemon = True
         self.skip_fps = skip_fps
         self.frame_count = 0
+        self.t = threading.Thread(target=self._reader)
+        self.t.daemon = True
         self.total_frames = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT)) 
         self.frame_interval = int(self.cap.get(cv2.CAP_PROP_FPS) / self.skip_fps)
         self.t.start()
@@ -34,8 +34,8 @@ class VideoCapture:
                 time.sleep(0.01)
                 if not self.running:
                     return
-                
-            # Save the frame if it is at the specified interval
+            
+           # Save the frame if it is at the specified interval
             if self.skip_fps == -1 or self.frame_count % self.frame_interval == 0:
                 self.q.put(cv2.resize(frame, (640, 360)))
 
@@ -47,4 +47,5 @@ class VideoCapture:
 
     def stop(self):
         self.running = False
+        self.cap.release()
         self.t.join()  # Wait for the thread to exit
