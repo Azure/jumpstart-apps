@@ -1,15 +1,29 @@
-# kind: PersistentVolumeClaim
-# apiVersion: v1
-# metadata:
-#   name: acsa-pvc
-#   namespace: contoso-hypermarket
-# spec:
-#   accessModes:
-#     - ReadWriteMany
-#   resources:
-#     requests:
-#       storage: 10Gi
-#   storageClassName: cloud-backed-sc
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: acsa-pvc
+  namespace: contoso-hypermarket
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: cloud-backed-sc
+---
+apiVersion: "arccontainerstorage.azure.net/v1"
+kind: EdgeSubvolume
+metadata:
+  name: videos
+  namespace: contoso-hypermarket
+spec:
+  edgevolume: acsa-pvc
+  path: videos #Don't use a preceding slash.
+  auth:
+    authType: MANAGED_IDENTITY
+  storageaccountendpoint: https://{{ .Values.storageAccount }}.blob.core.windows.net/
+  container: shopper-videos
+  ingestPolicy: edgeingestpolicy-default
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -61,7 +75,7 @@ spec:
         - name: FLASK_PORT
           value: "5001"
         - name: ENABLE_SAVING
-          value: "False"
+          value: "True"
         - name: PROCESSOR_SKIP_FPS
           value: "5"
         {{- if (lookup "v1" "Namespace" "" "gpu-operator") }}
@@ -72,17 +86,17 @@ spec:
         volumeMounts:
         - mountPath: /tmp/models
           name: models-volume
-        # - mountPath: /usr/src/app/detected_persons
-        #   name: blob
+        - mountPath: /usr/src/app/detected_persons
+          name: blob
         - mountPath: /usr/src/app/detected_frames
           name: frames-volume
       volumes:
       - name: models-volume
         persistentVolumeClaim:
           claimName: shopper-model-pvc
-      # - name: blob
-      #   persistentVolumeClaim:
-      #     claimName: acsa-pvc
+      - name: blob
+        persistentVolumeClaim:
+          claimName: acsa-pvc
       - name: frames-volume
         persistentVolumeClaim:
           claimName: frames-pvc

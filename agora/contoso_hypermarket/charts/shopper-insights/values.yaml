@@ -122,6 +122,8 @@ tolerations: []
 
 affinity: {}
 
+storageAccount: ""
+
 # GPU Toolkit and Device Plugin configuration
 toolkit:
   env:

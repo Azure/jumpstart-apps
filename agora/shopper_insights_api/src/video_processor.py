@@ -334,6 +334,8 @@ class VideoProcessor:
                     # Update area presence if any areas are set
                     if self.restricted_areas and len(self.restricted_areas) > 0:
                         self.update_area_presence(person_hash, age, bbox, frame.shape, current_time)
+
+                    self.save_detected_person(frame, bbox, person_hash)
                     
                     # Draw bounding box and information
                     color = (0, 255, 0)
