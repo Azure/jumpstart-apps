@@ -12,6 +12,11 @@ spec:
       labels:
         app: footfall-ai-api
     spec:
+      {{- if (lookup "v1" "Namespace" "" "gpu-operator") }}
+      nodeSelector:
+        nvidia.com/gpu.present: "true"     # Ensures pods are scheduled on GPU-enabled nodes
+      runtimeClassName: nvidia
+      {{- end }}
       initContainers:
       - name: init-download-model
         image: mcr.microsoft.com/cbl-mariner/base/core:2.0   
@@ -27,7 +32,7 @@ spec:
           mountPath: /tmp/models
       containers:
       - name: footfall-ai-api
-        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}{{if (lookup "v1" "Namespace" "" "gpu-operator") }}-gpu{{ end }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         ports:
         - containerPort: 5000
