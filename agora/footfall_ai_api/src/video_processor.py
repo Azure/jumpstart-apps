@@ -81,11 +81,14 @@ class VideoProcessor:
 
     def stop(self):
         self.running = False
-        if self.process_thread:
-            self.process_thread.join()
+        self.fps = 0
         if self.vs:
             self.vs.stop()
-        print(f"Stopped processing thread for video {self.index}")
+
+        if self.enable_saving and self.video_creation_thread:
+            self.video_creation_thread.join()
+            
+        print(f"Stopped processing thread for video {self.name}")
 
     def process_frames(self):
         processing_times = collections.deque(maxlen=200)

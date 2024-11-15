@@ -199,3 +199,4 @@ agora/cerebral_api/src/.cache
 /agora/contoso_hypermarket/docker-compose/models
 /agora/contoso_hypermarket/docker-compose/samples
 /agora/shopper_insights_api/src/models
+/.vscode

@@ -47,4 +47,5 @@ class VideoCapture:
 
     def stop(self):
         self.running = False
+        self.cap.release()
         self.t.join()  # Wait for the thread to exit
