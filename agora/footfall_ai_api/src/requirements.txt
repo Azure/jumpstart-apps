@@ -2,5 +2,5 @@ ultralytics==8.3.4
 Flask==3.0.3
 shapely==2.0.6
 opencv-python-headless==4.10.0.84
-lapx==0.5.10.post1
+lapx==0.5.11
 flask-cors==5.0.0

@@ -31,15 +31,15 @@ class VideoProcessor:
         self.skip_fps = skip_fps
 
         MODEL_PATH = os.getenv("MODEL_PATH", ".\\models")
+        print(f"Model: {MODEL_PATH}")
 
         # Initialize YOLO model
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        print(f"Using device: {device}")
+        
         yolo_model_path = os.path.join(MODEL_PATH, "yolov8n.pt")
         self.model = YOLO(yolo_model_path, task='detect').to(device)
         self.min_confidence = 0.6
-
-        print(f"Model: {MODEL_PATH}")
-        print(f"Using device: {device}")
         print(f"Model loaded on: {next(self.model.parameters()).device}")
 
         # Initialize OpenVINO age detection
