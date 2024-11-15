@@ -63,7 +63,7 @@ spec:
         - name: ENABLE_SAVING
           value: "False"
         - name: PROCESSOR_SKIP_FPS
-          value: "15"
+          value: "5"
         {{- if (lookup "v1" "Namespace" "" "gpu-operator") }}
         resources:
           limits:
