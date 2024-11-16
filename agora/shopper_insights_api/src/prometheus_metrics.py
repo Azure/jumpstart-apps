@@ -78,8 +78,6 @@ class PrometheusMetrics:
         for camera_name, detection_data in all_camera_data.items():
             # Update basic metrics
             self.total_persons.labels(camera=camera_name).set(detection_data['detected_persons'])
-            self.total_shoppers.labels(camera=camera_name).set(detection_data['total_shoppers'])
-            self.current_shoppers.labels(camera=camera_name).set(detection_data['current_shopper'])
             self.fps.labels(camera=camera_name).set(detection_data['fps'])
             
             # Update age metrics
@@ -90,6 +88,8 @@ class PrometheusMetrics:
             # Update area statistics
             for area_id, stats in detection_data['area_stats'].items():
                 metric = self._get_area_metric(area_id, camera_name)
+                self.total_shoppers.labels(camera=camera_name).set(stats['total_count'])
+                self.current_shoppers.labels(camera=camera_name).set(stats['current_count'])
                 metric.labels(camera=camera_name).set(stats['current_count'])
                 metric.labels(camera=camera_name).set(stats['total_count'])
 
@@ -98,11 +98,17 @@ class PrometheusMetrics:
                 for times in age_data.items():
                     if not times or len(times) == 0:
                         continue
-                    total_time = sum(time.get('end_time', 0) - time.get('start_time', 0) for time in times if isinstance(time, dict))
-                    total_entries = len(times)
+
+                    # Calcualte the Average time spent in area - Only consider valid times if the difference is greater than 1 second
+                    valid_times = [time for time in times if isinstance(time, dict) and (time.get('end_time', 0) - time.get('start_time', 0)) > 1]
+                    total_time = sum(time.get('end_time', 0) - time.get('start_time', 0) for time in valid_times)
+                    total_entries = len(valid_times)
+                    average_time = total_time / total_entries if total_entries > 0 else 0
+
+                    # Get the Age group of the shoppers
                     age = times[1].get('age', 0)
                     age_group = int(age // 10) * 10
-                    average_time = total_time / total_entries if total_entries > 0 else 0
+
                     metric_key = f'time_avg_age_{age_group}_{camera_name.replace(" ", "_")}'
                     if metric_key not in self.time_in_area_avg_age:
                         self.time_in_area_avg_age[metric_key] = Gauge(

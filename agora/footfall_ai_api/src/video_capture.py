@@ -1,3 +1,4 @@
+import os
 import cv2
 import time
 import threading
@@ -17,6 +18,7 @@ class VideoCapture:
         self.t.daemon = True
         self.total_frames = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT)) 
         self.frame_interval = int(self.cap.get(cv2.CAP_PROP_FPS) / self.skip_fps)
+        self.resize = os.getenv('FRAME_RESIZE', '640')
         self.t.start()
 
     def _reader(self):
@@ -37,7 +39,12 @@ class VideoCapture:
             
            # Save the frame if it is at the specified interval
             if self.skip_fps == -1 or self.frame_count % self.frame_interval == 0:
-                self.q.put(cv2.resize(frame, (640, 360)))
+                if self.resize == '640':
+                    frame = cv2.resize(frame, (640, 360))
+                elif self.resize == '1280':
+                    frame = cv2.resize(frame, (1280, 720))
+                 # Add the frame with the desired resize    
+                self.q.put(frame)
 
             self.frame_count += 1
             self.state=ret

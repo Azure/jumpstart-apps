@@ -73,7 +73,8 @@ class VideoProcessor:
         self.detected_persons = 0
         self.current_shoppers = 0
         self.shoppers = 0
-        
+        self.current_shoppers_hashes = []
+
         # Thread control
         self.processed_frame_queue = Queue(maxsize=32)
         self.last_activity = time.time()
@@ -104,7 +105,7 @@ class VideoProcessor:
         if len(self.age_input_layer.shape) == 4:
             _, _, self.age_height, self.age_width = self.age_input_layer.shape
 
-    
+
     #------------------------------
     # Region for Thead methods  
     #------------------------------
@@ -147,8 +148,8 @@ class VideoProcessor:
         """
         center = ((bbox[0] + bbox[2]) / 2 / frame_shape[1],
                  (bbox[1] + bbox[3]) / 2 / frame_shape[0])
-                 
-        for i, area in enumerate(self.restricted_areas):
+     
+        for i, area in enumerate(self.restricted_areas): 
             if self.point_in_rectangle(center, area):
                 if person_hash not in self.people_near_areas:
                     self.people_near_areas[person_hash] = {}
@@ -159,11 +160,14 @@ class VideoProcessor:
                         "end_time": current_time,
                         "age": age
                     }
-                    self.area_stats[i]["current_count"] += 1
                     self.area_stats[i]["total_count"] += 1
                 else:
                     self.people_near_areas[person_hash][i]["end_time"] = current_time
                     self.people_near_areas[person_hash][i]["age"] = age
+
+                if person_hash not in self.current_shoppers_hashes:
+                    self.current_shoppers_hashes.append(person_hash)
+                    self.area_stats[i]["current_count"] = len(self.current_shoppers_hashes)
 
     def update_age_stats(self, person_hash, age):
         """
@@ -230,7 +234,6 @@ class VideoProcessor:
             print(f"Age extraction error: {e}")
             return 0
             
-
     def extract_features(self, detection):
         """
         Generate a simple feature vector using bounding box coordinates and confidence score.
@@ -313,6 +316,7 @@ class VideoProcessor:
 
                 self.detected_persons = len(track_ids)
                 
+                self.current_shoppers_hashes = []
                 # Process each detection
                 for box, track_id, conf in zip(boxes, track_ids, confidences):
                     x, y, w, h = box
