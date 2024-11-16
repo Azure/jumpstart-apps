@@ -25,7 +25,6 @@ ie = Core()
 def get_or_create_processor(camera_name, data):
     if camera_name not in video_processors:
         index = len(camera_name)
-        x1, y1, w, h = data['x'], data['y'], data['w'], data['h']
         debug = bool(data['debug'])
         video_url = data['video_url']
         video_processors[camera_name] = VideoProcessor(video_url, index, camera_name, PROCESSOR_SKIP_FPS, debug,enable_saving=ENABLE_SAVING)
