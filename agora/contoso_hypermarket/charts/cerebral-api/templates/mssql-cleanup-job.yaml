@@ -1,0 +1,74 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: mssql-sql-cleanup
+  namespace: contoso-hypermarket
+spec:
+  schedule: "0 * * * *"  # Run every hour
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: sql-cleanup
+            image: mcr.microsoft.com/mssql-tools
+            command: ["/bin/bash"]
+            args:
+              - "-c"
+              - |
+                # Wait for SQL Server to be available
+                until /opt/mssql-tools/bin/sqlcmd -S ${SQL_SERVER} -U ${SQL_USERNAME} -P ${SQL_PASSWORD} -Q "SELECT 1" &> /dev/null
+                do
+                  echo "Waiting for SQL Server to be available..."
+                  sleep 10
+                done
+
+                # Execute cleanup on tables
+                /opt/mssql-tools/bin/sqlcmd -S ${SQL_SERVER} -U ${SQL_USERNAME} -P ${SQL_PASSWORD} -d ${SQL_DATABASE} -Q "
+                -- Keep only the latest 100 records in Sales table ordered by sale_date
+                WITH SalesToKeep AS (
+                    SELECT id
+                    FROM (
+                        SELECT id, ROW_NUMBER() OVER (ORDER BY sale_date DESC) as rn
+                        FROM Sales
+                    ) ranked
+                    WHERE rn <= 100
+                );
+                DELETE FROM Sales WHERE id NOT IN (SELECT id FROM SalesToKeep);
+
+                -- Keep only the latest 100 records in Inventory table ordered by date_time
+                WITH InventoryToKeep AS (
+                    SELECT id
+                    FROM (
+                        SELECT id, ROW_NUMBER() OVER (ORDER BY date_time DESC) as rn
+                        FROM Inventory
+                    ) ranked
+                    WHERE rn <= 100
+                );
+                DELETE FROM Inventory WHERE id NOT IN (SELECT id FROM InventoryToKeep);
+
+                -- Keep only the latest 100 records in DeviceMetrics table ordered by timestamp
+                WITH DeviceMetricsToKeep AS (
+                    SELECT id
+                    FROM (
+                        SELECT id, ROW_NUMBER() OVER (ORDER BY timestamp DESC) as rn
+                        FROM DeviceMetrics
+                    ) ranked
+                    WHERE rn <= 101
+                );
+                DELETE FROM DeviceMetrics WHERE id NOT IN (SELECT id FROM DeviceMetricsToKeep);
+                "
+            env:
+            - name: SQL_SERVER
+              value: "mssql-service"
+            - name: SQL_DATABASE
+              value: "RetailDB"
+            - name: SQL_USERNAME
+              value: "SA"
+            - name: SQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: azure-sqlpassword-secret
+                  key: azure-sqlpassword-secret
+          restartPolicy: OnFailure
