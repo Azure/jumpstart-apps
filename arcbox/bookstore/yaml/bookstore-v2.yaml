@@ -1,0 +1,37 @@
+---
+# Create bookstore-v2 Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bookstore-v2
+  namespace: bookstore
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bookstore
+      version: v2
+  template:
+    metadata:
+      labels:
+        app: bookstore
+        version: v2
+    spec:
+      serviceAccountName: bookstore
+      nodeSelector:
+        kubernetes.io/arch: amd64
+        kubernetes.io/os: linux
+      containers:
+        - name: bookstore
+          image: openservicemesh/bookstore:latest-main
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 14001
+              name: web
+          command: ["/bookstore"]
+          args: ["--port", "14001"]
+          env:
+            - name: BOOKWAREHOUSE_NAMESPACE
+              value: bookwarehouse
+            - name: IDENTITY
+              value: bookstore-v2
