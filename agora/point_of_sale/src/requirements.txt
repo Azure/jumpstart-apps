@@ -1,5 +1,5 @@
 Flask==3.0.3
-Jinja2==3.1.4
+Jinja2==3.1.5
 Werkzeug==3.0.6
 opencv-python==4.10.0.84
 psycopg2-binary==2.9.9
