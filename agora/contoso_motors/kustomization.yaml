@@ -5,3 +5,4 @@ resources:
 - contoso-motors-opc-helm-release.yaml
 - contoso-motors-rtsp-helm-release.yaml
 - contoso-motors-mqtt-helm-release.yaml
+- contoso-motors-influxdb-helm-release.yaml
