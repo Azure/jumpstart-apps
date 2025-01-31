@@ -6,3 +6,4 @@ resources:
 - contoso-motors-rtsp-helm-release.yaml
 - contoso-motors-mqtt-helm-release.yaml
 - contoso-motors-influxdb-helm-release.yaml
+- contoso-motors-flask-helm-release.yaml
