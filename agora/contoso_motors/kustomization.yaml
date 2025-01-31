@@ -3,3 +3,4 @@ kind: Kustomization
 resources:
 - contoso-motors-ovms-helm-release.yaml
 - contoso-motors-opc-helm-release.yaml
+- contoso-motors-rtsp-helm-release.yaml
