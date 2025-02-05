@@ -16,7 +16,7 @@ spec:
       retries: 3
   chart:
     spec:
-      chart: ./contoso_supermarket/operations/contoso_supermarket/charts/queue-monitoring-frontend
+      chart: ./agora/store_queue_monitoring_frontend/operations/charts
   values:
     acr_name: _acrName__
     branch_name: "staging"

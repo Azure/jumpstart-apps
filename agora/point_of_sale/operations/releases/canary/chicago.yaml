@@ -16,7 +16,7 @@ spec:
       retries: 3
   chart:
     spec:
-      chart: ./contoso_supermarket/operations/contoso_supermarket/charts/contosopos
+      chart: ./agora/point_of_sale/operations/charts
   values:
     acr_name: __acrName__
     branch_name: "canary"

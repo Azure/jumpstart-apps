@@ -16,7 +16,7 @@ spec:
       retries: 3
   chart:
     spec:
-      chart: ./contoso_supermarket/operations/freezer_monitoring
+      chart: ./agora/freezer_monitoring/operations/charts
   values:
     acr_name: __acrName__
     branch_name: "production"

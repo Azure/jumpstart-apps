@@ -16,7 +16,7 @@ spec:
       retries: 3
   chart:
     spec:
-      chart: ./contoso_supermarket/operations/contoso_supermarket/charts/cloudsync
+      chart: ./agora/pos_cloud_sync/operations/charts
   values:
     acr_name: __acrName__
     branch_name: "canary"
