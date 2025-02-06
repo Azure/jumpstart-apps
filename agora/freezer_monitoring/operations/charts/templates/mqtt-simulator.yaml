@@ -23,14 +23,14 @@ spec:
         imagePullPolicy: {{ .Values.simulator.mqttSimulator.imagePullPolicy }}
         args: 
           - "--file"
-          - "/jumpstart/settings.json"
+          - "/config/settings.json"
         env:
         - name: KUBERNETES_CLUSTER_DOMAIN
           value: {{ quote .Values.kubernetesClusterDomain }}
         resources: {}
         volumeMounts:
         - name: mqtt-simulator-config-volume
-          mountPath: /jumpstart
+          mountPath: /config
           readOnly: true
       volumes:
       - name: mqtt-simulator-config-volume
