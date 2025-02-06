@@ -23,7 +23,7 @@ spec:
         imagePullPolicy: {{ .Values.simulator.mqttSimulator.imagePullPolicy }}
         args: 
           - "--file"
-          - "/config/settings.json"
+          - "./config/settings.json"
         env:
         - name: KUBERNETES_CLUSTER_DOMAIN
           value: {{ quote .Values.kubernetesClusterDomain }}
