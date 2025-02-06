@@ -22,7 +22,7 @@ spec:
         imagePullPolicy: {{ .Values.broker.mqttBroker.imagePullPolicy }}
         args: 
           - "-c"
-          - "./mosquitto.conf"
+          - "./config/mosquitto.conf"
         env:
         - name: KUBERNETES_CLUSTER_DOMAIN
           value: {{ quote .Values.kubernetesClusterDomain }}
