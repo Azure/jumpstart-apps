@@ -3,4 +3,5 @@ name: influxdb
 description: A Helm chart to deploy InfluxDB and related components
 type: application
 version: 0.1.0
+appVersion: 0.2.0
 home: https://github.com/microsoft/jumpstart-agora-apps
