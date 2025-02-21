@@ -6,7 +6,7 @@ replicaCount: 1
 configFilePath: files/magnemotion.json
 
 image:
-  repository: jumpstartprod.azurecr.io/opc-simulator
+  repository: mcr.microsoft.com/jumpstart/agora/opc-simulator
   pullPolicy: IfNotPresent
   tag: "latest"
 
