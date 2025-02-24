@@ -1,0 +1,14 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: contoso-motors-rtsp-simulator
+  namespace: contoso-motors
+  annotations:
+    clusterconfig.azure.com/use-managed-source: "true"
+spec:
+  interval: 10m
+  timeout: 20m
+  releaseName: contoso-motors-rtsp-simulator
+  chart:
+    spec:
+      chart: ./agora/contoso_motors/charts/rtsp-simulator
