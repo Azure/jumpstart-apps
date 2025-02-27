@@ -3,3 +3,8 @@
 # Declare variables to be passed into your templates.
 
 influxDBEndpoint: "http://influxdb.contoso-motors.svc.cluster.local:8086"
+influxPasswordSecret: influxdb-pass
+image:
+  repository: mcr.microsoft.com/azurelinux/base/influxdb
+  pullPolicy: IfNotPresent
+  tag: "2.7"
