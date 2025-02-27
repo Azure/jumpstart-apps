@@ -161,7 +161,8 @@ spec:
       serviceAccount: contosoba    
       containers:
       - name: influxdb
-        image: influxdb:latest
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
         resources:
           limits:
             memory: "2Gi"
