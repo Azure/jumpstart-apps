@@ -64,38 +64,23 @@ Freezer Monitor combines a MQTT broker and MQTT simulator to simulate the sendin
 1. tag the images for ACR
 
     ```shell
-    docker tag js/mqtt-broker jumpstartagora.azurecr.io/contoso-supermarket/mqtt-broker
-    docker tag js/mqtt-simulator jumpstartagora.azurecr.io/contoso-supermarket/mqtt-simulator
+    docker tag js/mqtt-broker mcr.microsoft.com/jumpstart/agora/freezer_monitoring_mqtt_broker
+    docker tag js/mqtt-simulator mcr.microsoft.com/jumpstart/agora/freezer_monitoring_mqtt_simulator
     ```
-
-    ### Updated naming conventions for jumpstart
-    
-    - jumpstartagora.azurecr.io/contoso-supermarket/<SERVICE-NAME>. For example:
-        
-        `docker tag js/mqtt-broker jumpstartagora.azurecr.io/contoso-supermarket/mqtt-broker`
-
-    - Please use hyphens and not underscore. In the case of the pos service, no need since it's only one word.
-        
-        `docker tag js/pos jumpstartagora.azurecr.io/contoso-supermarket/pos` 
-    
-    - The "latest" tag is the default. In case you want to test various versions, please tag it accordingly. For example:
-
-        `jumpstartagora.azurecr.io/contoso-supermarket/freezer-monitor:0.1.1`
-
 
 2. Push images to MCR
     ```shell
-    docker push jumpstartagora.azurecr.io/contoso-supermarket/mqtt-broker
-    docker push jumpstartagora.azurecr.io/contoso-supermarket/mqtt-simulator
+    docker push mcr.microsoft.com/jumpstart/agora/freezer_monitoring_mqtt_broker
+    docker push mcr.microsoft.com/jumpstart/agora/freezer_monitoring_mqtt_simulator
     ```
 
     ### Local AKS EE deployment - All-in-one commands for convenience
     
     ```shell
-    docker build -t js/mqtt-broker .\mqtt-broker\.; docker tag js/mqtt-broker jumpstartagora.azurecr.io/contoso-supermarket ; docker push jumpstartagora.azurecr.io/contoso-supermarket
+    docker build -t js/mqtt-broker .\mqtt-broker\.; docker tag js/mqtt-broker mcr.microsoft.com/jumpstart/agora/freezer_monitoring_mqtt_broker ; docker push mcr.microsoft.com/jumpstart/agora/freezer_monitoring_mqtt_broker
     kubectl rollout restart deployment mqtt-broker
     
-    docker build -t js/mqtt-simulator .\mqtt-simulator\.; docker tag js/mqtt-simulator jumpstartagora.azurecr.io/contoso-supermarket/mqtt-simulator ; docker push jumpstartagora.azurecr.io/contoso-supermarket/mqtt-simulator
+    docker build -t js/mqtt-simulator .\mqtt-simulator\.; docker tag js/mqtt-simulator mcr.microsoft.com/jumpstart/agora/freezer_monitoring_mqtt_simulator ; docker push mcr.microsoft.com/jumpstart/agora/freezer_monitoring_mqtt_simulator
     kubectl rollout restart deployment mqtt-simulator
     ```
 
