@@ -1,376 +1,87 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: virtual-rtsp-helmet
-  namespace: {{ .Release.Namespace }}
-  labels:
-    app.kubernetes.io/name: "rtsp"
-    app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
-    app.kubernetes.io/instance: {{ .Release.Name | quote }}
-    app.kubernetes.io/version: {{ .Chart.AppVersion }}
-    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+  name: rtsp-stream-aisle
 spec:
-  replicas: 1
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: virtual-rtsp-helmet
-  minReadySeconds: 10
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxUnavailable: 1
-      maxSurge: 1
+      app: rtsp-stream-aisle
   template:
     metadata:
       labels:
-        app: virtual-rtsp-helmet
+        app: rtsp-stream-aisle
     spec:
       initContainers:
         - name: init-samples
           image: alpine
           command:
-          - wget
+          - wget 
           - "-O"
-          - "/samples/helmet.mp4"
-          - https://jumpstartprodsg.blob.core.windows.net/video/agora/helmet-detection.mp4
+          - "/samples/aisle.mp4"
+          - https://download.microsoft.com/download/b89058d8-f51e-4cb9-a4e0-ec6a85a39863/supermarket-aisle.mp4
           volumeMounts:
-          - name: tmp-samples
+          - name: video-storage
             mountPath: /samples
       containers:
-        - name: virtual-rtsp-helmet
-          image: "jumpstartprod.azurecr.io/contoso-motors-rtsp:latest"
-          imagePullPolicy: Always
+        - name: rtsp-stream
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: 8554
           env:
-            - name: SOURCE_URL
-              value: "file:///samples/helmet.mp4"
+          - name: SOURCE_URL
+            value: "file:///samples/aisle.mp4"
           volumeMounts:
-            - name: tmp-samples
-              mountPath: /samples
-      volumes:
-        - name: tmp-samples
-          emptyDir: { }
+          - mountPath: /samples
+            name: video-storage
+      volumes: 
+      - name: video-storage
+        persistentVolumeClaim:
+          claimName: video-storage
+
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  name: virtual-rtsp-helmet-svc
-  namespace: {{ .Release.Namespace }}
-  labels:
-    app.kubernetes.io/name: "rtsp"
-    app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
-    app.kubernetes.io/instance: {{ .Release.Name | quote }}
-    app.kubernetes.io/version: {{ .Chart.AppVersion }}
-    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
-    app: virtual-rtsp-helmet
-spec:
-  ports:
-    - port: 8554
-      targetPort: 8554
-      name: rtsp
-      protocol: TCP
-  selector:
-    app: virtual-rtsp-helmet
----
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: virtual-rtsp-welding
-  namespace: {{ .Release.Namespace }}
-  labels:
-    app.kubernetes.io/name: "rtsp"
-    app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
-    app.kubernetes.io/instance: {{ .Release.Name | quote }}
-    app.kubernetes.io/version: {{ .Chart.AppVersion }}
-    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+  name: rtsp-stream-zoom
 spec:
-  replicas: 1
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: virtual-rtsp-welding
-  minReadySeconds: 10
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxUnavailable: 1
-      maxSurge: 1
+      app: rtsp-stream-zoom
   template:
     metadata:
       labels:
-        app: virtual-rtsp-welding
+        app: rtsp-stream-zoom
     spec:
       initContainers:
         - name: init-samples
-          image: alpine
-          command:
-          - wget
-          - "-O"
-          - "/samples/welding.mp4"
-          - https://jumpstartprodsg.blob.core.windows.net/video/agora/welding.mp4
+          image: mcr.microsoft.com/cbl-mariner/base/core:2.0
+          command: 
+          - sh
+          - -c
+          - |
+            tdnf update -y
+            tdnf install wget -y
+            wget -O /samples/zoom.mp4 https://download.microsoft.com/download/b89058d8-f51e-4cb9-a4e0-ec6a85a39863/supermarket-zoom.mp4 --no-check-certificate
           volumeMounts:
-          - name: tmp-samples
+          - name: video-storage
             mountPath: /samples
       containers:
-        - name: virtual-rtsp-welding
-          image: "jumpstartprod.azurecr.io/contoso-motors-rtsp:latest"
-          imagePullPolicy: Always
-          ports:
-            - containerPort: 8554
-          env:
-            - name: SOURCE_URL
-              value: "file:///samples/welding.mp4"
-          volumeMounts:
-            - name: tmp-samples
-              mountPath: /samples
+      - name: rtsp-stream-zoom
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - containerPort: 8554
+        env:
+        - name: SOURCE_URL
+          value: "file:///samples/zoom.mp4"
+        volumeMounts:
+        - mountPath: /samples
+          name: video-storage
       volumes:
-        - name: tmp-samples
-          emptyDir: { }
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: virtual-rtsp-welding-svc
-  namespace: {{ .Release.Namespace }}
-  labels:
-    app.kubernetes.io/name: "rtsp"
-    app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
-    app.kubernetes.io/instance: {{ .Release.Name | quote }}
-    app.kubernetes.io/version: {{ .Chart.AppVersion }}
-    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
-    app: virtual-rtsp-welding
-spec:
-  ports:
-    - port: 8554
-      targetPort: 8554
-      name: rtsp
-      protocol: TCP  
-  selector:
-    app: virtual-rtsp-welding
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: virtual-rtsp-pose
-  namespace: {{ .Release.Namespace }}
-  labels:
-    app.kubernetes.io/name: "rtsp"
-    app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
-    app.kubernetes.io/instance: {{ .Release.Name | quote }}
-    app.kubernetes.io/version: {{ .Chart.AppVersion }}
-    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: virtual-rtsp-pose
-  minReadySeconds: 10
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxUnavailable: 1
-      maxSurge: 1
-  template:
-    metadata:
-      labels:
-        app: virtual-rtsp-pose
-    spec:
-      initContainers:
-        - name: init-samples
-          image: alpine
-          command:
-          - wget
-          - "-O"
-          - "/samples/pose.mp4"
-          - https://jumpstartprodsg.blob.core.windows.net/video/agora/pose-estimation.mp4
-          volumeMounts:
-          - name: tmp-samples
-            mountPath: /samples
-      containers:
-        - name: virtual-rtsp-pose
-          image: "jumpstartprod.azurecr.io/contoso-motors-rtsp:latest"
-          imagePullPolicy: Always
-          ports:
-            - containerPort: 8554
-          env:
-            - name: SOURCE_URL
-              value: "file:///samples/pose.mp4"
-          volumeMounts:
-            - name: tmp-samples
-              mountPath: /samples
-      volumes:
-        - name: tmp-samples
-          emptyDir: { }
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: virtual-rtsp-pose-svc
-  namespace: {{ .Release.Namespace }}
-  labels:
-    app.kubernetes.io/name: "rtsp"
-    app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
-    app.kubernetes.io/instance: {{ .Release.Name | quote }}
-    app.kubernetes.io/version: {{ .Chart.AppVersion }}
-    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
-    app: virtual-rtsp-pose
-spec:
-  ports:
-    - port: 8554
-      targetPort: 8554
-      name: rtsp
-      protocol: TCP  
-  selector:
-    app: virtual-rtsp-pose
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: virtual-rtsp-object
-  namespace: {{ .Release.Namespace }}
-  labels:
-    app: virtual-rtsp-object
-    app.kubernetes.io/name: "rtsp"
-    app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
-    app.kubernetes.io/instance: {{ .Release.Name | quote }}
-    app.kubernetes.io/version: {{ .Chart.AppVersion }}
-    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: virtual-rtsp-object
-  minReadySeconds: 10
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxUnavailable: 1
-      maxSurge: 1
-  template:
-    metadata:
-      labels:
-        app: virtual-rtsp-object
-    spec:
-      initContainers:
-        - name: init-samples
-          image: alpine
-          command:
-          - wget
-          - "-O"
-          - "/samples/object-detection.mp4"
-          - https://jumpstartprodsg.blob.core.windows.net/video/agora/object-detection.mp4
-          volumeMounts:
-          - name: tmp-samples
-            mountPath: /samples
-      containers:
-        - name: virtual-rtsp-object
-          image: "jumpstartprod.azurecr.io/contoso-motors-rtsp:latest"
-          imagePullPolicy: Always
-          ports:
-            - containerPort: 8554
-          env:
-            - name: SOURCE_URL
-              value: "file:///samples/object-detection.mp4"
-          volumeMounts:
-            - name: tmp-samples
-              mountPath: /samples
-      volumes:
-        - name: tmp-samples
-          emptyDir: { }
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: virtual-rtsp-object-svc
-  namespace: {{ .Release.Namespace }}
-  labels:
-    app.kubernetes.io/name: "rtsp"
-    app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
-    app.kubernetes.io/instance: {{ .Release.Name | quote }}
-    app.kubernetes.io/version: {{ .Chart.AppVersion }}
-    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
-    app: virtual-rtsp-object
-spec:
-  ports:
-    - port: 8554
-      targetPort: 8554
-      name: rtsp
-      protocol: TCP  
-  selector:
-    app: virtual-rtsp-object
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: virtual-rtsp-bolt
-  namespace: {{ .Release.Namespace }}
-  labels:
-    app: virtual-rtsp-bolt
-    app.kubernetes.io/name: "rtsp"
-    app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
-    app.kubernetes.io/instance: {{ .Release.Name | quote }}
-    app.kubernetes.io/version: {{ .Chart.AppVersion }}
-    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: virtual-rtsp-bolt
-  minReadySeconds: 10
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxUnavailable: 1
-      maxSurge: 1
-  template:
-    metadata:
-      labels:
-        app: virtual-rtsp-bolt
-    spec:
-      initContainers:
-        - name: init-samples
-          image: alpine
-          command:
-          - wget
-          - "-O"
-          - "/samples/bolt-detection.mp4"
-          - https://jumpstartprodsg.blob.core.windows.net/video/agora/bolt-detection.mp4
-          volumeMounts:
-          - name: tmp-samples
-            mountPath: /samples
-      containers:
-        - name: virtual-rtsp-bolt
-          image: "agoraarmbladev.azurecr.io/kerberos/virtual-rtsp:latest"
-          imagePullPolicy: Always
-          ports:
-            - containerPort: 8554
-          env:
-            - name: SOURCE_URL
-              value: "file:///samples/bolt-detection.mp4"
-          volumeMounts:
-            - name: tmp-samples
-              mountPath: /samples
-      volumes:
-        - name: tmp-samples
-          emptyDir: { }
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: virtual-rtsp-bolt-svc
-  namespace: {{ .Release.Namespace }}
-  labels:
-    app.kubernetes.io/name: "rtsp"
-    app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
-    app.kubernetes.io/instance: {{ .Release.Name | quote }}
-    app.kubernetes.io/version: {{ .Chart.AppVersion }}
-    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
-    app: virtual-rtsp-bolt
-spec:
-  ports:
-    - port: 8554
-      targetPort: 8554
-      name: rtsp
-      protocol: TCP  
-  selector:
-    app: virtual-rtsp-bolt
+      - name: video-storage
+        persistentVolumeClaim:
+          claimName: video-storage
