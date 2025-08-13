@@ -33,7 +33,7 @@ langchain
 langchain-openai==0.2.6
 
 python-magic==0.4.27
-pypdf==4.0.1
+pypdf==6.0.0
 
 # Machine Learning and AI Processing
 tensorflow-text==2.14.0
